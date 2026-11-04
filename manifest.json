@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "FocusBridge",
+  "version": "0.1.0",
+  "description": "스크린리더가 읽지 못하는 버튼·링크의 이름을 탐지하고 복구합니다.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}

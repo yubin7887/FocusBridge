@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>FocusBridge fixture</title></head>
+<body>
+  <!-- data-expect: empty | meaningless | ok | skip(검사 대상 아님) -->
+
+  <!-- 이름 없음: 발표자료 예시들 -->
+  <a href="/notification" class="btn-nobtn btn-notification" data-expect="empty"></a>
+  <button class="w_48px" data-expect="empty"><svg viewBox="0 0 10 10"><path d="M0 0h10"/></svg></button>
+  <div class="header-notification"><span>알림</span>
+    <button class="icon-btn" data-expect="empty"><svg class="bell-icon"></svg></button></div>
+  <div role="button" tabindex="0" class="close" data-expect="empty"></div>
+  <a href="/x" data-expect="empty"><img src="logo.png"></a>
+  <button data-expect="empty"><i class="fa fa-search"></i></button>
+
+  <!-- 의미 없는 이름 -->
+  <button data-expect="meaningless">button</button>
+  <a href="/more" data-expect="meaningless">></a>
+  <button data-expect="meaningless" aria-label="아이콘"></button>
+  <a href="/y" data-expect="meaningless"><img src="x.png" alt="ic_search.png"></a>
+
+  <!-- 정상 -->
+  <button data-expect="ok">로그인</button>
+  <button aria-label="검색" data-expect="ok"><svg></svg></button>
+  <span id="lbl">장바구니</span><button aria-labelledby="lbl" data-expect="ok"></button>
+  <a href="/z" data-expect="ok"><img src="cart.png" alt="장바구니"></a>
+  <button title="설정" data-expect="ok"></button>
+  <input type="submit" value="전송" data-expect="ok">
+
+  <!-- 검사 대상 아님 -->
+  <button style="display:none" data-expect="skip"></button>
+  <button hidden data-expect="skip"></button>
+  <div aria-hidden="true"><button data-expect="skip"></button></div>
+  <a data-expect="skip"></a> <!-- href 없는 a는 링크가 아님 -->
+  <div inert><button data-expect="skip"></button></div>
+
+  <!-- 화면 밖이지만 스크린리더는 읽음 → 검사 대상 -->
+  <button style="position:absolute;left:-9999px" data-expect="empty"></button>
+
+  <!-- Shadow DOM -->
+  <div id="host" data-host></div>
+  <script>
+    const sr = document.getElementById('host').attachShadow({ mode: 'open' });
+    sr.innerHTML = '<button data-expect="empty"><svg></svg></button>';
+  </script>
+</body>
+</html>
