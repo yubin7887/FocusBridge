@@ -1,0 +1,121 @@
+{
+  "url": "https://lol.ps/statistics",
+  "collectedAt": "2026-11-06T06:16:41.927Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#menu-container > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "flex h-fit flex-row items-center gap-2 pl-2",
+        "href": "/",
+        "iconClass": "h-5 text-white",
+        "iconSrc": null,
+        "parentClass": "flex items-center gap-2 svelte-1v1292o",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 10,
+          "w": 106,
+          "h": 20
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F2",
+        "label": "홈",
+        "score": 100,
+        "candidates": []
+      },
+      "html": "<a class=\"flex h-fit flex-row items-center gap-2 pl-2\" href=\"/\"><svg fill=\"none\" viewBox=\"0 0 262 40\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" class=\"h-5 text-white\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" fill=\"#2F3130\" d=\"M18.2301 2.57684V16.2092H31.33"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#menu-container > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "cursor-pointer rounded p-2 hover:bg-psgr-deep desktop:hover:bg-primary-dark",
+        "href": null,
+        "iconClass": "h-5 w-5 text-white",
+        "iconSrc": null,
+        "parentClass": "ml-auto hidden items-center gap-1 half-hd:flex svelte-1v1292o",
+        "parentText": "데스크톱 앱 무료\n인기\n로그인",
+        "prevSiblingText": "로그인",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 913,
+          "y": 2,
+          "w": 36,
+          "h": 36
+        }
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": [
+          {
+            "label": "로그인",
+            "score": 10,
+            "evidence": {
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"cursor-pointer rounded p-2 hover:bg-psgr-deep desktop:hover:bg-primary-dark\"><svg fill=\"none\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\" class=\"h-5 w-5 text-white\"><path fill=\"currentColor\" d=\"M12 17q-2.075 0-3.537-1.463Q7 14.0"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#header-container > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "pointer-cursor absolute inset-y-0 right-0 flex items-center px-3 text-primary-medium dark:text-dark-primary-medium svelte-1m5ug72",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "relative svelte-1m5ug72 search-small search-default",
+        "parentText": "소환사 명\n+\n#KR1\n칼 애쉬 검색\n⌘\n+\nK\n검색창 단축키",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 531,
+          "y": 72,
+          "w": 44,
+          "h": 40
+        }
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": [
+          {
+            "label": "검색",
+            "score": 10,
+            "evidence": {
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button type=\"button\" class=\"pointer-cursor absolute inset-y-0 right-0 flex items-center px-3 text-primary-medium dark:text-dark-primary-medium svelte-1m5ug72\"><svg fill=\"none\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"20px\" height=\"20px\"><path fill=\"currentCol"
+    }
+  ]
+}

@@ -1,0 +1,656 @@
+{
+  "url": "https://www.coupang.com/",
+  "collectedAt": "2026-11-04T05:09:30.932Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wa-mycoupang-link",
+      "context": {
+        "tagName": "a",
+        "id": "wa-mycoupang-link",
+        "className": "",
+        "href": "https://mc.coupang.com/ssr/desktop/order/list",
+        "iconClass": "fw-h-[36px] fw-w-[36px] s1024:fw-h-[44px] s1024:fw-w-[44px]",
+        "iconSrc": "https://assets.coupangcdn.com/front/front-web-next/_next/static/media/person.07e45e52.png",
+        "parentClass": "my-coupang fw-group fw-relative fw-mx-[24px] fw-flex fw-items-center",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "주문목록취소/반품찜 리스트",
+        "rect": {
+          "x": 214,
+          "y": 39,
+          "w": 0,
+          "h": 36
+        }
+      },
+      "html": "<a id=\"wa-mycoupang-link\" href=\"https://mc.coupang.com/ssr/desktop/order/list\" data-log=\"{ id: 'mycoupang'}\"><img loading=\"lazy\" alt=\"\" class=\"fw-h-[36px] fw-w-[36px] s1024:fw-h-[44px] s1024:fw-w-[44px]\" src=\"https://assets.coupangcdn.com/front/front-web-next/_next/static/media/person.07e45e52.png\">"
+    },
+    {
+      "no": 2,
+      "status": "meaningless",
+      "role": "link",
+      "currentName": "0",
+      "selector": "#wa-cart-link",
+      "context": {
+        "tagName": "a",
+        "id": "wa-cart-link",
+        "className": "",
+        "href": "//cart.coupang.com/cartView.pang",
+        "iconClass": "fw-h-[36px] fw-w-[36px] s1024:fw-h-[44px] s1024:fw-w-[44px]",
+        "iconSrc": "https://assets.coupangcdn.com/front/front-web-next/_next/static/media/cart.ccef8f9e.png",
+        "parentClass": "cart w-mr-0 fw-relative fw-flex s1024:fw-mr-[10px]",
+        "parentText": "0",
+        "prevSiblingText": "",
+        "nextSiblingText": "장바구니에 담긴 상품이 없습니다.장바구니 전체보기",
+        "rect": {
+          "x": 238,
+          "y": 39,
+          "w": 0,
+          "h": 36
+        }
+      },
+      "html": "<a id=\"wa-cart-link\" href=\"//cart.coupang.com/cartView.pang\" data-log=\"{ id: 'cart' }\"><img loading=\"lazy\" src=\"https://assets.coupangcdn.com/front/front-web-next/_next/static/media/cart.ccef8f9e.png\" class=\"fw-h-[36px] fw-w-[36px] s1024:fw-h-[44px] s1024:fw-w-[44px]\" alt=\"\"><em id=\"headerCartCount\""
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged view-logged",
+        "href": "https://shop.coupang.com/cj/534314?source=brandstore_display_ads&adType=DA&eventId=43dt6AQvqUBlVZox&from=home_C1&traid=home_C1&trcid=11796897",
+        "iconClass": "main-today__bg today-bg4",
+        "iconSrc": "https://static.coupangcdn.com/wa/cmg_paperboy/image/1793692920184/1920_450.jpg",
+        "parentClass": "swiper-slide swiper-slide-next",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -1600,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/cj/534314?source=brandstore_display_ads&amp;adType=DA&amp;eventId=43dt6AQvqUBlVZox&amp;from=home_C1&amp;traid=home_C1&amp;trcid=11796897\" class=\"impression-logged view-logged\"><img loading=\"lazy\" class=\"main-today__bg today-bg4\" alt=\"\" src=\"https://static.coupangcdn"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged view-logged",
+        "href": "https://shop.coupang.com/A00597188/313152?source=brandstore_display_ads&adType=DA&eventId=pLcwpXCBPCYYetP4&from=home_C1&traid=home_C1&trcid=11795880",
+        "iconClass": "main-today__bg today-bg5",
+        "iconSrc": "https://static.coupangcdn.com/ma/cmg_paperboy/image/1793692864222/1920_450.jpg",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -1280,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/A00597188/313152?source=brandstore_display_ads&amp;adType=DA&amp;eventId=pLcwpXCBPCYYetP4&amp;from=home_C1&amp;traid=home_C1&amp;trcid=11795880\" class=\"impression-logged view-logged\"><img loading=\"lazy\" class=\"main-today__bg today-bg5\" alt=\"\" src=\"https://static.cou"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://login.coupang.com/login/login.pang?rtnUrl=https%3A%2Fmc.coupang.com%2Fssr&from=home_C1&traid=home_C1&trcid=812431326273",
+        "iconClass": "main-today__bg today-bg0",
+        "iconSrc": "https://img5c.coupangcdn.com/image/ccm/banner/5afbfaaa5f8012c265c0083e65add875.jpg",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -960,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://login.coupang.com/login/login.pang?rtnUrl=https%3A%2Fmc.coupang.com%2Fssr&amp;from=home_C1&amp;traid=home_C1&amp;trcid=812431326273\"><img loading=\"lazy\" class=\"main-today__bg today-bg0\" alt=\"\" src=\"https://img5c.coupangcdn.com/image/ccm/banner/5afbfaaa5f8012c265c0083e65add875.jpg\"><"
+    },
+    {
+      "no": 6,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5508&subSourceType=gm_crm_gwc1mainbnr_p1887_b1009044_c701771&sourceType=gm_crm_mlp&from=home_C1&traid=home_C1&trcid=812431329747",
+        "iconClass": "main-today__bg today-bg1",
+        "iconSrc": "https://static.coupangcdn.com/image/ccm/banner/141325ed76e444aa11c53e47139f4fb0.jpg",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -640,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5508&amp;subSourceType=gm_crm_gwc1mainbnr_p1887_b1009044_c701771&amp;sourceType=gm_crm_mlp&amp;from=home_C1&amp;traid=home_C1&amp;trcid=812431329747\"><img loading=\"lazy\" class=\"main-today__bg today-bg1\" alt=\"\" src=\"https://static.co"
+    },
+    {
+      "no": 7,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5311&subSourceType=gm_crm_gwc1mainbnr_p4762_b1009151_c703328&sourceType=gm_crm_mlp&from=home_C1&traid=home_C1&trcid=812431331941",
+        "iconClass": "main-today__bg today-bg2",
+        "iconSrc": "https://static.coupangcdn.com/image/ccm/banner/7e36192324f8bad1c05e3e4cd0e6015a.jpg",
+        "parentClass": "swiper-slide swiper-slide-prev",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -320,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5311&amp;subSourceType=gm_crm_gwc1mainbnr_p4762_b1009151_c703328&amp;sourceType=gm_crm_mlp&amp;from=home_C1&amp;traid=home_C1&amp;trcid=812431331941\"><img loading=\"lazy\" class=\"main-today__bg today-bg2\" alt=\"\" src=\"https://static.co"
+    },
+    {
+      "no": 8,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#todaysHot > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged view-logged",
+        "href": "https://shop.coupang.com/maeil/262113?source=brandstore_display_ads&adType=DA&eventId=TEHCage1SJjuz8bN&from=home_C1&traid=home_C1&trcid=11795866",
+        "iconClass": "main-today__bg today-bg3",
+        "iconSrc": "https://static.coupangcdn.com/ba/cmg_paperboy/image/1793599124773/C1_PC.jpg",
+        "parentClass": "swiper-slide swiper-slide-active",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 144,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/maeil/262113?source=brandstore_display_ads&amp;adType=DA&amp;eventId=TEHCage1SJjuz8bN&amp;from=home_C1&amp;traid=home_C1&amp;trcid=11795866\" class=\"impression-logged view-logged\"><img loading=\"lazy\" class=\"main-today__bg today-bg3\" alt=\"\" src=\"https://static.coupang"
+    },
+    {
+      "no": 9,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/cuckoo/424010?source=brandstore_display_ads&adType=DA&eventId=3R3WhT6N1mJDHVvi&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/wa/cmg_paperboy/image/1793346798538/C-Mid_PC.jpg",
+        "parentClass": "swiper-slide swiper-slide-next",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -779,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/cuckoo/424010?source=brandstore_display_ads&amp;adType=DA&amp;eventId=3R3WhT6N1mJDHVvi&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn.com/"
+    },
+    {
+      "no": 10,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/pulmuonefood/86323?source=brandstore_display_ads&adType=DA&eventId=Xg8liHJiZRQcIGIj&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/za/cmg_paperboy/image/1793274623347/513154PC.jpg",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -620,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/pulmuonefood/86323?source=brandstore_display_ads&amp;adType=DA&amp;eventId=Xg8liHJiZRQcIGIj&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn"
+    },
+    {
+      "no": 11,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/paldofood/526623?source=brandstore_display_ads&adType=DA&eventId=QbkSkvwJGmOfVDuk&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/ca/cmg_paperboy/image/1793586245986/C-Mid_PC.png",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -461,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/paldofood/526623?source=brandstore_display_ads&amp;adType=DA&amp;eventId=QbkSkvwJGmOfVDuk&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn.c"
+    },
+    {
+      "no": 12,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/lghnh/297720?source=brandstore_display_ads&adType=DA&eventId=2TBPF6tT3HLL5MoA&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/aa/cmg_paperboy/image/1793340544632/C-Mid_PC.jpg",
+        "parentClass": "swiper-slide",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -302,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/lghnh/297720?source=brandstore_display_ads&amp;adType=DA&amp;eventId=2TBPF6tT3HLL5MoA&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn.com/a"
+    },
+    {
+      "no": 13,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/A00081246/349345?source=brandstore_display_ads&adType=DA&eventId=J4qCj2RXYM78JC4K&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/pa/cmg_paperboy/image/1793255541261/177604_519847.jpg",
+        "parentClass": "swiper-slide swiper-slide-prev",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": -143,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/A00081246/349345?source=brandstore_display_ads&amp;adType=DA&amp;eventId=J4qCj2RXYM78JC4K&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn.c"
+    },
+    {
+      "no": 14,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "impression-logged",
+        "href": "https://shop.coupang.com/A00003619/533390?source=brandstore_display_ads&adType=DA&eventId=hJIVmfLS7TlFcCem&from=home_event_banner&traid=home_event_banner",
+        "iconClass": "banner-img",
+        "iconSrc": "https://static.coupangcdn.com/qa/cmg_paperboy/image/1793237479530/C-Mid_PC.jpg",
+        "parentClass": "swiper-slide swiper-slide-active",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 16,
+          "y": 2458,
+          "w": 159,
+          "h": 60
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/A00003619/533390?source=brandstore_display_ads&amp;adType=DA&amp;eventId=hJIVmfLS7TlFcCem&amp;from=home_event_banner&amp;traid=home_event_banner\" target=\"_blank\" class=\"impression-logged\"><img loading=\"lazy\" class=\"banner-img\" alt=\"\" src=\"https://static.coupangcdn.c"
+    },
+    {
+      "no": 15,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_digital > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/cuckoo/424010?source=brandstore_display_ads&adType=DA&eventId=SCjAEL3f33IBkVwV",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/aa/cmg_paperboy/image/1793346810554/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 3479,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/cuckoo/424010?source=brandstore_display_ads&amp;adType=DA&amp;eventId=SCjAEL3f33IBkVwV\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/aa/cmg_paperboy/image/1793346810554/CM_P"
+    },
+    {
+      "no": 16,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_food > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/paldofood/490661?source=brandstore_display_ads&adType=DA&eventId=QIA2WVpIlljKnVvc",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/za/cmg_paperboy/image/1793668078357/CM_PC.png",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 6034,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/paldofood/490661?source=brandstore_display_ads&amp;adType=DA&amp;eventId=QIA2WVpIlljKnVvc\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/za/cmg_paperboy/image/1793668078357/C"
+    },
+    {
+      "no": 17,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_living > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/pgkr/299445?source=brandstore_display_ads&adType=DA&eventId=W0kW1VHpT8zkxSCl",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/aa/cmg_paperboy/image/1793683665566/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 6889,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/pgkr/299445?source=brandstore_display_ads&amp;adType=DA&amp;eventId=W0kW1VHpT8zkxSCl\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/aa/cmg_paperboy/image/1793683665566/CM_PC."
+    },
+    {
+      "no": 18,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_health > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://pages.coupang.com/p/179035?adType=DA&eventId=R06nGdTfl2tOJHCk",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/sa/cmg_paperboy/image/1793282078450/520253_pc.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 7744,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://pages.coupang.com/p/179035?adType=DA&amp;eventId=R06nGdTfl2tOJHCk\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/sa/cmg_paperboy/image/1793282078450/520253_pc.jpg\"></a>"
+    },
+    {
+      "no": 19,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_beauty > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/dalba/243631?source=brandstore_display_ads&adType=DA&eventId=gL08qlmvsYxwr2Wt",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/ca/cmg_paperboy/image/1793594563412/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 12824,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/dalba/243631?source=brandstore_display_ads&amp;adType=DA&amp;eventId=gL08qlmvsYxwr2Wt\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/ca/cmg_paperboy/image/1793594563412/CM_PC"
+    },
+    {
+      "no": 20,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_baby > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/pgkr/299444?source=brandstore_display_ads&adType=DA&eventId=EZ8wanvRRjLP2yDQ",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/ra/cmg_paperboy/image/1793538990637/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 13728,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/pgkr/299444?source=brandstore_display_ads&amp;adType=DA&amp;eventId=EZ8wanvRRjLP2yDQ\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/ra/cmg_paperboy/image/1793538990637/CM_PC."
+    },
+    {
+      "no": 21,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_pets > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged",
+        "href": "https://shop.coupang.com/A00050502/267557?source=brandstore_display_ads&adType=DA&eventId=xmN1SX5OpjASHqvd",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/sa/cmg_paperboy/image/1793328234248/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 16361,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://shop.coupang.com/A00050502/267557?source=brandstore_display_ads&amp;adType=DA&amp;eventId=xmN1SX5OpjASHqvd\" target=\"_blank\" class=\"category-best-adzerk impression-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/sa/cmg_paperboy/image/1793328234248/C"
+    },
+    {
+      "no": 22,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#categoryBest_travel > dl:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "category-best-adzerk impression-logged view-logged",
+        "href": "https://pages.coupang.com/p/78273?adType=DA&eventId=kuYWofQUJRouXUl1",
+        "iconClass": null,
+        "iconSrc": "https://static.coupangcdn.com/ba/cmg_paperboy/image/1793542005841/CM_PC.jpg",
+        "parentClass": "fw-ml-[-16px] fw-mt-0 s600:fw-ml-0 s600:fw-mt-[20px]",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 18077,
+          "w": 304,
+          "h": 30
+        }
+      },
+      "html": "<a href=\"https://pages.coupang.com/p/78273?adType=DA&amp;eventId=kuYWofQUJRouXUl1\" target=\"_blank\" class=\"category-best-adzerk impression-logged view-logged\"><img loading=\"lazy\" alt=\"\" height=\"100\" src=\"https://static.coupangcdn.com/ba/cmg_paperboy/image/1793542005841/CM_PC.jpg\"></a>"
+    },
+    {
+      "no": 23,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wa-footer > div:nth-of-type(5) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "facebook",
+        "href": "https://www.facebook.com/Coupang.korea",
+        "iconClass": null,
+        "iconSrc": "https://assets.coupangcdn.com/front/front-web-next/_next/static/media/f.34bde318.png",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 16,
+          "y": 19523,
+          "w": 34,
+          "h": 34
+        }
+      },
+      "html": "<a href=\"https://www.facebook.com/Coupang.korea\" target=\"_blank\" class=\"facebook\"><img loading=\"lazy\" src=\"https://assets.coupangcdn.com/front/front-web-next/_next/static/media/f.34bde318.png\" alt=\"\" width=\"30\" height=\"30\"></a>"
+    },
+    {
+      "no": 24,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wa-footer > div:nth-of-type(5) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "blog",
+        "href": "https://news.coupang.com/",
+        "iconClass": "fw-rounded-full",
+        "iconSrc": "https://assets.coupangcdn.com/front/front-web-next/_next/static/media/b.637cda1c.png",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 58,
+          "y": 19523,
+          "w": 34,
+          "h": 34
+        }
+      },
+      "html": "<a href=\"https://news.coupang.com/\" target=\"_blank\" class=\"blog\"><img loading=\"lazy\" src=\"https://assets.coupangcdn.com/front/front-web-next/_next/static/media/b.637cda1c.png\" class=\"fw-rounded-full\" alt=\"\" width=\"30\" height=\"30\"></a>"
+    },
+    {
+      "no": 25,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wa-footer > div:nth-of-type(5) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "instagram",
+        "href": "https://www.instagram.com/coupang",
+        "iconClass": "fw-rounded-full fw-bg-white",
+        "iconSrc": "https://assets.coupangcdn.com/front/front-web-next/_next/static/media/s.a7aca4ea.png",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 100,
+          "y": 19523,
+          "w": 34,
+          "h": 34
+        }
+      },
+      "html": "<a href=\"https://www.instagram.com/coupang\" target=\"_blank\" class=\"instagram\"><img src=\"https://assets.coupangcdn.com/front/front-web-next/_next/static/media/s.a7aca4ea.png\" alt=\"\" loading=\"lazy\" class=\"fw-rounded-full fw-bg-white\" width=\"30\" height=\"30\"></a>"
+    }
+  ]
+}

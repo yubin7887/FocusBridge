@@ -1,0 +1,154 @@
+[
+  {
+    "site": "lolps-statistics",
+    "no": 1,
+    "kind": "function",
+    "answer": "홈",
+    "expected": [
+      "홈"
+    ],
+    "note": "로고 svg 링크, href=\"/\""
+  },
+  {
+    "site": "lolps-statistics",
+    "no": 2,
+    "kind": "function",
+    "answer": "테마 전환",
+    "expected": "AI",
+    "note": "해 모양 아이콘(light mode) 버튼, 로그인 옆. 사전에 없는 기능이고 report에 단서 없음"
+  },
+  {
+    "site": "lolps-statistics",
+    "no": 3,
+    "kind": "function",
+    "answer": "검색",
+    "expected": "AI",
+    "note": "소환사 검색창 안의 버튼. 단서가 부모 class(search-small)뿐이라 규칙상 확정 불가"
+  },
+  {
+    "site": "dongguk-cs",
+    "no": 1,
+    "kind": "function",
+    "answer": "더보기",
+    "expected": "AI",
+    "note": "뉴스 탭 목록 옆 + 아이콘(bi-plus-lg), href=\"#none\". plus는 사전에 없음(추가/펼치기와 구분 불가)"
+  },
+  {
+    "site": "dongguk-cs",
+    "no": 2,
+    "kind": "function",
+    "answer": "더보기",
+    "expected": "AI",
+    "note": "웹진 목록으로 가는 + 아이콘(bi-plus), 부모 class plus"
+  },
+  {
+    "site": "inflearn",
+    "no": 1,
+    "kind": "function",
+    "answer": "이전",
+    "expected": [
+      "이전"
+    ],
+    "note": "슬라이드 좌우 버튼 2개 중 첫째, 처음 위치라 비활성(disabled)"
+  },
+  {
+    "site": "inflearn",
+    "no": 2,
+    "kind": "function",
+    "answer": "다음",
+    "expected": [
+      "다음"
+    ],
+    "note": "슬라이드 좌우 버튼 2개 중 둘째"
+  },
+  {
+    "site": "inflearn",
+    "no": 3,
+    "kind": "function",
+    "answer": "이전",
+    "expected": [
+      "이전"
+    ],
+    "note": "Carousel-control, data-type=\"previous\""
+  },
+  {
+    "site": "inflearn",
+    "no": 4,
+    "kind": "function",
+    "answer": "다음",
+    "expected": [
+      "다음"
+    ],
+    "note": "Carousel-control, data-type=\"next\""
+  },
+  {
+    "site": "inflearn",
+    "no": 5,
+    "kind": "function",
+    "answer": "이전 페이지",
+    "expected": [
+      "이전 페이지",
+      "이전"
+    ],
+    "note": "Pagination 첫 버튼, 화살표 아이콘, 1페이지라 비활성"
+  },
+  {
+    "site": "inflearn",
+    "no": 6,
+    "kind": "function",
+    "answer": "1페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"1\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 7,
+    "kind": "function",
+    "answer": "2페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"2\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 8,
+    "kind": "function",
+    "answer": "3페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"3\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 9,
+    "kind": "function",
+    "answer": "4페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"4\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 10,
+    "kind": "function",
+    "answer": "5페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"5\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 11,
+    "kind": "function",
+    "answer": "171페이지",
+    "expected": "AI",
+    "note": "페이지 번호 버튼 \"171\". 사전 대상 아님"
+  },
+  {
+    "site": "inflearn",
+    "no": 12,
+    "kind": "function",
+    "answer": "다음 페이지",
+    "expected": [
+      "다음 페이지",
+      "다음"
+    ],
+    "note": "Pagination 마지막 버튼, 화살표 아이콘"
+  }
+]

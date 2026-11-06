@@ -1,0 +1,72 @@
+{
+  "url": "https://cs.dongguk.edu/main",
+  "collectedAt": "2026-11-06T06:19:19.920Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#news01 > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "#none",
+        "iconClass": "bi bi-plus-lg",
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 911,
+          "y": 482,
+          "w": 30,
+          "h": 30
+        }
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"#none\"><i class=\"bi bi-plus-lg\"></i></a>"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(1) > section:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > span:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/article/webz/list",
+        "iconClass": "bi bi-plus",
+        "iconSrc": null,
+        "parentClass": "plus",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 879,
+          "y": 1161,
+          "w": 29,
+          "h": 35
+        }
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"/article/webz/list\"><i class=\"bi bi-plus\"></i></a>"
+    }
+  ]
+}

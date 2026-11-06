@@ -1,0 +1,32 @@
+{
+  "url": "https://kr.trip.com/?allianceid=14887&sid=447173&utm_source=naver&utm_medium=cpc&utm_campaign=cmp-a001-04-000000004532867&utm_content=TRIP.COM&utm_term=logo&n_media=27758&n_query=TRIP.COM&n_rank=1&n_ad_group=grp-a001-04-000000068839011&n_ad=nad-a001-04-000000571644349&n_keyword_id=nkw-a001-04-000008288338403&n_keyword=TRIP.COM&n_campaign_type=4&n_contract=tct-a001-04-000000001351889&n_ad_group_type=5&NaPm=ct%3Dmw1oa8mo%7Cci%3DER143af3b6%2Dd810%2D11f1%2D99ef%2Dea571fca2995%7Ctr%3Dbrnd%7Chk%3D9cc2863c4ee7c360c53e32afc8e95ef5e971a1b6%7Cnacn%3D5dGeDoBQFe6dD&nclid=ER143af3b6-d810-11f1-99ef-ea571fca2995",
+  "collectedAt": "2026-11-04T05:25:34.511Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "meaningless",
+      "role": "link",
+      "currentName": "x",
+      "selector": "#ibuHeaderContent > div:nth-of-type(2) > footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(2) > li:nth-of-type(6) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://twitter.com/TripcomKR?locale=ko-KR&curr=KRW",
+        "iconClass": null,
+        "iconSrc": "https://dimg04.tripcdn.com/images/05E3512000huufeaoDEDA.png",
+        "parentClass": "mc-ft__social-item social-icon-x",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 266,
+          "y": 4096,
+          "w": 24,
+          "h": 24
+        }
+      },
+      "html": "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://twitter.com/TripcomKR?locale=ko-KR&amp;curr=KRW\"><img src=\"https://dimg04.tripcdn.com/images/05E3512000huufeaoDEDA.png\" alt=\"x\"></a>"
+    }
+  ]
+}

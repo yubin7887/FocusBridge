@@ -1,0 +1,378 @@
+[
+  {
+    "site": "hani",
+    "no": 1,
+    "kind": "function",
+    "answer": "홈",
+    "expected": [
+      "홈"
+    ],
+    "note": "로고 링크, href가 지금 사이트 첫 화면"
+  },
+  {
+    "site": "hani",
+    "no": 2,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "광고 배너 (adservice.hani.co.kr, 긴 번호)"
+  },
+  {
+    "site": "hani",
+    "no": 3,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "광고 배너 (adservice.hani.co.kr, 긴 번호)"
+  },
+  {
+    "site": "hani",
+    "no": 4,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "광고 배너 (adservice.hani.co.kr, 긴 번호)"
+  },
+  {
+    "site": "hani",
+    "no": 5,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "광고 배너 (adservice.hani.co.kr, 긴 번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 1,
+    "kind": "function",
+    "answer": "검색",
+    "expected": "AI",
+    "note": "돋보기 아이콘 버튼. 아이콘 이름(data-osset-icon=\"IconMagnifyingGlass\")이 자식 svg에 있어 report에 없음. class는 자동 생성(css-109kje0)"
+  },
+  {
+    "site": "ohou",
+    "no": 2,
+    "kind": "function",
+    "answer": "인기 검색어 펼치기",
+    "expected": "AI",
+    "note": "아래 화살표(IconChevronDown, 자식 svg) 버튼, 옆에 \"5 미니 러그\" 순위 글자. 사전에 없는 기능"
+  },
+  {
+    "site": "ohou",
+    "no": 3,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "홈 배너 이미지 링크 (contents.ohou.se/hub/interior). 주소에 긴 번호 없음"
+  },
+  {
+    "site": "ohou",
+    "no": 4,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 5,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 6,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 7,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 8,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 9,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 10,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 11,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 12,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 13,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "사진 묶음 카드 (card_collections/번호), 앞 형제에 작성자 이름"
+  },
+  {
+    "site": "ohou",
+    "no": 14,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "집들이 카드 (projects/번호), 앞 형제에 제목. #17은 번호가 4자리(1926)"
+  },
+  {
+    "site": "ohou",
+    "no": 15,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "집들이 카드 (projects/번호), 앞 형제에 제목. #17은 번호가 4자리(1926)"
+  },
+  {
+    "site": "ohou",
+    "no": 16,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "집들이 카드 (projects/번호), 앞 형제에 제목. #17은 번호가 4자리(1926)"
+  },
+  {
+    "site": "ohou",
+    "no": 17,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "집들이 카드 (projects/번호), 앞 형제에 제목. #17은 번호가 4자리(1926)"
+  },
+  {
+    "site": "ohou",
+    "no": 18,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 19,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 20,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 21,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 22,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 23,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 24,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 25,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 26,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 27,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "오늘의 딜 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 28,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "시공 후기 카드 (experts/review/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 29,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "시공 후기 카드 (experts/review/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 30,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "시공 후기 카드 (experts/review/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 31,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "기획전 카드 (exhibitions/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 32,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "기획전 카드 (exhibitions/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 33,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "기획전 카드 (exhibitions/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 34,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "기획전 카드 (exhibitions/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 35,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "인기 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 36,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "인기 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 37,
+    "kind": "content",
+    "answer": null,
+    "expected": "content",
+    "note": "인기 상품 (store.ohou.se/goods/번호)"
+  },
+  {
+    "site": "ohou",
+    "no": 38,
+    "kind": "function",
+    "answer": "유튜브",
+    "expected": [
+      "유튜브"
+    ],
+    "note": "youtube.com, data-testid=\"SocialLink-Youtube\""
+  },
+  {
+    "site": "ohou",
+    "no": 39,
+    "kind": "function",
+    "answer": "인스타그램",
+    "expected": [
+      "인스타그램"
+    ],
+    "note": "instagram.com, data-testid=\"SocialLink-Instagram\""
+  },
+  {
+    "site": "ohou",
+    "no": 40,
+    "kind": "function",
+    "answer": "페이스북",
+    "expected": [
+      "페이스북"
+    ],
+    "note": "facebook.com, data-testid=\"SocialLink-Facebook\""
+  },
+  {
+    "site": "ohou",
+    "no": 41,
+    "kind": "function",
+    "answer": "네이버 포스트",
+    "expected": "AI",
+    "note": "naver.me 짧은 주소, data-testid=\"SocialLink-NaverPost\". 도메인 목록에 없음"
+  }
+]

@@ -1,0 +1,388 @@
+{
+  "version": "0.3.0",
+  "weights": {
+    "path": 40,
+    "self": 35,
+    "icon": 35,
+    "data": 35,
+    "symbol": 15,
+    "near": 10
+  },
+  "direct": [
+    "path",
+    "self",
+    "icon",
+    "data"
+  ],
+  "thresholds": {
+    "confirm": 35,
+    "margin": 15,
+    "nearMaxLen": 20,
+    "contentDigits": 5,
+    "prefixMinLen": 5,
+    "commonRatio": 0.5,
+    "commonMinItems": 4
+  },
+  "stopwords": [
+    "btn",
+    "button",
+    "icon",
+    "ico",
+    "img",
+    "image",
+    "svg",
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "webp",
+    "link",
+    "wrap",
+    "item",
+    "box",
+    "area",
+    "inner",
+    "outer",
+    "common",
+    "images",
+    "static",
+    "media",
+    "assets",
+    "type",
+    "view",
+    "click",
+    "gtm",
+    "logged",
+    "impression",
+    "display",
+    "block",
+    "hidden",
+    "visible",
+    "active",
+    "pointer",
+    "flex",
+    "text",
+    "field",
+    "html",
+    "php",
+    "pang",
+    "www",
+    "com",
+    "net",
+    "kr",
+    "true",
+    "false",
+    "default",
+    "not",
+    "set",
+    "null",
+    "undefined"
+  ],
+  "functions": [
+    {
+      "id": "search",
+      "label": "검색",
+      "kind": "both",
+      "tokens": [
+        "search",
+        "srch",
+        "magnifier"
+      ],
+      "texts": [
+        "검색"
+      ]
+    },
+    {
+      "id": "menu",
+      "label": "메뉴",
+      "kind": "toggle",
+      "tokens": [
+        "menu",
+        "nav",
+        "gnb",
+        "hamburger",
+        "sidemenu",
+        "allmenu",
+        "drawer"
+      ],
+      "texts": [
+        "전체메뉴",
+        "메뉴"
+      ]
+    },
+    {
+      "id": "close",
+      "label": "닫기",
+      "kind": "toggle",
+      "tokens": [
+        "close",
+        "dismiss"
+      ],
+      "texts": [
+        "닫기"
+      ]
+    },
+    {
+      "id": "cart",
+      "label": "장바구니",
+      "kind": "page",
+      "tokens": [
+        "cart",
+        "basket"
+      ],
+      "texts": [
+        "장바구니"
+      ]
+    },
+    {
+      "id": "mypage",
+      "label": "마이페이지",
+      "kind": "page",
+      "tokens": [
+        "mypage",
+        "myinfo",
+        "account",
+        "profile",
+        "user",
+        "person"
+      ],
+      "texts": [
+        "마이페이지",
+        "내 정보"
+      ]
+    },
+    {
+      "id": "login",
+      "label": "로그인",
+      "kind": "page",
+      "tokens": [
+        "login",
+        "signin"
+      ],
+      "texts": [
+        "로그인"
+      ]
+    },
+    {
+      "id": "signup",
+      "label": "회원가입",
+      "kind": "page",
+      "tokens": [
+        "signup",
+        "join",
+        "register"
+      ],
+      "texts": [
+        "회원가입"
+      ]
+    },
+    {
+      "id": "noti",
+      "label": "알림",
+      "kind": "both",
+      "tokens": [
+        "notification",
+        "noti",
+        "alarm",
+        "alert",
+        "bell"
+      ],
+      "texts": [
+        "알림"
+      ]
+    },
+    {
+      "id": "more",
+      "label": "더보기",
+      "kind": "both",
+      "tokens": [
+        "more",
+        "viewall",
+        "seemore"
+      ],
+      "texts": [
+        "더보기",
+        "전체보기"
+      ]
+    },
+    {
+      "id": "prev",
+      "label": "이전",
+      "kind": "toggle",
+      "tokens": [
+        "prev",
+        "previous"
+      ],
+      "texts": [
+        "이전"
+      ]
+    },
+    {
+      "id": "next",
+      "label": "다음",
+      "kind": "toggle",
+      "tokens": [
+        "next"
+      ],
+      "texts": [
+        "다음"
+      ]
+    },
+    {
+      "id": "play",
+      "label": "재생",
+      "kind": "toggle",
+      "tokens": [
+        "play"
+      ],
+      "texts": [
+        "재생"
+      ]
+    },
+    {
+      "id": "pause",
+      "label": "일시정지",
+      "kind": "toggle",
+      "tokens": [
+        "pause"
+      ],
+      "texts": [
+        "일시정지"
+      ]
+    },
+    {
+      "id": "share",
+      "label": "공유",
+      "kind": "toggle",
+      "tokens": [
+        "share"
+      ],
+      "texts": [
+        "공유"
+      ]
+    },
+    {
+      "id": "like",
+      "label": "찜",
+      "kind": "toggle",
+      "tokens": [
+        "like",
+        "wish",
+        "heart",
+        "favorite",
+        "zzim"
+      ],
+      "texts": [
+        "찜",
+        "좋아요"
+      ]
+    },
+    {
+      "id": "setting",
+      "label": "설정",
+      "kind": "both",
+      "tokens": [
+        "setting",
+        "settings",
+        "config",
+        "gear"
+      ],
+      "texts": [
+        "설정"
+      ]
+    },
+    {
+      "id": "top",
+      "label": "맨 위로",
+      "kind": "toggle",
+      "tokens": [
+        "top",
+        "gotop",
+        "scrolltop"
+      ],
+      "texts": [
+        "맨 위로",
+        "TOP"
+      ]
+    },
+    {
+      "id": "chat",
+      "label": "채팅 상담",
+      "kind": "both",
+      "tokens": [
+        "chat",
+        "chatbot",
+        "talk",
+        "channeltalk",
+        "sidetalk"
+      ],
+      "texts": [
+        "상담",
+        "채팅",
+        "고객센터"
+      ]
+    },
+    {
+      "id": "blog",
+      "label": "블로그",
+      "kind": "page",
+      "tokens": [
+        "blog"
+      ],
+      "texts": [
+        "블로그"
+      ]
+    },
+    {
+      "id": "delete",
+      "label": "삭제",
+      "kind": "toggle",
+      "tokens": [
+        "delete",
+        "remove",
+        "trash"
+      ],
+      "texts": [
+        "삭제"
+      ]
+    },
+    {
+      "id": "edit",
+      "label": "수정",
+      "kind": "both",
+      "tokens": [
+        "edit",
+        "modify",
+        "pencil"
+      ],
+      "texts": [
+        "수정"
+      ]
+    }
+  ],
+  "symbols": {
+    "×": "close",
+    "✕": "close",
+    "x": "close",
+    "X": "close",
+    "☰": "menu",
+    "<": "prev",
+    "‹": "prev",
+    ">": "next",
+    "›": "next"
+  },
+  "domains": {
+    "facebook.com": "페이스북",
+    "instagram.com": "인스타그램",
+    "twitter.com": "X(트위터)",
+    "x.com": "X(트위터)",
+    "youtube.com": "유튜브",
+    "blog.naver.com": "네이버 블로그",
+    "pf.kakao.com": "카카오톡 채널",
+    "tiktok.com": "틱톡",
+    "linkedin.com": "링크드인",
+    "threads.net": "스레드",
+    "apps.apple.com": "앱스토어",
+    "play.google.com": "구글 플레이"
+  }
+}
