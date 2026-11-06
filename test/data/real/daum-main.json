@@ -1,0 +1,136 @@
+{
+  "url": "https://www.daum.net/",
+  "collectedAt": "2026-11-04T05:21:24.566Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(2) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "link_daum",
+        "href": "https://www.daum.net",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "doc-title",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 294,
+          "y": 16,
+          "w": 58,
+          "h": 56
+        }
+      },
+      "html": "<a class=\"link_daum\" data-tiara-action-name=\"header_logo\" data-tiara-layer=\"logo\" href=\"https://www.daum.net\"><div class=\"img_daumlogo\"><svg width=\"56\" height=\"52\" viewBox=\"0 0 56 52\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#clip0_68_2547)\"><mask id=\"mask0_68_2547\" style=\"ma"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(2) > main:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "link_item",
+        "href": "https://v.daum.net/v/20261104130229491",
+        "iconClass": "img_g",
+        "iconSrc": "https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fked%2F20261104130718984qwhl.jpg",
+        "parentClass": null,
+        "parentText": "패배 인정한 트럼프…\"내가 있었으면 압도적으로 이겼을 텐데\"\n이상은의 워싱턴나우",
+        "prevSiblingText": "패배 인정한 트럼프…\"내가 있었으면 압도적으로 이겼을 텐데\"\n이상은의 워싱턴나우",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 180,
+          "y": -1210,
+          "w": 150,
+          "h": 84
+        }
+      },
+      "html": "<a class=\"link_item\" href=\"https://v.daum.net/v/20261104130229491\"><div class=\"wrap_thumb\"><div class=\"inner_thumb\"><!----> <span class=\"thumb_g\"><!----><!----><!----><img src=\"https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fked%2F2026110"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(2) > main:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "link_item",
+        "href": "https://v.daum.net/v/20261104103639099",
+        "iconClass": "img_g",
+        "iconSrc": "https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fdt%2F20261104103646497gpte.png",
+        "parentClass": null,
+        "parentText": "“은행 예금보다 이자 더 준다고?”…요즘 뜨는 ‘발행어음’ 뭐길래\n유진아의 금쏭달쏭",
+        "prevSiblingText": "“은행 예금보다 이자 더 준다고?”…요즘 뜨는 ‘발행어음’ 뭐길래\n유진아의 금쏭달쏭",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 180,
+          "y": -1114,
+          "w": 150,
+          "h": 84
+        }
+      },
+      "html": "<a class=\"link_item\" href=\"https://v.daum.net/v/20261104103639099\"><div class=\"wrap_thumb\"><div class=\"inner_thumb\"><!----> <span class=\"thumb_g\"><!----><!----><!----><img src=\"https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fdt%2F20261104"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(2) > main:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "link_item",
+        "href": "https://v.daum.net/v/20261104055312731",
+        "iconClass": "img_g",
+        "iconSrc": "https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fseouleconomy%2F20261104055314466hnou.jpg",
+        "parentClass": null,
+        "parentText": "트럼프 연설문 찢던 민주당 대모, 40년만에 의원 뱃지 뗀다\n김창영의 실리콘밸리 룩",
+        "prevSiblingText": "트럼프 연설문 찢던 민주당 대모, 40년만에 의원 뱃지 뗀다\n김창영의 실리콘밸리 룩",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 180,
+          "y": -1018,
+          "w": 150,
+          "h": 84
+        }
+      },
+      "html": "<a class=\"link_item\" href=\"https://v.daum.net/v/20261104055312731\"><div class=\"wrap_thumb\"><div class=\"inner_thumb\"><!----> <span class=\"thumb_g\"><!----><!----><!----><img src=\"https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fseouleconomy%"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "div:nth-of-type(2) > main:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "link_item",
+        "href": "https://v.daum.net/v/20261104090125155",
+        "iconClass": "img_g",
+        "iconSrc": "https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fhani%2F20261104090126747yehe.jpg",
+        "parentClass": null,
+        "parentText": "‘구조 실패’ 우주망원경, 오늘 지구 추락…사람 다칠 확률은 2100분의 1?\n곽노필의 미래창",
+        "prevSiblingText": "‘구조 실패’ 우주망원경, 오늘 지구 추락…사람 다칠 확률은 2100분의 1?\n곽노필의 미",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 180,
+          "y": -922,
+          "w": 150,
+          "h": 84
+        }
+      },
+      "html": "<a class=\"link_item\" href=\"https://v.daum.net/v/20261104090125155\"><div class=\"wrap_thumb\"><div class=\"inner_thumb\"><!----> <span class=\"thumb_g\"><!----><!----><!----><img src=\"https://img1.daumcdn.net/thumb/S274x154a.q80.fwebp/?fname=https%3A%2F%2Ft1.daumcdn.net%2Fnews%2F202611%2F04%2Fhani%2F202611"
+    }
+  ]
+}

@@ -1,0 +1,512 @@
+{
+  "url": "https://www.inflearn.com/ko/?NaPm=ct%3Dmw4l9dfh%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D021d72c9a4680d4657db99ef8045add74204a4cd",
+  "collectedAt": "2026-11-06T06:24:36.506Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-next-k3ld1p m_8d3f4000 mantine-next-ActionIcon-root m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": "m_8d3afb97 mantine-next-ActionIcon-icon",
+        "iconSrc": null,
+        "parentClass": "mantine-next-1gx1ra6 m_4081bf90 mantine-next-Group-root",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 856,
+          "y": -5513,
+          "w": 30,
+          "h": 30
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 80,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 80,
+            "evidence": {
+              "self": 35,
+              "icon": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-next-k3ld1p m_8d3f4000 mantine-next-ActionIcon-root m_87cf2631 mantine-next-UnstyledButton-root\" data-variant=\"default\" data-disabled=\"true\" type=\"button\" disabled=\"\" style=\"--ai-size: calc(1.875rem * var(--mantine-scale)); --ai-radius: var(--mantine-radius-"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active mantine-next-1m7xo6m m_8d3f4000 mantine-next-ActionIcon-root m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": "m_8d3afb97 mantine-next-ActionIcon-icon",
+        "iconSrc": null,
+        "parentClass": "mantine-next-1gx1ra6 m_4081bf90 mantine-next-Group-root",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 890,
+          "y": -5513,
+          "w": 30,
+          "h": 30
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 80,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 80,
+            "evidence": {
+              "self": 35,
+              "icon": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active mantine-next-1m7xo6m m_8d3f4000 mantine-next-ActionIcon-root m_87cf2631 mantine-next-UnstyledButton-root\" data-variant=\"default\" type=\"button\" style=\"--ai-size: calc(1.875rem * var(--mantine-scale)); --ai-radius: var(--mantine-radius-xl); --ai-bg: var"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-next-11vvvus m_64f58e10 mantine-next-Carousel-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "mantine-next-1hxri08 m_39bc3463 mantine-next-Carousel-controls",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 852,
+          "y": -4830,
+          "w": 30,
+          "h": 30
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-next-11vvvus m_64f58e10 mantine-next-Carousel-control m_87cf2631 mantine-next-UnstyledButton-root\" type=\"button\" data-inactive=\"true\" data-type=\"previous\" tabindex=\"-1\"><svg viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" style=\"transform:"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-next-11vvvus m_64f58e10 mantine-next-Carousel-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "mantine-next-1hxri08 m_39bc3463 mantine-next-Carousel-controls",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 890,
+          "y": -4830,
+          "w": 30,
+          "h": 30
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-next-11vvvus m_64f58e10 mantine-next-Carousel-control m_87cf2631 mantine-next-UnstyledButton-root\" type=\"button\" data-inactive=\"true\" data-type=\"next\" tabindex=\"-1\"><svg viewBox=\"0 0 15 15\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" style=\"transform: rot"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": "mantine-rotate-rtl",
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "",
+        "nextSiblingText": "1",
+        "rect": {
+          "x": 269,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-disabled=\"true\" type=\"button\" disabled=\"\"><svg viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\" class=\"mantine-rotate-rtl\" style=\"width: calc(var(--pagination-control-"
+    },
+    {
+      "no": 6,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "1",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(2)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "",
+        "nextSiblingText": "2",
+        "rect": {
+          "x": 315,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-active=\"true\" data-with-padding=\"true\" type=\"button\" aria-current=\"page\">1</button>"
+    },
+    {
+      "no": 7,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "2",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(3)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "1",
+        "nextSiblingText": "3",
+        "rect": {
+          "x": 361,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-with-padding=\"true\" type=\"button\">2</button>"
+    },
+    {
+      "no": 8,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "3",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(4)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "2",
+        "nextSiblingText": "4",
+        "rect": {
+          "x": 407,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-with-padding=\"true\" type=\"button\">3</button>"
+    },
+    {
+      "no": 9,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "4",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(5)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "3",
+        "nextSiblingText": "5",
+        "rect": {
+          "x": 453,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-with-padding=\"true\" type=\"button\">4</button>"
+    },
+    {
+      "no": 10,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "5",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(6)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "4",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 499,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-with-padding=\"true\" type=\"button\">5</button>"
+    },
+    {
+      "no": 11,
+      "status": "meaningless",
+      "role": "button",
+      "currentName": "171",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(7)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 591,
+          "y": 291,
+          "w": 47,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" data-with-padding=\"true\" type=\"button\">171</button>"
+    },
+    {
+      "no": 12,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > main:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(8)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root",
+        "href": null,
+        "iconClass": "mantine-rotate-rtl",
+        "iconSrc": null,
+        "parentClass": "m_4081bf90 mantine-next-Group-root",
+        "parentText": "1\n2\n3\n4\n5\n171",
+        "prevSiblingText": "171",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 645,
+          "y": 291,
+          "w": 38,
+          "h": 38
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F3",
+        "label": "다음",
+        "score": 45,
+        "candidates": [
+          {
+            "label": "다음",
+            "score": 45,
+            "evidence": {
+              "self": 35,
+              "near": 10
+            }
+          }
+        ]
+      },
+      "html": "<button class=\"mantine-focus-auto mantine-active m_326d024a mantine-next-Pagination-control m_87cf2631 mantine-next-UnstyledButton-root\" type=\"button\"><svg viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\" class=\"mantine-rotate-rtl\" style=\"width: calc(var(--pagination-control-size) / 1.8); heig"
+    }
+  ]
+}

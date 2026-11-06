@@ -148,3 +148,7 @@ vite.config.ts.timestamp-*
 # Turbo Repo
 .turbo
 .DS_Store
+
+# Python (tools/evaluate.py)
+__pycache__/
+*.pyc

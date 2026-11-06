@@ -3,6 +3,7 @@
 import { collectTargets } from './collector.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
+import { matchAll } from './matcher.js'; // ③ 기능 사전 매칭
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
@@ -21,6 +22,13 @@ function extractContext(el) {
     prevSiblingText: (el.previousElementSibling?.innerText || '').trim().slice(0, 50),
     nextSiblingText: (el.nextElementSibling?.innerText || '').trim().slice(0, 50),
     rect: { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height) },
+    // ③ 기능 사전 매칭용: 요소 자신의 data- 속성 (최대 10개, 값은 50자까지). 예: { "data-type": "next" }
+    dataAttrs: Object.fromEntries(
+      [...el.attributes]
+        .filter((a) => a.name.startsWith('data-'))
+        .slice(0, 10)
+        .map((a) => [a.name, a.value.slice(0, 50)])
+    ),
   };
 }
 
@@ -52,11 +60,16 @@ export function scan(root = document) {
     selector: cssPath(m.element),
     context: extractContext(m.element),
   }));
+  matchAll(report, location.href); // ③ 각 항목에 match { decision, pattern, label, score, candidates } 추가
 
   console.groupCollapsed(
     `[FocusBridge] 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
   );
-  console.table(report.map((r, i) => ({ no: i + 1, status: r.status, role: r.role, name: r.currentName, selector: r.selector })));
+  console.table(report.map((r, i) => ({
+    no: i + 1, status: r.status, role: r.role, name: r.currentName,
+    match: r.match.decision, label: r.match.label, // ③ 결과: confirm(확정)/ai/content
+    selector: r.selector,
+  })));
   missing.forEach((m, i) => console.log(`#${i + 1}`, m.status, m.element));
   console.groupEnd();
 

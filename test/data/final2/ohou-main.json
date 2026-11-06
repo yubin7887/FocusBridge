@@ -1,0 +1,1422 @@
+{
+  "url": "https://ohou.se/?NaPm=ct%3Dmw4m7nl8%7Cci%3Dcheckout%7Ctr%3Dds%7Ctrx%3Dnull%7Chk%3D136e047d27c1e5ccb8f289385fd36e9ab7a29007",
+  "collectedAt": "2026-11-06T06:50:48.971Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "css-109kje0",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-t6whf",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 632,
+          "y": 72,
+          "w": 36,
+          "h": 36
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<button type=\"button\" class=\"css-109kje0\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" fill=\"currentColor\" viewBox=\"0 0 480 480\" data-osset-icon=\"IconMagnifyingGlass\"><path fill-rule=\"evenodd\" d=\"M99.661 100.661c54.283-54.282 142.293-54.282 196.576 0 50.4 50.4 54.003 129.873 10.813 184.433l87."
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > span:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "css-10xkmr5 e1nb0uji3",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-ga3b11 e1nb0uji5",
+        "parentText": "5\n미니 러그",
+        "prevSiblingText": "5\n미니 러그",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 882,
+          "y": 142,
+          "w": 30,
+          "h": 30
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<button type=\"button\" class=\"css-10xkmr5 e1nb0uji3\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" fill=\"currentColor\" viewBox=\"0 0 480 480\" data-osset-icon=\"IconChevronDown\"><path d=\"M390.959 140.2c7.069-7.755 19.086-8.31 26.841-1.241 7.754 7.069 8.31 19.086 1.241 26.841l-165 181-.342.365a19 19"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-1x4ct07 e1hrveyq1",
+        "href": "https://contents.ohou.se/hub/interior?sort=recent&entry_channel_id=banner_content_home#qna",
+        "iconClass": "e1hrveyq0 css-h9ang",
+        "iconSrc": "https://prs.ohousecdn.com/apne2/commerce/uploads/banners/home_banner/v1-561596184313984.png?w=512",
+        "parentClass": "carousel__list__entry",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 706,
+          "y": 213,
+          "w": 206,
+          "h": 390
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-1x4ct07 e1hrveyq1\" href=\"https://contents.ohou.se/hub/interior?sort=recent&amp;entry_channel_id=banner_content_home#qna\" target=\"_blank\"><div class=\"css-2fcjmr eezahl1\"><img srcset=\"https://prs.ohousecdn.com/apne2/commerce/uploads/banners/home_banner/v1-561596184313984.png?w=768 1.5x,h"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1009471441?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "어반데이",
+        "prevSiblingText": "어반데이",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 40,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1009471441?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1008289624?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "옐로우동동",
+        "prevSiblingText": "옐로우동동",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 262,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1008289624?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 6,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1007990949?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "유자집이야",
+        "prevSiblingText": "유자집이야",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 484,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1007990949?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 7,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1012342696?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "앙치즈",
+        "prevSiblingText": "앙치즈",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 706,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1012342696?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 8,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1010830661?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "온스파",
+        "prevSiblingText": "온스파",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 928,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1010830661?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 9,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(6) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1011001776?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "집사람일껄",
+        "prevSiblingText": "집사람일껄",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 1150,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1011001776?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 10,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(7) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1008486022?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "jun.sum.home",
+        "prevSiblingText": "jun.sum.home",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 1372,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1008486022?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 11,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(8) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1009500939?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "밍지의방",
+        "prevSiblingText": "밍지의방",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 1594,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1009500939?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 12,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(9) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1010507073?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "짱구네집짓기",
+        "prevSiblingText": "짱구네집짓기",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 1816,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1010507073?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 13,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(10) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/contents/card_collections/1011352945?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "쿠이",
+        "prevSiblingText": "쿠이",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 2038,
+          "y": 854,
+          "w": 206,
+          "h": 275
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/contents/card_collections/1011352945?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 14,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/projects/172330?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "패턴과 컬러로 센스 있게 꾸민, 인테리어 디자이너의 7평 원룸",
+        "prevSiblingText": "패턴과 컬러로 센스 있게 꾸민, 인테리어 디자이너의 7평 원룸",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 40,
+          "y": 1237,
+          "w": 206,
+          "h": 264
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/projects/172330?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 15,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/projects/194926?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "일드 속 주인공 집에 놀러 온 듯, 아기자기한 19평 구축",
+        "prevSiblingText": "일드 속 주인공 집에 놀러 온 듯, 아기자기한 19평 구축",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 262,
+          "y": 1237,
+          "w": 206,
+          "h": 264
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/projects/194926?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 16,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/projects/162317?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "가을을 그대로 옮겨 놓은, 월넛톤의 앤틱 하우스🍂",
+        "prevSiblingText": "가을을 그대로 옮겨 놓은, 월넛톤의 앤틱 하우스🍂",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 484,
+          "y": 1237,
+          "w": 206,
+          "h": 264
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/projects/162317?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 17,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "https://contents.ohou.se/projects/1926?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "변화무쌍 8.7평 작은 신혼집",
+        "prevSiblingText": "변화무쌍 8.7평 작은 신혼집",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 706,
+          "y": 1237,
+          "w": 206,
+          "h": 264
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"https://contents.ohou.se/projects/1926?affect_type=Home&amp;affect_id=0\"></a>"
+    },
+    {
+      "no": 18,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3264427",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n홈비\n\n[추가쿠폰] 집꾸미기 완성! 장스탠드 무드등 조명 모음전\n\n33%\n56,500\n외\n4.9\n·\n리뷰 7,860",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 40,
+          "y": 1815,
+          "w": 206,
+          "h": 315
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3264427\"></a>"
+    },
+    {
+      "no": 19,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3364983",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n오메코\n\n[오늘의집 단독] LAYER 4 루나리프 플로어 램프 인테리어 스탠드 조명\n\n특별인증가\n\n15%\n227,000\n4.7\n·\n리뷰 466\n무료배송",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 262,
+          "y": 1815,
+          "w": 206,
+          "h": 359
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3364983\"></a>"
+    },
+    {
+      "no": 20,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3827559",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n베베앙 아기물티슈\n\n두꺼운 82g 골드 블랙 캡형 70매 20팩\n\n특별인증가\n\n47%\n41,800\n4.9\n·\n리뷰 3,982\n무료배송\n최대 10% 결제할인",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 484,
+          "y": 1815,
+          "w": 206,
+          "h": 365
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3827559\"></a>"
+    },
+    {
+      "no": 21,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/2543773",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\nOLLY\n\n1+1 냄새차단 스마트 자동 센서 휴지통 쓰레기통 12L+16L\n\n특별인증가\n\n38%\n29,900\n4.8\n·\n리뷰 20,514\n무료배송\n최대 7%",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 706,
+          "y": 1815,
+          "w": 206,
+          "h": 383
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/2543773\"></a>"
+    },
+    {
+      "no": 22,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/447105",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n지누스\n\nBEST 꿀잠가능 매트리스/침대 모음전 S/SS/Q/K/LK\n\n50%\n154,000\n외\n4.8\n·\n리뷰 49,219\n무료배송",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 928,
+          "y": 1815,
+          "w": 206,
+          "h": 341
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/447105\"></a>"
+    },
+    {
+      "no": 23,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(6) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3342505",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n우드레이\n\n[원하는날도착] 원데이특가 BEST 식탁테이블/집들이상/거실테이블/전신거울 모음전\n\n특별인증가\n\n33%\n299,000\n외\n4.8\n·\n리뷰 13,1",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 1150,
+          "y": 1815,
+          "w": 206,
+          "h": 359
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3342505\"></a>"
+    },
+    {
+      "no": 24,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(7) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/2747132",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n에코데코\n\n순면 워싱 올인원 패드일체형 누빔 매트리스커버 맞춤 SS/D/Q/K/LK\n\n특별인증가\n\n68%\n62,700\n4.8\n·\n리뷰 3,885\n무료배송",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 1372,
+          "y": 1815,
+          "w": 206,
+          "h": 359
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/2747132\"></a>"
+    },
+    {
+      "no": 25,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(8) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3069947",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n한샘\n\n304 올스텐 2단 분리 확장형 식기건조대 外 99종\n\n20%\n110,000\n외\n4.8\n·\n리뷰 82,934\n무료배송",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 1594,
+          "y": 1815,
+          "w": 206,
+          "h": 341
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3069947\"></a>"
+    },
+    {
+      "no": 26,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(9) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/2243388",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n로맨틱캬바레\n\n[원데이10%쿠폰!] 로맨틱캬바레 빈티지 월넛 원목 식탁 그릇장 특가 모음전\n\n50%\n170,000\n외\n4.8\n·\n리뷰 3,183",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 1816,
+          "y": 1815,
+          "w": 206,
+          "h": 315
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/2243388\"></a>"
+    },
+    {
+      "no": 27,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(10) > div:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "today-deal-item__overlay",
+        "href": "https://store.ohou.se/goods/3120281",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "today-deal-item",
+        "parentText": "08:09:12 남음\n\n웅진식품\n\n초록매실 스파클링 제로350mL*20개+더빅토리아 탄산수500mL*20개\n\n33%\n19,900\n외\n4.9\n·\n리뷰 16,447\n무료배송",
+        "prevSiblingText": "",
+        "nextSiblingText": "08:09:12 남음",
+        "rect": {
+          "x": 2038,
+          "y": 1815,
+          "w": 206,
+          "h": 341
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"today-deal-item__overlay\" href=\"https://store.ohou.se/goods/3120281\"></a>"
+    },
+    {
+      "no": 28,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(7) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/experts/review/45980",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "오늘의집 인테리어\n\n부모님댁 인테리어를 반셀로 진행하게 되었어요! 사실 주방 인테리어는 생각 안하고 있다가 필름으로 하기엔 너무 고칠게 많아서 2주도 안남은 시점에 급하게 오늘의집",
+        "prevSiblingText": "오늘의집 인테리어\n\n부모님댁 인테리어를 반셀로 진행하게 되었어요! 사실 주방 인테리어는 생",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 40,
+          "y": 2306,
+          "w": 280,
+          "h": 295
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/experts/review/45980\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 29,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(7) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/experts/review/44153",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "오늘의집 인테리어\n\n부모님댁 20년 이상 된 엘베 없는 5층 빌라(사다리차 필수) 주방 시공 했어요~ 첫 시공이라 신뢰와 A/S가 젤 중요해서 오늘의집에서 했고요! 부모님이 화장실",
+        "prevSiblingText": "오늘의집 인테리어\n\n부모님댁 20년 이상 된 엘베 없는 5층 빌라(사다리차 필수) 주방 시",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 336,
+          "y": 2306,
+          "w": 280,
+          "h": 295
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/experts/review/44153\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 30,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(7) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/experts/review/39975",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "오늘의집 인테리어\n\n이사 갈 신혼집이 오래된 아파트는 아니라서 도배 시공만 필요했어요. 동네 인테리어 업체 가보니까 부분 시공이라 그런지 불친절하게 대응하시더라고요..(합지 벽지로",
+        "prevSiblingText": "오늘의집 인테리어\n\n이사 갈 신혼집이 오래된 아파트는 아니라서 도배 시공만 필요했어요. 동",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 632,
+          "y": 2306,
+          "w": 280,
+          "h": 295
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/experts/review/39975\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 31,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/exhibitions/15276?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "우리집이 더 좋아지는 시간\n\nLIVE 오늘의집 라이브",
+        "prevSiblingText": "우리집이 더 좋아지는 시간\n\nLIVE 오늘의집 라이브",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 40,
+          "y": 2709,
+          "w": 206,
+          "h": 193
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/exhibitions/15276?affect_type=Home&amp;affect_id=0\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 32,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/exhibitions/14883?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "가구 배송, 편하게 받으세요\n\n오늘의집 공식 가구 배송 서비스 '원하는날도착'",
+        "prevSiblingText": "가구 배송, 편하게 받으세요\n\n오늘의집 공식 가구 배송 서비스 '원하는날도착'",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 262,
+          "y": 2709,
+          "w": 206,
+          "h": 217
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/exhibitions/14883?affect_type=Home&amp;affect_id=0\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 33,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/exhibitions/13062?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "전상품 무료배송\n\n매일 새로운 장보기 핫딜 오마트",
+        "prevSiblingText": "전상품 무료배송\n\n매일 새로운 장보기 핫딜 오마트",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 484,
+          "y": 2709,
+          "w": 206,
+          "h": 193
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/exhibitions/13062?affect_type=Home&amp;affect_id=0\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 34,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(8) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-11ab5xd e12fp8sr0",
+        "href": "/exhibitions/13053?affect_type=Home&affect_id=0",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "css-e20n4d e12fp8sr2",
+        "parentText": "오늘의집 Only",
+        "prevSiblingText": "오늘의집 Only",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 706,
+          "y": 2709,
+          "w": 206,
+          "h": 173
+        },
+        "dataAttrs": {
+          "data-discover": "true"
+        }
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a class=\"css-11ab5xd e12fp8sr0\" href=\"/exhibitions/13053?affect_type=Home&amp;affect_id=0\" data-discover=\"true\"></a>"
+    },
+    {
+      "no": 35,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(9) > div:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://store.ohou.se/goods/767440",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "eh4i5ep1 css-1mg3fkb etj6rb20",
+        "parentText": "1\n\n헬로우슬립\n\n[최대19%쿠폰+사은품] 국내생산 카스테라워싱 사계절/한파용 옥수수솜 차렵이불세트 43컬러\n\n특별인증가\n\n50%\n39,900\n4.8\n·\n리뷰 83,609\n평일 1",
+        "prevSiblingText": "",
+        "nextSiblingText": "1",
+        "rect": {
+          "x": 40,
+          "y": 3082,
+          "w": 280,
+          "h": 449
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://store.ohou.se/goods/767440\"></a>"
+    },
+    {
+      "no": 36,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(9) > div:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://store.ohou.se/goods/1590911",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "eh4i5ep1 css-1mg3fkb etj6rb20",
+        "parentText": "2\n\n수면밀도\n\n허리 디스크 환자가 만든 매트리스 S/SS/Q/K/LK 미디엄하드 S\n\n특별인증가\n\n69%\n299,000\n4.9\n·\n리뷰 23,000",
+        "prevSiblingText": "",
+        "nextSiblingText": "2",
+        "rect": {
+          "x": 336,
+          "y": 3082,
+          "w": 280,
+          "h": 449
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://store.ohou.se/goods/1590911\"></a>"
+    },
+    {
+      "no": 37,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(9) > div:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://store.ohou.se/goods/212240",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "eh4i5ep1 css-1mg3fkb etj6rb20",
+        "parentText": "3\n\n아엠홈\n\n맞춤 비침없는 도톰 레이스/쉬폰커튼(나비주름/핀형/봉집)\n\n28%\n16,800\n4.8\n·\n리뷰 58,756",
+        "prevSiblingText": "",
+        "nextSiblingText": "3",
+        "rect": {
+          "x": 632,
+          "y": 3082,
+          "w": 280,
+          "h": 449
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://store.ohou.se/goods/212240\"></a>"
+    },
+    {
+      "no": 38,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(5) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-xzp7ha",
+        "href": "https://www.youtube.com/channel/UCBKtitA1RwY7F32rCniV1dA",
+        "iconClass": "css-8n6bc3",
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 40,
+          "y": 4104,
+          "w": 24,
+          "h": 24
+        },
+        "dataAttrs": {
+          "data-testid": "SocialLink-Youtube"
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F1",
+        "label": "유튜브",
+        "score": 100,
+        "candidates": []
+      },
+      "html": "<a href=\"https://www.youtube.com/channel/UCBKtitA1RwY7F32rCniV1dA\" target=\"_blank\" rel=\"noreferrer\" data-testid=\"SocialLink-Youtube\" class=\"css-xzp7ha\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"css-8n6bc3\"><circle cx=\"12\" cy=\"12\" r=\"11\" fil"
+    },
+    {
+      "no": 39,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(5) > a:nth-of-type(2)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-xzp7ha",
+        "href": "https://www.instagram.com/todayhouse",
+        "iconClass": "css-8n6bc3",
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 76,
+          "y": 4104,
+          "w": 24,
+          "h": 24
+        },
+        "dataAttrs": {
+          "data-testid": "SocialLink-Instagram"
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F1",
+        "label": "인스타그램",
+        "score": 100,
+        "candidates": []
+      },
+      "html": "<a href=\"https://www.instagram.com/todayhouse\" target=\"_blank\" rel=\"noreferrer\" data-testid=\"SocialLink-Instagram\" class=\"css-xzp7ha\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"css-8n6bc3\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"currentColor\"><"
+    },
+    {
+      "no": 40,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(5) > a:nth-of-type(3)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-xzp7ha",
+        "href": "https://www.facebook.com/interiortoday",
+        "iconClass": "css-8n6bc3",
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 112,
+          "y": 4104,
+          "w": 24,
+          "h": 24
+        },
+        "dataAttrs": {
+          "data-testid": "SocialLink-Facebook"
+        }
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F1",
+        "label": "페이스북",
+        "score": 100,
+        "candidates": []
+      },
+      "html": "<a href=\"https://www.facebook.com/interiortoday\" target=\"_blank\" rel=\"noreferrer\" data-testid=\"SocialLink-Facebook\" class=\"css-xzp7ha\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"css-8n6bc3\"><g clip-path=\"url(#clip0_21132_87052)\"><path d=\"M23"
+    },
+    {
+      "no": 41,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#root > div:nth-of-type(1) > div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(5) > a:nth-of-type(4)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "css-xzp7ha",
+        "href": "https://naver.me/51ckkDZh",
+        "iconClass": "css-8n6bc3",
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 148,
+          "y": 4104,
+          "w": 24,
+          "h": 24
+        },
+        "dataAttrs": {
+          "data-testid": "SocialLink-NaverPost"
+        }
+      },
+      "match": {
+        "decision": "ai",
+        "pattern": null,
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://naver.me/51ckkDZh\" target=\"_blank\" rel=\"noreferrer\" data-testid=\"SocialLink-NaverPost\" class=\"css-xzp7ha\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\" class=\"css-8n6bc3\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"currentColor\"></circle><pa"
+    }
+  ]
+}

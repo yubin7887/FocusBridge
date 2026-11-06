@@ -1,0 +1,162 @@
+{
+  "url": "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8",
+  "collectedAt": "2026-11-04T05:18:06.025Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "_15fGuLwC",
+        "href": "/RecentChanges",
+        "iconClass": "LmmWdFQw OPXnQAEO",
+        "iconSrc": null,
+        "parentClass": "O6g6FK-Z",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 44,
+          "y": 8,
+          "w": 32,
+          "h": 24
+        }
+      },
+      "html": "<a href=\"/RecentChanges\" class=\"_15fGuLwC\" data-v-a905b9e2=\"\"><svg viewBox=\"0 0 1 1\" class=\"LmmWdFQw OPXnQAEO\" data-v-a905b9e2=\"\"><use href=\"/skins/espejo/5257ed30590f6033985d.svg#icon\" data-v-a905b9e2=\"\"></use></svg><span class=\"zO4+ZlVi\" data-v-a905b9e2=\"\">최근 변경</span></a>"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "_15fGuLwC",
+        "href": "/RecentDiscuss",
+        "iconClass": "LmmWdFQw",
+        "iconSrc": null,
+        "parentClass": "O6g6FK-Z",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 76,
+          "y": 8,
+          "w": 31,
+          "h": 24
+        }
+      },
+      "html": "<a href=\"/RecentDiscuss\" class=\"_15fGuLwC\" data-v-a905b9e2=\"\"><svg viewBox=\"0 0 576 512\" height=\"1em\" overflow=\"visible\" class=\"LmmWdFQw\" data-v-a905b9e2=\"\"><use href=\"/skins/espejo/fa.23ddd2bdee2f.svg#icon\"></use></svg><span class=\"zO4+ZlVi\" data-v-a905b9e2=\"\">최근 토론</span></a>"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "_15fGuLwC",
+        "href": "#",
+        "iconClass": "LmmWdFQw",
+        "iconSrc": null,
+        "parentClass": "_3sasXAsH KyuL-VGr LHpyFMEF",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 107,
+          "y": 8,
+          "w": 48,
+          "h": 24
+        }
+      },
+      "html": "<a href=\"#\" class=\"_15fGuLwC\" data-v-a905b9e2=\"\"><svg viewBox=\"0 0 512 512\" height=\"1em\" overflow=\"visible\" class=\"LmmWdFQw\" data-v-a905b9e2=\"\"><use href=\"/skins/espejo/fa.744eed02466e.svg#icon\"></use></svg><span class=\"zO4+ZlVi\" data-v-a905b9e2=\"\">특수 기능</span><svg viewBox=\"0 0 320 512\" height=\"1em\""
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "_15fGuLwC",
+        "href": "#",
+        "iconClass": "LmmWdFQw OPXnQAEO",
+        "iconSrc": null,
+        "parentClass": "_3sasXAsH KyuL-VGr LHpyFMEF",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 176,
+          "y": 8,
+          "w": 30,
+          "h": 24
+        }
+      },
+      "html": "<a href=\"#\" class=\"_15fGuLwC\" data-v-a905b9e2=\"\"><svg viewBox=\"0 0 448 512\" height=\"1em\" overflow=\"visible\" class=\"LmmWdFQw OPXnQAEO\" data-v-a905b9e2=\"\"><use href=\"/skins/espejo/fa.d9c4e10ad6da.svg#icon\"></use></svg></a>"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "_15fGuLwC",
+        "href": "#",
+        "iconClass": "LmmWdFQw OPXnQAEO",
+        "iconSrc": null,
+        "parentClass": "_3sasXAsH KyuL-VGr LHpyFMEF",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 206,
+          "y": 8,
+          "w": 30,
+          "h": 24
+        }
+      },
+      "html": "<a href=\"#\" class=\"_15fGuLwC\" data-v-a905b9e2=\"\"><svg viewBox=\"0 0 448 512\" height=\"1em\" overflow=\"visible\" class=\"LmmWdFQw OPXnQAEO\" data-v-a905b9e2=\"\"><use href=\"/skins/espejo/fa.b5bc8d086b0b.svg#icon\"></use></svg></a>"
+    },
+    {
+      "no": 6,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#app > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(5) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "CtSJ2Px4",
+        "href": "/RecentChanges",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "_3umo68L9 S2UIp+16",
+        "parentText": "2026년 플로리다 리어젯 60 추락 사고\n38초 전\n동해시\n42초 전\n바이오하자드 7 레지던트 이블/줄거리\n43초 전\n프로레슬러/목록\n45초 전\n이좡기차역\n47초 전\n가라테 유파",
+        "prevSiblingText": "",
+        "nextSiblingText": "2026년 플로리다 리어젯 60 추락 사고\n38초 전\n동해시\n42초 전\n바이오하자드 7 레",
+        "rect": {
+          "x": 16,
+          "y": 7416,
+          "w": 208,
+          "h": 21
+        }
+      },
+      "html": "<a href=\"/RecentChanges\" class=\"CtSJ2Px4\" data-v-b9d362d6=\"\"><!--v-if--><span class=\"R3v23i8p zglDyR9m\" data-v-b9d362d6=\"\"><!--[--><svg viewBox=\"0 0 1 1\" data-v-d38f12d1=\"\" data-v-b9d362d6-s=\"\"><use href=\"/skins/espejo/db9bd887a7822eb0d092.svg#icon\" data-v-d38f12d1=\"\" data-v-b9d362d6-s=\"\"></use></sv"
+    }
+  ]
+}

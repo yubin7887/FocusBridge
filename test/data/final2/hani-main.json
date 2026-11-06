@@ -1,0 +1,176 @@
+{
+  "url": "https://www.hani.co.kr/",
+  "collectedAt": "2026-11-06T06:49:24.186Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#__next > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > h1:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "HeaderMobile_logoLink__v8kts HeaderMobile_white__6psvu",
+        "href": "https://www.hani.co.kr/",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "한겨레",
+        "prevSiblingText": "",
+        "nextSiblingText": "한겨레",
+        "rect": {
+          "x": 20,
+          "y": 11,
+          "w": 100,
+          "h": 36
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "confirm",
+        "pattern": "F2",
+        "label": "홈",
+        "score": 100,
+        "candidates": []
+      },
+      "html": "<a class=\"HeaderMobile_logoLink__v8kts HeaderMobile_white__6psvu\" href=\"https://www.hani.co.kr/\"></a>"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#content > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/1652282967/x01/Hani/d_ad_2026/nhis_300250_260211_v1100045100427100796100953100954100989101005101046102990103807.html/505569365847727465444d4143525754",
+        "iconClass": null,
+        "iconSrc": "https://img.hani.co.kr/adimg/onekorea_260129/h1_728x90.png",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 112,
+          "y": 886,
+          "w": 728,
+          "h": 19
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/1652282967/x01/Hani/d_ad_2026/nhis_300250_260211_v1100045100427100796100953100954100989101005101046102990103807.html/505569365847727465444d4143525754\" target=\"_blank\"><img src=\"https://img.hani.co.kr/adimg/onekorea_260"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#content > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(8) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/29031881/x02/Hani/d_hanibook_2025/hani09x02_01.jpg/505569365847727465444d4143525754",
+        "iconClass": null,
+        "iconSrc": "https://adservice.hani.co.kr/RealMedia/ads/Creatives/Hani/d_hanibook_2025/hani09x02_01.jpg",
+        "parentClass": "BaseAd_adInner__AFsOK",
+        "parentText": "광고",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 39,
+          "y": 3132,
+          "w": 875,
+          "h": 98
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/29031881/x02/Hani/d_hanibook_2025/hani09x02_01.jpg/505569365847727465444d4143525754\" target=\"_blank\"><img src=\"https://adservice.hani.co.kr/RealMedia/ads/Creatives/Hani/d_hanibook_2025/hani09x02_01.jpg\" alt=\"\" border=\""
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#content > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/122737539/x03/Hani/d_ad_2026/ultra_970250_260323_v199694102162.html/505569365847727465444d4143525754",
+        "iconClass": null,
+        "iconSrc": "https://img.hani.co.kr/adimg/onekorea_260129/jk_970250.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 0,
+          "y": 7366,
+          "w": 952,
+          "h": 19
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/122737539/x03/Hani/d_ad_2026/ultra_970250_260323_v199694102162.html/505569365847727465444d4143525754\" target=\"_blank\"><img src=\"https://img.hani.co.kr/adimg/onekorea_260129/jk_970250.jpg\" border=\"0\" width=\"970\" height="
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#content > div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/506849234/x06/Hani/d_suwon_2026/suwon_970250_260201_v199820103362.html/505569365847727465444d4143525754",
+        "iconClass": null,
+        "iconSrc": "https://img.hani.co.kr/adimg/ad_img/sol_2026/hanam_300250.gif",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 621,
+          "y": 10939,
+          "w": 300,
+          "h": 19
+        },
+        "dataAttrs": {}
+      },
+      "match": {
+        "decision": "content",
+        "pattern": "C",
+        "label": null,
+        "score": 0,
+        "candidates": []
+      },
+      "html": "<a href=\"https://adservice.hani.co.kr/RealMedia/ads/click_lx.ads/hani_desktop/L12/506849234/x06/Hani/d_suwon_2026/suwon_970250_260201_v199820103362.html/505569365847727465444d4143525754\" target=\"_blank\"><img src=\"https://img.hani.co.kr/adimg/ad_img/sol_2026/hanam_300250.gif\" border=\"0\" height=\"250\" "
+    }
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "url": "https://ichannela.com/",
+  "collectedAt": "2026-11-04T05:19:51.452Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#header > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/common/logo_rebrand_w.png",
+        "parentClass": "logo",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 7,
+          "y": -2890,
+          "w": 130,
+          "h": 55
+        }
+      },
+      "html": "<a href=\"/\">\n                    <p class=\"logo_white\">\n                        <img src=\"http://image.ichannela.com/images/common/logo_rebrand_w.png\" style=\"width:100%;\">\n                    </p>\n                    <p class=\"logo_black\">\n                        <img src=\"http://image.ichannela.com"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#header > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "btn_sidemenu",
+        "href": "#",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "base_width",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 270,
+          "y": -2873,
+          "w": 22,
+          "h": 22
+        }
+      },
+      "html": "<a href=\"#\" class=\"btn_sidemenu\">\n            <span></span>\n            <span></span>\n            <span></span>\n        </a>"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/detail/000000557484.do",
+        "iconClass": null,
+        "iconSrc": "https://image.ichannela.com/images/common/movie_icon.png",
+        "parentClass": "main_newsbox",
+        "parentText": "세계를 가다\n[세계를 가다]北 화물차 10분간 30대…신압록강대교 통행량 늘어",
+        "prevSiblingText": "",
+        "nextSiblingText": "세계를 가다",
+        "rect": {
+          "x": -3,
+          "y": -1569,
+          "w": 320,
+          "h": 175
+        }
+      },
+      "html": "<a href=\"/news/detail/000000557484.do\" event_name=\"click_event\" ep_button_name=\"[세계를 가다]北 화물차 10분간 30대…신압록강대교 통행량 늘어\" ep_button_area=\"코너별 뉴스\" ep_button_category=\"뉴스 홈\" ep_content_order=\"5\" onclick=\"sendGAAttrEvent(event);\" tabindex=\"0\">\n                                <span class=\"thum\" style=\"backg"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "javascript:void(0);",
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "main_newsbox",
+        "parentText": "남영주 정치부\n오세훈 토론회 찍고 한동훈 세미나로…‘눈도장’ 두 탕\n쇼츠가 삼킨 국감…막말할수록 더 본다?",
+        "prevSiblingText": "",
+        "nextSiblingText": "남영주 정치부",
+        "rect": {
+          "x": -3,
+          "y": -1151,
+          "w": 320,
+          "h": 175
+        }
+      },
+      "html": "<a href=\"javascript:void(0);\" event_name=\"click_event\" ep_button_name=\"남영주 기자_정치부\" ep_button_area=\"기자별 뉴스\" ep_button_category=\"뉴스 홈\" ep_content_order=\"5\" onclick=\"sendGAAttrEvent(event);goReporter('BCA0410','10025')\" tabindex=\"0\">\n\t                            <span class=\"thum\" style=\"background-ima"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/template/program_news.do?pgmCode=000500",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/program/WPG2130032D/site_poster_img1_20241231093100260.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 3,
+          "y": 476,
+          "w": 147,
+          "h": 18
+        }
+      },
+      "html": "<a href=\"/news/template/program_news.do?pgmCode=000500\" event_name=\"click_event\" ep_button_name=\"뉴스A\" ep_button_area=\"뉴스프로그램\" ep_button_category=\"뉴스 홈\" ep_content_order=\"1\" onclick=\"sendGAAttrEvent(event);\">\n\t\t\t\t\t\t\t\t\t\t<img src=\"http://image.ichannela.com/images/program/WPG2130032D/site_poster_img1_2"
+    },
+    {
+      "no": 6,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(2) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/template/program_news.do?pgmCode=000515",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/program/WPG2170144D/site_poster_img1_20260108113823116.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 163,
+          "y": 476,
+          "w": 147,
+          "h": 18
+        }
+      },
+      "html": "<a href=\"/news/template/program_news.do?pgmCode=000515\" event_name=\"click_event\" ep_button_name=\"뉴스A 라이브\" ep_button_area=\"뉴스프로그램\" ep_button_category=\"뉴스 홈\" ep_content_order=\"2\" onclick=\"sendGAAttrEvent(event);\">\n\t\t\t\t\t\t\t\t\t\t<img src=\"http://image.ichannela.com/images/program/WPG2170144D/site_poster_im"
+    },
+    {
+      "no": 7,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(3) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/template/program_news.do?pgmCode=000502",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/program/WPG2130137D/site_poster_img1_20260105020333557.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 3,
+          "y": 687,
+          "w": 147,
+          "h": 18
+        }
+      },
+      "html": "<a href=\"/news/template/program_news.do?pgmCode=000502\" event_name=\"click_event\" ep_button_name=\"뉴스 TOP10\" ep_button_area=\"뉴스프로그램\" ep_button_category=\"뉴스 홈\" ep_content_order=\"3\" onclick=\"sendGAAttrEvent(event);\">\n\t\t\t\t\t\t\t\t\t\t<img src=\"http://image.ichannela.com/images/program/WPG2130137D/site_poster_i"
+    },
+    {
+      "no": 8,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(4) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/template/program_news.do?pgmCode=000501",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/program/WPG2120219D/site_poster_img1_20240707092022007.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 163,
+          "y": 687,
+          "w": 147,
+          "h": 18
+        }
+      },
+      "html": "<a href=\"/news/template/program_news.do?pgmCode=000501\" event_name=\"click_event\" ep_button_name=\"뉴스 특보\" ep_button_area=\"뉴스프로그램\" ep_button_category=\"뉴스 홈\" ep_content_order=\"4\" onclick=\"sendGAAttrEvent(event);\">\n\t\t\t\t\t\t\t\t\t\t<img src=\"http://image.ichannela.com/images/program/WPG2120219D/site_poster_img1"
+    },
+    {
+      "no": 9,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#wrapper > section:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "/news/template/program_news.do?pgmCode=000537",
+        "iconClass": null,
+        "iconSrc": "http://image.ichannela.com/images/program/WPG2250295D/site_poster_img1_20260102050433195.jpg",
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 3,
+          "y": 898,
+          "w": 147,
+          "h": 18
+        }
+      },
+      "html": "<a href=\"/news/template/program_news.do?pgmCode=000537\" event_name=\"click_event\" ep_button_name=\"뉴스A CITY LIVE\" ep_button_area=\"뉴스프로그램\" ep_button_category=\"뉴스 홈\" ep_content_order=\"5\" onclick=\"sendGAAttrEvent(event);\">\n\t\t\t\t\t\t\t\t\t\t<img src=\"http://image.ichannela.com/images/program/WPG2250295D/site_pos"
+    },
+    {
+      "no": 10,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#sidetalk-side-panel-btn",
+      "context": {
+        "tagName": "button",
+        "id": "sidetalk-side-panel-btn",
+        "className": "sidetalk-side-panel-btn-type02",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": "https://chatsetting.sidetalk.ai/5fa4fc56f8db565fe748f00983da0d02a17806b1111de1b3379b57793c66de60/button_image",
+        "parentClass": null,
+        "parentText": "뉴스홈\n \n기자별 뉴스\n \nTV뉴스\n \n디지털뉴스\n전체기사 정치 사회 경제 생활문화 국제 스포츠 최신\n[속보]트럼프 “중간선거 결과 수용…민주당과 협력할 것”\n[속보]美민주, 하원",
+        "prevSiblingText": "",
+        "nextSiblingText": "채널A 고객센터",
+        "rect": {
+          "x": 110,
+          "y": 614,
+          "w": 60,
+          "h": 60
+        }
+      },
+      "html": "<button id=\"sidetalk-side-panel-btn\" class=\"sidetalk-side-panel-btn-type02\" type=\"button\" style=\"inset: auto 5px 150px auto !important; padding: 0px;\">\n\t\t\t\t\t\t<img src=\"https://chatsetting.sidetalk.ai/5fa4fc56f8db565fe748f00983da0d02a17806b1111de1b3379b57793c66de60/button_image\" style=\"width: 100%; h"
+    }
+  ]
+}

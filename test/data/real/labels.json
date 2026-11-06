@@ -1,0 +1,912 @@
+[
+  {
+    "site": "channela",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F2",
+    "answer": "채널A 홈",
+    "note": "href \"/\", iconSrc logo",
+    "expected": [
+      "홈"
+    ]
+  },
+  {
+    "site": "channela",
+    "no": 2,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "전체 메뉴",
+    "note": "class btn_sidemenu",
+    "expected": [
+      "메뉴"
+    ]
+  },
+  {
+    "site": "channela",
+    "no": 3,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "뉴스 사진 링크. 부모 글자에 기사 제목",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 4,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "기자 링크. 뒤 형제 \"남영주 정치부\"",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 5,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "프로그램 포스터 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 6,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "프로그램 포스터 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 7,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "프로그램 포스터 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 8,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "프로그램 포스터 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 9,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "프로그램 포스터 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "channela",
+    "no": 10,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "상담 채팅",
+    "note": "id sidetalk-side-panel-btn, 뒤 형제 \"채널A 고객센터\"",
+    "expected": [
+      "채팅 상담"
+    ]
+  },
+  {
+    "site": "chosun",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "메뉴",
+    "note": "class nav__bar-icon (안쪽에 aria-label 있는 버튼이 중첩)",
+    "expected": [
+      "메뉴"
+    ]
+  },
+  {
+    "site": "chosun",
+    "no": 2,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "메뉴",
+    "note": "class nav__bar-icon (안쪽에 aria-label 있는 버튼이 중첩)",
+    "expected": [
+      "메뉴"
+    ]
+  },
+  {
+    "site": "chosun",
+    "no": 3,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "조선일보 멤버십",
+    "note": "href /membership. class의 logo는 모양 단어, 주변 \"가입\"은 다음 메뉴 글자",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 4,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 5,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 6,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 7,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 8,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 9,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "외부 광고 배너 (chosun-moneyexpo.co.kr)",
+    "expected": "content"
+  },
+  {
+    "site": "chosun",
+    "no": 10,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 11,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 12,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "chosun",
+    "no": 13,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "슬라이드 선택",
+    "note": "빈 버튼 반복, btnActive=현재 슬라이드. report에 단서 없음",
+    "expected": "AI"
+  },
+  {
+    "site": "coupang",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "마이쿠팡",
+    "note": "id mycoupang, iconSrc person",
+    "expected": [
+      "마이페이지",
+      "내 정보"
+    ]
+  },
+  {
+    "site": "coupang",
+    "no": 2,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "장바구니",
+    "note": "id cart, iconSrc cart, 이름 \"0\"=개수 배지, 뒤 형제 \"장바구니에 담긴…\"",
+    "expected": [
+      "장바구니"
+    ]
+  },
+  {
+    "site": "coupang",
+    "no": 3,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 4,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 5,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 6,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 7,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 8,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 9,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 10,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 11,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 12,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 13,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 14,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 15,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 16,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 17,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 18,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 19,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 20,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 21,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 22,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "광고 이미지",
+    "expected": "content"
+  },
+  {
+    "site": "coupang",
+    "no": 23,
+    "kind": "function",
+    "pattern": "F1",
+    "answer": "쿠팡 페이스북",
+    "note": "href facebook.com, class facebook",
+    "expected": [
+      "페이스북"
+    ]
+  },
+  {
+    "site": "coupang",
+    "no": 24,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "쿠팡 뉴스룸",
+    "note": "href news.coupang.com, class blog (news.coupang.com은 같은 회사 주소라 F1이 아니라 F3)",
+    "expected": [
+      "블로그",
+      "뉴스룸"
+    ]
+  },
+  {
+    "site": "coupang",
+    "no": 25,
+    "kind": "function",
+    "pattern": "F1",
+    "answer": "쿠팡 인스타그램",
+    "note": "href instagram.com, class instagram",
+    "expected": [
+      "인스타그램"
+    ]
+  },
+  {
+    "site": "daum",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F2",
+    "answer": "다음 홈",
+    "note": "href daum.net 첫 화면, class link_daum",
+    "expected": [
+      "홈"
+    ]
+  },
+  {
+    "site": "daum",
+    "no": 2,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "뉴스 사진 링크. 앞 형제 글자가 기사 제목",
+    "expected": "content"
+  },
+  {
+    "site": "daum",
+    "no": 3,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "뉴스 사진 링크. 앞 형제 글자가 기사 제목",
+    "expected": "content"
+  },
+  {
+    "site": "daum",
+    "no": 4,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "뉴스 사진 링크. 앞 형제 글자가 기사 제목",
+    "expected": "content"
+  },
+  {
+    "site": "daum",
+    "no": 5,
+    "kind": "content",
+    "pattern": "C1",
+    "answer": null,
+    "note": "뉴스 사진 링크. 앞 형제 글자가 기사 제목",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "검색",
+    "note": "class Searchbar__…",
+    "expected": [
+      "검색"
+    ]
+  },
+  {
+    "site": "musinsa",
+    "no": 2,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 3,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 4,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 5,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 6,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 7,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 8,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 9,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 10,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 11,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 12,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 13,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 14,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 15,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 16,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 17,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 18,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 19,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 20,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 21,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 22,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 23,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 24,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 25,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 26,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 27,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 28,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 29,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 30,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 31,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 32,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 33,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 34,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 35,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 36,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 37,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "musinsa",
+    "no": 38,
+    "kind": "content",
+    "pattern": "C2",
+    "answer": null,
+    "note": "상품 사진 링크. 상품명은 report에 없음 (parentText \"7개+\"는 개수 표시)",
+    "expected": "content"
+  },
+  {
+    "site": "namuwiki",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "최근 변경",
+    "note": "href /RecentChanges",
+    "expected": "AI"
+  },
+  {
+    "site": "namuwiki",
+    "no": 2,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "최근 토론",
+    "note": "href /RecentDiscuss",
+    "expected": "AI"
+  },
+  {
+    "site": "namuwiki",
+    "no": 3,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": "특수 기능",
+    "note": "href #, 아이콘 파일명은 해시. 원문 안 숨겨진 글자에만 있음",
+    "expected": "AI"
+  },
+  {
+    "site": "namuwiki",
+    "no": 4,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": null,
+    "note": "아이콘만 있음, 기능 미상",
+    "expected": "AI"
+  },
+  {
+    "site": "namuwiki",
+    "no": 5,
+    "kind": "function",
+    "pattern": "F4",
+    "answer": null,
+    "note": "아이콘만 있음, 기능 미상",
+    "expected": "AI"
+  },
+  {
+    "site": "namuwiki",
+    "no": 6,
+    "kind": "function",
+    "pattern": "F3",
+    "answer": "최근 변경",
+    "note": "href /RecentChanges (최근 변경 목록 위젯)",
+    "expected": "AI"
+  },
+  {
+    "site": "tripcom",
+    "no": 1,
+    "kind": "function",
+    "pattern": "F1",
+    "answer": "트립닷컴 X(트위터)",
+    "note": "href twitter.com. 이름 \"x\"는 닫기가 아니라 X 로고",
+    "expected": [
+      "X(트위터)"
+    ]
+  }
+]

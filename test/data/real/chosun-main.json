@@ -1,0 +1,344 @@
+{
+  "url": "https://www.chosun.com/",
+  "collectedAt": "2026-11-04T05:28:22.314Z",
+  "items": [
+    {
+      "no": 1,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#nav > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+      "context": {
+        "tagName": "div",
+        "id": null,
+        "className": "nav__bar-icon | box--hidden-lg box--margin-right-sm box--pointer",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "nav__masthead-left | flex flex--align-items-center grid__col--sm-4 grid__col--md-4 grid__col--lg-3 box--pad-top-sm box--pad-bottom-sm",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 10,
+          "y": 12,
+          "w": 24,
+          "h": 24
+        }
+      },
+      "html": "<div class=\"nav__bar-icon | box--hidden-lg box--margin-right-sm box--pointer\" role=\"button\" tabindex=\"0\" on=\"tap:amp-hamburger.toggle\"><button class=\"flex flex--align-items-center box--pointer\" aria-label=\"Local Navigation Bar\" id=\"menubutton-mobile\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24"
+    },
+    {
+      "no": 2,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#nav > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)",
+      "context": {
+        "tagName": "div",
+        "id": null,
+        "className": "nav__bar-icon | box--hidden-lg",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": "nav__masthead-left | flex flex--align-items-center grid__col--sm-4 grid__col--md-4 grid__col--lg-3 box--pad-top-sm box--pad-bottom-sm",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "2026년 11월 4일(수)",
+        "rect": {
+          "x": 46,
+          "y": 12,
+          "w": 24,
+          "h": 24
+        }
+      },
+      "html": "<div class=\"nav__bar-icon | box--hidden-lg\" role=\"button\" tabindex=\"0\"><button class=\"flex flex--align-items-center box--pointer box--hidden-lg\" aria-label=\"Local Navigation Bar\" id=\"menubutton-mobile\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"><path class=\"st"
+    },
+    {
+      "no": 3,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "menu-bar-logo text--wrap-nowrap",
+        "href": "/membership/?utm_source=chosun&utm_medium=gnb&utm_campaign=membership&utm_content=contents",
+        "iconClass": "menu-bar-logo-icon",
+        "iconSrc": null,
+        "parentClass": "menu-bar-wrapper flex flex--align-items-center",
+        "parentText": "조선몰\n신문·잡지\n혜택\n가입",
+        "prevSiblingText": "",
+        "nextSiblingText": "조선몰\n신문·잡지\n혜택\n가입",
+        "rect": {
+          "x": 16,
+          "y": 103,
+          "w": 100,
+          "h": 22
+        }
+      },
+      "html": "<a class=\"menu-bar-logo text--wrap-nowrap\" href=\"/membership/?utm_source=chosun&amp;utm_medium=gnb&amp;utm_campaign=membership&amp;utm_content=contents\"><span class=\"menu-bar-logo-icon\"></span><span class=\"double-arrow-icon box--margin-left-s\"></span></a>"
+    },
+    {
+      "no": 4,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(1) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 48,
+          "y": 6543,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 5,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(2) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 68,
+          "y": 6543,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 6,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(3) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "btnActive",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 87,
+          "y": 6542,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"btnActive\"></button>"
+    },
+    {
+      "no": 7,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(4) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 108,
+          "y": 6543,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 8,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(5) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 128,
+          "y": 6543,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 9,
+      "status": "empty",
+      "role": "link",
+      "currentName": "",
+      "selector": "#artwrapper > div:nth-of-type(1) > figure:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+      "context": {
+        "tagName": "a",
+        "id": null,
+        "className": "",
+        "href": "https://chosun-moneyexpo.co.kr",
+        "iconClass": "box--display-block",
+        "iconSrc": "https://www.chosun.com/resizer/v2/https%3A%2F%2Fcloudfront-ap-northeast-1.images.arcpublishing.com%2Fchosun%2F5OO7RQ6PJZA5BG6TXRAIKO7ZDM.jpg?auth=719dcb73869b2499ebc3cc294cd731d0042da08b0124bae7d7d5812833ecd55e&width=400&height=133&smart=true",
+        "parentClass": "article-print-sty2 | width--100 height--100 box--position-absolute box--position-absolute-top box--position-absolute-left",
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 16,
+          "y": 23340,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<a class=\"\" target=\"_blank\" rel=\"noreferrer noopener\" href=\"https://chosun-moneyexpo.co.kr\" aria-label=\"\"><img alt=\"\" class=\"box--display-block\" loading=\"lazy\" src=\"https://www.chosun.com/resizer/v2/https%3A%2F%2Fcloudfront-ap-northeast-1.images.arcpublishing.com%2Fchosun%2F5OO7RQ6PJZA5BG6TXRAIKO7ZD"
+    },
+    {
+      "no": 10,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(1) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 58,
+          "y": 23401,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 11,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(2) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 78,
+          "y": 23401,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    },
+    {
+      "no": 12,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(3) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "btnActive",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 97,
+          "y": 23400,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"btnActive\"></button>"
+    },
+    {
+      "no": 13,
+      "status": "empty",
+      "role": "button",
+      "currentName": "",
+      "selector": "#fusion-app > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(4) > button:nth-of-type(1)",
+      "context": {
+        "tagName": "button",
+        "id": null,
+        "className": "",
+        "href": null,
+        "iconClass": null,
+        "iconSrc": null,
+        "parentClass": null,
+        "parentText": "",
+        "prevSiblingText": "",
+        "nextSiblingText": "",
+        "rect": {
+          "x": 118,
+          "y": 23401,
+          "w": 0,
+          "h": 0
+        }
+      },
+      "html": "<button class=\"\"></button>"
+    }
+  ]
+}
