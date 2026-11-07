@@ -104,6 +104,10 @@ export async function scan(root = document) {
   );
   console.table(report.map((r, i) => ({
     no: i + 1, status: r.status, role: r.role, name: r.currentName,
+    previousMatch: previous.status === 'skipped' ? 'skipped'
+      : !fingerprints[i]?.eligible ? 'ineligible'
+      : previous.status !== 'ok' ? previous.status
+      : r.match.source === 'previous' ? 'hit' : 'miss',
     match: r.match.decision, label: r.match.label, // ③ 결과: confirm(확정)/ai/content
     selector: r.selector,
   })));
