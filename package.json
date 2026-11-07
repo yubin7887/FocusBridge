@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/content.js --bundle --format=iife --outfile=dist/content.js",
-    "watch": "esbuild src/content.js --bundle --format=iife --outfile=dist/content.js --watch",
+    "build": "esbuild src/content.js src/background.js --bundle --format=iife --outdir=dist",
+    "watch": "esbuild src/content.js src/background.js --bundle --format=iife --outdir=dist --watch",
     "test": "node test/run.mjs",
     "test:match": "node test/unit.mjs && node test/match-eval.mjs && node test/e2e-match.mjs",
     "test:all": "npm test && npm run test:match && npm run test:previous",
-    "test:previous": "node test/previous-fingerprint.mjs"
+    "test:previous": "node test/previous-fingerprint.mjs && node test/previous-store.mjs",
+    "test:extension": "npm run build && node test/previous-extension.mjs"
   },
   "dependencies": {
     "dom-accessibility-api": "^0.7.0"

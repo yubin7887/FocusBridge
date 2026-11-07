@@ -1,8 +1,8 @@
-# Previous Matching — 1단계
+# Previous Matching — 1·2단계
 
-현재 단계는 **식별 정보 생성과 정확 비교**다. IndexedDB, Service Worker,
-7일 만료 정책, content.js 연결, AI 호출, aria-label 적용은 아직 구현하지 않았다.
-기존 탐지·사전 매칭 흐름은 그대로다.
+식별 정보 생성·정확 비교와 Service Worker의 IndexedDB 저장·조회를 구현했다.
+content.js 연결, AI 호출, aria-label 적용은 아직 구현하지 않았다.
+기존 탐지·사전 매칭 흐름은 그대로이며 실제 방문만으로 저장이 발생하지 않는다.
 
 ## 사용 방법
 
@@ -18,7 +18,8 @@ const matches = exactFingerprintMatch(before, after);
 - `eligible: true`: 비교 가능한 스냅샷. `canonical`은 고정 순서로 직렬화한 정보다.
 - `eligible: false`: `reason`에 제외 사유가 있다. 향후 연결 시 사전 매칭으로 넘긴다.
 - 이 함수는 확정 이름을 생성하지 않으며, true도 기능의 의미를 보장하지 않는다.
-- DB 레코드의 만료·AI 검증·충돌 여부는 다음 단계에서 별도로 검사한다.
+- DB 조회는 만료·출처·검증 메타데이터·충돌 여부를 확인한다.
+  검증 메타데이터 자체가 AI의 의미적 정확성을 보장하지는 않는다.
 
 ## 합의한 정책과 현재 구현
 
@@ -62,5 +63,39 @@ $env:CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 npm run test:all
 ```
 
-다음 단계는 확장 프로그램 컨텍스트의 IndexedDB 저장·조회와 검증된 결과를
-받는 인터페이스다. 실제 AI 확정 기준은 팀원과 합의 후 연결한다.
+## 2단계: 저장·조회
+
+- `previous-store.js`: DB `focusbridge`의 `confirmedLabels` 저장소를 관리한다.
+- 기본 키: `[pageKey, fingerprintVersion, fingerprintHash]`.
+- 인덱스: `pageKey`, `expiresAt`. SHA-256 키와 원본 canonical을 함께 보관한다.
+- `saveConfirmed({fingerprint, label, source: 'ai', verification})`로 저장한다.
+  `verification`에는 `{status: 'confirmed', method, version}`이 필요하다.
+  **호출자가 실제 검증을 완료해야 한다.** AI 담당자의 검증 처리는 아직 연결하지 않았다.
+- 유효기간 중 같은 이름의 중복 저장은 기존 만료를 연장하지 않는다.
+- 유효기간 중 다른 이름은 충돌로 표시하고 재사용하지 않는다.
+- 만료된 기록은 기존 이름·충돌 상태와 무관하게 새로 검증한 결과로 교체하고 7일을 다시 계산한다.
+  시간 경과만으로 충돌 기록이 다시 활성화되는 것은 아니다.
+- 남아 있는 기록과 같은 해시인데 원본 식별 정보가 다르면 충돌 처리한다.
+- 비동기 저장 전에 입력 정보를 복사하며, 만료 판정은 실제 DB 기록을 읽은 시각을 기준으로 한다.
+- `lookupPage(pageKey)`는 해당 페이지의 유효한 기록만 반환한다.
+- 저장·조회할 때 `expiresAt` 인덱스로 모든 페이지의 만료 기록(충돌 기록 포함)을 실제 삭제한다.
+  별도 타이머는 없으며 확장 프로그램을 사용하지 않는 동안에는 다음 저장·조회까지 남아 있다.
+  삭제 시점 이후에 만료된 기록도 조회 결과에서는 제외한다.
+- `background.js`는 조회 메시지만 처리한다. 최상위 탭 문서의 실제 발신 URL과 요청 URL을
+  비교한다. iframe·다른 페이지 조회·다른 확장 발신자는 거부한다.
+- 메시지: `{type: 'focusbridge:previous:lookup', pageKey}`.
+  응답: `{ok: true, records}` 또는 `{ok: false, error}`.
+- 저장 메시지는 공개하지 않는다. 테스트는 별도 테스트 DB 또는 임시 확장 컨텍스트에서
+  검증된 결과를 주입한다. 웹페이지가 임의로 확정 기록을 만들 수 있는 통로는 없다.
+
+실제 확장 테스트는 [Playwright 공식 확장 테스트 방식](https://playwright.dev/docs/chrome-extensions)에
+따라 별도 Chromium과 임시 프로필을 사용한다. 개인 Chrome 프로필은 사용하지 않는다.
+
+```powershell
+$env:PLAYWRIGHT_BROWSERS_PATH = Join-Path (Get-Location) '.cache\playwright'
+npx playwright install chromium --no-shell
+npm run test:extension
+```
+
+다음 3단계에서 탐지 → 조회·정확 비교 → 실패 항목 사전 매칭 순서로 연결한다.
+DB 응답 대기 중 DOM 변경·SPA 전환·오래된 검사 결과도 이 단계에서 처리한다.
