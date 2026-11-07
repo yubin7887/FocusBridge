@@ -179,7 +179,7 @@ export function createFingerprint(el) {
   }
 }
 
-/** DB 연결 전 완전 일치 비교. 만료·AI 검증·충돌 확인은 다음 단계의 역할이다. */
+/** DB 연결 전 완전 일치 비교. 만료·출처·충돌 확인은 저장소와 매칭 모듈의 역할이다. */
 export function exactFingerprintMatch(saved, current) {
   return Boolean(saved?.eligible === true && current?.eligible === true
     && saved.version === FINGERPRINT_VERSION && current.version === FINGERPRINT_VERSION

@@ -1,6 +1,7 @@
 import { createPageKey, FINGERPRINT_VERSION } from './previous-fingerprint.js';
 
 export const RECORD_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// 기존 DB 호환성을 위해 저장소 이름은 유지한다. 검증 완료를 뜻하지 않는다.
 const STORE = 'confirmedLabels';
 
 function validateFingerprint(fp) {
@@ -20,7 +21,7 @@ const requestResult = (request) => new Promise((resolve, reject) => {
   request.onerror = () => reject(request.error);
 });
 
-// 호출자는 검증된 AI 결과만 전달해야 한다. 이 모듈은 AI의 의미적 정확성을 검증하지 않는다.
+// AI 생성 결과의 기본 형식만 확인한다. 이름의 의미적 정확성은 별도 평가에서 측정한다.
 export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } = {}) {
   let connection;
   function open() {
@@ -62,16 +63,12 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
     });
   }
 
-  async function saveConfirmed({ fingerprint, label, source, verification }) {
-    // 호출자가 비동기 저장 도중 원본 객체를 바꿔도 검증한 값만 저장한다.
+  async function saveAiResult({ fingerprint, label, source }) {
+    // 호출자가 비동기 저장 도중 원본 객체를 바꿔도 호출 당시 값만 저장한다.
     fingerprint = { ...fingerprint };
-    verification = { ...verification };
     validateFingerprint(fingerprint);
-    if (source !== 'ai' || typeof label !== 'string' || !label.trim() || label.length > 200
-      || verification?.status !== 'confirmed'
-      || typeof verification.method !== 'string' || !verification.method.trim() || verification.method.length > 100
-      || typeof verification.version !== 'string' || !verification.version.trim() || verification.version.length > 100) {
-      throw new Error('unverified-label');
+    if (source !== 'ai' || typeof label !== 'string' || !label.trim() || label.length > 200) {
+      throw new Error('invalid-ai-result');
     }
     // 해시 계산은 트랜잭션을 열기 전에 끝낸다.
     const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(fingerprint.canonical));
@@ -97,7 +94,6 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
             pageKey: fingerprint.pageKey, fingerprintVersion: fingerprint.version,
             fingerprintHash, fingerprintCanonical: fingerprint.canonical,
             label: label.trim(), source: 'ai',
-            verification: { status: 'confirmed', method: verification.method, version: verification.version },
             status: 'active', createdAt: existing?.createdAt ?? time, updatedAt: time,
             expiresAt: time + RECORD_TTL_MS,
           };
@@ -115,8 +111,7 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
     const records = await requestResult(db.transaction(STORE).objectStore(STORE).index('pageKey').getAll(pageKey));
     const time = now();
     return records.filter((r) => r.status === 'active' && r.expiresAt > time
-      && r.fingerprintVersion === FINGERPRINT_VERSION && r.source === 'ai'
-      && r.verification?.status === 'confirmed');
+      && r.fingerprintVersion === FINGERPRINT_VERSION && r.source === 'ai');
   }
 
   // 별도 타이머 없이 저장·조회 시 만료 인덱스로 정리한다.
@@ -140,5 +135,5 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
     connection = undefined;
     if (pending) (await pending).close();
   }
-  return { saveConfirmed, lookupPage, close };
+  return { saveAiResult, lookupPage, close };
 }

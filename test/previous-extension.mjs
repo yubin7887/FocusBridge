@@ -78,8 +78,7 @@ try {
   await worker.evaluate(bundle.outputFiles[0].text);
   const stored = await worker.evaluate(async (fp) => {
     const store = testPrevious.createPreviousStore();
-    const result = await store.saveConfirmed({ fingerprint: fp, label: '장바구니', source: 'ai',
-      verification: { status: 'confirmed', method: 'extension-test', version: '1' } });
+    const result = await store.saveAiResult({ fingerprint: fp, label: '장바구니', source: 'ai' });
     await store.close();
     return result;
   }, fingerprint);

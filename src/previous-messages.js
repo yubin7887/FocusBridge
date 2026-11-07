@@ -2,7 +2,7 @@ import { createPageKey } from './previous-fingerprint.js';
 
 export const LOOKUP_PREVIOUS = 'focusbridge:previous:lookup';
 
-// 저장 메시지는 공개하지 않는다. AI 담당자의 검증 처리에 저장 API를 연결할 예정이다.
+// 저장 메시지는 공개하지 않는다. AI 담당자의 결과 처리에 저장 API를 연결할 예정이다.
 export function createPreviousMessageHandler(store, extensionId) {
   return (message, sender, sendResponse) => {
     if (message?.type !== LOOKUP_PREVIOUS) return false;

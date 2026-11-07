@@ -7,8 +7,10 @@ let passed = 0;
 function check(title, value) { assert.ok(value, title); console.log('PASS', title); passed++; }
 const fp = { eligible: true, pageKey: 'https://example.com/shop', version: 2, canonical: 'snapshot' };
 const record = { pageKey: fp.pageKey, fingerprintVersion: 2, fingerprintCanonical: fp.canonical,
-  status: 'active', source: 'ai', verification: { status: 'confirmed' }, label: '상품 검색', expiresAt: 100 };
+  status: 'active', source: 'ai', label: '상품 검색', expiresAt: 100 };
 check('원본 정확 일치 기록 재사용', matchPrevious(fp, [record], 99)?.source === 'previous');
+check('기존 verification 메타데이터는 판정에 사용하지 않음',
+  matchPrevious(fp, [{ ...record, verification: { status: 'pending' } }], 99)?.source === 'previous');
 check('만료 경계에서 재사용 거부', !matchPrevious(fp, [record], 100));
 check('중복 기록 재사용 거부', !matchPrevious(fp, [record, record], 99));
 check('충돌 기록 재사용 거부', !matchPrevious(fp, [{ ...record, status: 'conflict' }], 99));
@@ -47,7 +49,7 @@ try {
       const fingerprint = flow.createFingerprint(document.querySelector('button'));
       const record = { pageKey: fingerprint.pageKey, fingerprintVersion: fingerprint.version,
         fingerprintCanonical: fingerprint.canonical, status: 'active', source: 'ai',
-        verification: { status: 'confirmed' }, label: '상품 검색', expiresAt: Date.now() + 60000 };
+        label: '상품 검색', expiresAt: Date.now() + 60000 };
       requests.shift().resolve({ ok: true, records: stored ? [record] : [] });
     }, stored);
     await page.waitForFunction(() => window.__focusBridge?.report);

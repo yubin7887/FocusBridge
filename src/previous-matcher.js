@@ -37,7 +37,7 @@ export function matchPrevious(fingerprint, records, time = Date.now()) {
   // 중복 응답도 모호한 기록으로 취급한다. 응답 수신 후 만료 여부를 다시 검사한다.
   if (candidates.length !== 1) return null;
   const record = candidates[0];
-  if (record.status !== 'active' || record.source !== 'ai' || record.verification?.status !== 'confirmed'
+  if (record.status !== 'active' || record.source !== 'ai'
     || !Number.isFinite(record.expiresAt) || record.expiresAt <= time
     || typeof record.label !== 'string' || !record.label.trim() || record.label.length > 200) return null;
   return { decision: 'confirm', pattern: 'P1', label: record.label, score: 0, candidates: [], source: 'previous' };
