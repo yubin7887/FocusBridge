@@ -1,8 +1,8 @@
-# Previous Matching — 1·2단계
+# Previous Matching — 1·2·3단계
 
-식별 정보 생성·정확 비교와 Service Worker의 IndexedDB 저장·조회를 구현했다.
-content.js 연결, AI 호출, aria-label 적용은 아직 구현하지 않았다.
-기존 탐지·사전 매칭 흐름은 그대로이며 실제 방문만으로 저장이 발생하지 않는다.
+식별 정보 생성·정확 비교, Service Worker의 IndexedDB 저장·조회,
+content.js의 이전 매칭 우선 실행까지 구현했다.
+AI 호출과 aria-label 적용은 아직 구현하지 않았다. 실제 방문만으로 저장이 발생하지 않는다.
 
 ## 사용 방법
 
@@ -16,7 +16,7 @@ const matches = exactFingerprintMatch(before, after);
 ```
 
 - `eligible: true`: 비교 가능한 스냅샷. `canonical`은 고정 순서로 직렬화한 정보다.
-- `eligible: false`: `reason`에 제외 사유가 있다. 향후 연결 시 사전 매칭으로 넘긴다.
+- `eligible: false`: `reason`에 제외 사유가 있다. 사전 매칭으로 넘긴다.
 - 이 함수는 확정 이름을 생성하지 않으며, true도 기능의 의미를 보장하지 않는다.
 - DB 조회는 만료·출처·검증 메타데이터·충돌 여부를 확인한다.
   검증 메타데이터 자체가 AI의 의미적 정확성을 보장하지는 않는다.
@@ -97,5 +97,31 @@ npx playwright install chromium --no-shell
 npm run test:extension
 ```
 
-다음 3단계에서 탐지 → 조회·정확 비교 → 실패 항목 사전 매칭 순서로 연결한다.
-DB 응답 대기 중 DOM 변경·SPA 전환·오래된 검사 결과도 이 단계에서 처리한다.
+## 3단계: 탐지 흐름 연결
+
+`수집 → 이름 누락 탐지 → 이전 기록 조회·정확 비교 → 실패 항목만 사전 매칭`
+
+- 최초 방문처럼 기록이 없으면 바로 사전 매칭 결과를 사용한다.
+- 이전 매칭 성공은 기존 match 형식을 유지하며 `pattern: 'P1'`, `source: 'previous'`로 구분한다.
+  `score: 0`은 사전 점수를 계산하지 않았다는 뜻이며 정확도 수치가 아니다.
+- 사전 매칭은 전체 report의 `pageCommon()`을 공유하여 기존 판정 기준을 유지한다.
+- iframe은 이전 조회를 건너뛰고 기존 탐지·사전 매칭을 실행한다.
+- DB 오류·확장 API 부재·2초 시간 초과는 사전 매칭으로 넘긴다.
+- 진행 중인 동일 페이지 조회만 공유하며 완료된 결과는 캐시하지 않는다.
+- 변경 감지 즉시 검사 세대를 무효화하고 500ms 디바운스로 다시 검사한다.
+  응답 후 URL·DOM 요소·현재 이름·문맥·Fingerprint를 재확인한다.
+- 속성·텍스트·열린 Shadow DOM을 감시하고, 500ms 간격으로 URL 및 새 Shadow DOM을 확인한다.
+  페이지의 history 함수를 덮어쓰지 않는다. 대규모 DOM에서는 이 순회 비용을 추후 측정할 필요가 있다.
+- `scan()`은 이제 Promise를 반환하고 폐기된 검사는 null을 반환한다.
+  `window.__focusBridge`에는 마지막 유효한 결과만 게시하며 변경 감지 시 null로 무효화한다.
+  `window.__focusBridgeReady`는 자동으로 시작한 최근 검사의 Promise이다.
+  최신 검사가 예약된 동안에는 이전 Promise가 남을 수 있으므로 테스트는 유효한 report도 기다린다.
+- 결과에 `pageUrl`, `scanId`, `previousStatus`가 추가된다. 콘솔·오버레이도 유효한 결과에만 갱신한다.
+- 실제 AI가 없으므로 실제 확장 테스트는 Worker 안에 검증된 테스트 기록을 넣고 재방문을 확인한다.
+  테스트 전용 보고서 전달 코드는 임시 확장에만 추가하며 제품 코드에는 넣지 않는다.
+
+### AI 담당자 연결 지점
+
+AI 요청 당시 Fingerprint를 보관하고, 결과 검증 후 현재 페이지·요소가 여전히 같은지
+다시 확인한 다음 확장 컨텍스트에서 `saveConfirmed()`를 호출한다. 이 검증과 저장 연결은
+AI 담당자와 함께 구현할 범위다. 현재 `ai`/`content` 결과는 처리 대상으로 남기며 DOM은 바꾸지 않는다.

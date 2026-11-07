@@ -21,6 +21,17 @@ try {
     chrome.runtime.sendMessage({type:'focusbridge:previous:lookup',pageKey:location.href})
       .then(result => document.documentElement.setAttribute('data-previous-test', JSON.stringify(result)))
       .catch(error => document.documentElement.setAttribute('data-previous-test', JSON.stringify({error:error.message})));
+    const output = document.createElement('div');
+    output.setAttribute('data-fb-ignore', '');
+    output.id = 'previous-test-report';
+    document.documentElement.append(output);
+    setInterval(() => {
+      output.textContent = JSON.stringify(window.__focusBridge ? {
+        pageUrl: window.__focusBridge.pageUrl,
+        report: window.__focusBridge.report,
+        previousStatus: window.__focusBridge.previousStatus,
+      } : null);
+    }, 100);
   `);
   const bundle = await build({ stdin: { contents: `export * from './src/previous-store.js';
     export * from './src/previous-fingerprint.js';`, resolveDir: process.cwd() },
@@ -51,6 +62,17 @@ try {
   };
   assert.deepEqual(await response(page), { ok: true, records: [] });
   console.log('PASS 실제 content script → Service Worker 첫 방문 조회');
+  const report = async (p, source) => {
+    await p.waitForFunction((source) => {
+      const raw = document.getElementById('previous-test-report')?.textContent;
+      const value = raw ? JSON.parse(raw) : null;
+      return value?.pageUrl === location.href && value.report.length > 0
+        && (source ? value.report[0].match.source === source : value.report[0].match.source !== 'previous');
+    }, source, { timeout: 15000 });
+    return JSON.parse(await p.locator('#previous-test-report').textContent());
+  };
+  assert.equal((await report(page)).report[0].match.label, '장바구니');
+  console.log('PASS 첫 방문은 기존 사전 매칭으로 처리');
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   const fingerprint = await page.evaluate(() => testPrevious.createFingerprint(document.getElementById('cart')));
   await worker.evaluate(bundle.outputFiles[0].text);
@@ -65,6 +87,26 @@ try {
   await page.reload();
   assert.equal((await response(page)).records[0].label, '장바구니');
   console.log('PASS 확장 프로그램 IndexedDB에 저장 후 실제 메시지로 조회');
+  assert.equal((await report(page, 'previous')).report[0].match.pattern, 'P1');
+  assert.equal(await page.locator('button').getAttribute('aria-label'), null);
+  console.log('PASS 재방문 시 실제 탐지 결과에 이전 이름 재사용, DOM 이름은 수정하지 않음');
+  await page.evaluate(() => {
+    const button = document.querySelector('button');
+    button.className = 'close'; button.setAttribute('data-action', 'close');
+  });
+  assert.equal((await report(page)).report[0].match.label, '닫기');
+  console.log('PASS 저장 기록이 있어도 현재 요소가 달라지면 사전 매칭');
+  await page.evaluate(() => {
+    const button = document.querySelector('button');
+    button.removeAttribute('class'); button.setAttribute('data-action', 'cart');
+  });
+  await report(page, 'previous');
+  await page.evaluate(() => history.pushState(null, '', '/spa'));
+  assert.equal((await report(page)).report[0].match.source, undefined);
+  console.log('PASS DOM 변경 없는 SPA 주소 변경도 다른 페이지로 처리');
+  await page.evaluate(() => history.replaceState(null, '', '/shop'));
+  assert.equal((await report(page, 'previous')).report[0].match.label, '장바구니');
+  console.log('PASS SPA 원래 주소 복귀 시 이전 매칭 복구');
   assert.deepEqual(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name)), []);
   console.log('PASS 방문 사이트의 IndexedDB와 분리');
   await page.goto('https://example.com/other');
@@ -75,7 +117,8 @@ try {
   const revisited = await context.newPage();
   await revisited.goto('https://example.com/shop');
   assert.equal((await response(revisited)).records[0].label, '장바구니');
-  console.log('PASS 브라우저·Service Worker 재시작 후 기록 유지\n\n5/5 passed');
+  assert.equal((await report(revisited, 'previous')).report[0].match.label, '장바구니');
+  console.log('PASS 브라우저·Service Worker 재시작 후 기록 유지 및 이전 매칭\n\n10/10 passed');
 } finally {
   if (context) await context.close();
   // 임시 디렉터리의 절대 경로가 의도한 범위에 있는지 확인 후 정리한다.

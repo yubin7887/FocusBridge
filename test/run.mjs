@@ -9,6 +9,7 @@ const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('pageerror:', e));
 await page.goto('file://' + path.join(dir, 'fixture.html'));
 await page.addScriptTag({ path: path.join(dir, '../dist/content.js') });
+await page.waitForFunction(() => window.__focusBridge?.report);
 
 const rows = await page.evaluate(() => {
   const { targets, missing } = window.__focusBridge;

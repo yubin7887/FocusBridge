@@ -27,6 +27,7 @@ const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('pageerror:', e));
 await page.goto('file://' + path.join(dir, 'fixture.html'));
 await page.addScriptTag({ path: path.join(dir, '../dist/content.js') });
+await page.waitForFunction(() => window.__focusBridge?.report);
 const got = await page.evaluate(() => window.__focusBridge.report.map((r) => ({
   decision: r.match.decision, label: r.match.label,
 })));
