@@ -78,9 +78,16 @@ try {
     return JSON.parse(await p.locator('#previous-test-report').textContent());
   };
   assert.equal((await report(page)).report[0].match.label, '장바구니');
+  await page.getByRole('button', { name: '장바구니', exact: true }).waitFor();
   console.log('PASS 첫 방문은 기존 사전 매칭으로 처리');
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
-  const fingerprint = await page.evaluate(() => testPrevious.createFingerprint(document.getElementById('cart')));
+  const fingerprint = await page.evaluate(() => {
+    const button = document.getElementById('cart');
+    const addedLabel = button.getAttribute('aria-label');
+    button.removeAttribute('aria-label');
+    try { return testPrevious.createFingerprint(button); }
+    finally { if (addedLabel !== null) button.setAttribute('aria-label', addedLabel); }
+  });
   await worker.evaluate(bundle.outputFiles[0].text);
   const stored = await worker.evaluate(async (fp) => {
     const store = testPrevious.createPreviousStore();
@@ -93,8 +100,9 @@ try {
   assert.equal((await response(page)).records[0].label, '장바구니');
   console.log('PASS 확장 프로그램 IndexedDB에 저장 후 실제 메시지로 조회');
   assert.equal((await report(page, 'previous')).report[0].match.pattern, 'P1');
-  assert.equal(await page.locator('button').getAttribute('aria-label'), null);
-  console.log('PASS 재방문 시 실제 탐지 결과에 이전 이름 재사용, DOM 이름은 수정하지 않음');
+  await page.getByRole('button', { name: '장바구니', exact: true }).waitFor();
+  assert.equal((await report(page, 'previous')).report[0].labelApplied, true);
+  console.log('PASS 재방문 시 저장된 이름을 실제 접근성 이름으로 적용');
   await page.evaluate(() => {
     const button = document.querySelector('button');
     button.className = 'close'; button.setAttribute('data-action', 'close');
