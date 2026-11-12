@@ -1,12 +1,56 @@
 import { AI_BATCH_SIZE, MAX_AI_PAYLOAD, inferLabels } from './ai-client.js';
+import { AI_MODELS } from './ai-config.js';
 import { createPageKey } from './previous-fingerprint.js';
 
 export const INFER_NAMES = 'focusbridge:ai:infer';
 export const SAVE_NAMES = 'focusbridge:ai:save';
 
 // Only an AI result returned to the same document can be saved.
-export function createAiMessageHandler({ store, extensionId, readSettings, infer = inferLabels }) {
+export function createAiMessageHandler({ store, extensionId, readSettings, storageReady, infer = inferLabels }) {
   const completed = new Map();
+  const providers = new Map();
+
+  function requestAi(settings, payloads) {
+    const { model } = settings;
+    const { provider } = AI_MODELS[model];
+    if (!providers.has(provider)) providers.set(provider, { queue: Promise.resolve(), requestCount: 0 });
+    const state = providers.get(provider);
+    const storageKey = `focusbridgeAiBlockedUntil:${provider}`;
+
+    // Requests from multiple tabs must see a 429 before the next call starts.
+    const run = state.queue.then(async () => {
+      const storage = await storageReady;
+      if (!state.loaded) {
+        const saved = await storage?.get(storageKey).catch(() => null);
+        const retryAt = saved?.[storageKey];
+        if (Number.isFinite(retryAt) && retryAt > Date.now()) state.block = { status: 'rate-limited', httpStatus: 429, retryAt };
+        state.loaded = true;
+      }
+      if (state.block?.retryAt > Date.now()) return { ...state.block, model, requestCount: state.requestCount };
+
+      const current = await readSettings();
+      if (current?.model !== model || current?.apiKey !== settings.apiKey) return { status: 'stale', model };
+
+      const requestCount = ++state.requestCount;
+      let response;
+      try {
+        response = await infer(settings, payloads);
+      } catch (error) {
+        response = { status: error?.name === 'TimeoutError' ? 'timeout' : 'api-error' };
+      }
+      if (Number.isFinite(response.retryAt)) {
+        state.block = response;
+        if (response.status === 'rate-limited') {
+          await storage?.set({ [storageKey]: response.retryAt }).catch(() => {});
+        }
+      }
+      console.info('[FocusBridge AI] API 요청', { model, requestCount, http: response.httpStatus ?? null, status: response.status });
+      return { ...response, model, requestCount };
+    });
+    state.queue = run.then(() => {}, () => {});
+    return run;
+  }
+
   async function handle(message, sender) {
     const pageKey = createPageKey(sender.url);
     if (sender.id !== extensionId || !Number.isInteger(sender.tab?.id)
@@ -49,12 +93,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, infer
     const settings = await readSettings();
     if (settings === null) return { status: 'storage-unavailable' };
     if (!settings.apiKey) return { status: 'not-configured', model: settings.model };
-    let response;
-    try {
-      response = { ...await infer(settings, payloads), model: settings.model };
-    } catch (error) {
-      return { status: error?.name === 'TimeoutError' ? 'timeout' : 'api-error', model: settings.model };
-    }
+    const response = await requestAi(settings, payloads);
     if (response.status !== 'ok') return response;
     const current = await readSettings();
     if (!current || current.model !== settings.model || current.apiKey !== settings.apiKey) {

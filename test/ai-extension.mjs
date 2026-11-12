@@ -12,6 +12,7 @@ try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
   await mkdir(path.join(dir, 'src'));
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
+  assert.ok(manifest.host_permissions.includes('https://api.groq.com/*'));
   manifest.content_scripts[0].js.push('probe.js');
   await writeFile(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   for (const file of ['dist/content.js', 'src/options.js', 'src/ai-settings.js', 'src/ai-config.js', 'options.html', 'options.css']) {
@@ -20,6 +21,8 @@ try {
   const background = await readFile('dist/background.js', 'utf8');
   await writeFile(path.join(dir, 'dist/background.js'), `
     globalThis.requests = [];
+    const originalNow = Date.now;
+    Date.now = () => globalThis.aiTestNow ?? originalNow();
     const originalTimeout = AbortSignal.timeout.bind(AbortSignal);
     AbortSignal.timeout = (ms) => {
       globalThis.requestTimeoutMs = ms;
@@ -28,14 +31,19 @@ try {
     globalThis.fetch = async (url, request) => {
       const raw = JSON.parse(request.body);
       const openai = url === 'https://api.openai.com/v1/responses';
-      const inputs = JSON.parse(openai ? raw.input : raw.contents[0].parts[0].text);
-      const authorized = openai
-        ? request.headers.Authorization === 'Bearer openai-test-key' && !request.headers['x-goog-api-key']
+      const groq = url === 'https://api.groq.com/openai/v1/chat/completions';
+      const inputs = JSON.parse(groq ? raw.messages.find(({ role }) => role === 'user').content
+        : openai ? raw.input : raw.contents[0].parts[0].text);
+      const authorized = groq || openai
+        ? request.headers.Authorization === (groq ? 'Bearer groq-test-key' : 'Bearer openai-test-key') && !request.headers['x-goog-api-key']
         : request.headers['x-goog-api-key'] === 'local-test-key' && !request.headers.Authorization;
-      requests.push({ url, inputs, authorized, model: raw.model, reasoning: raw.reasoning?.effort,
-        store: raw.store, format: raw.text?.format?.type, thinkingLevel: raw.generationConfig?.thinkingConfig?.thinkingLevel });
+      requests.push({ url, inputs, authorized, model: raw.model, reasoning: raw.reasoning_effort ?? raw.reasoning?.effort,
+        store: raw.store, format: raw.response_format?.type ?? raw.text?.format?.type,
+        strict: raw.response_format?.json_schema?.strict, thinkingLevel: raw.generationConfig?.thinkingConfig?.thinkingLevel });
       if (globalThis.holdResponse) await new Promise((resolve) => { globalThis.releaseResponse = resolve; });
-      if (globalThis.rejectRequest) return new Response(null, { status: 429 });
+      if (globalThis.rejectRequest) return Response.json({
+        error: { details: [{ violations: [{ quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier' }] }] },
+      }, { status: 429, headers: { 'Retry-After': '10' } });
       if (globalThis.unavailableRemaining > 0) {
         globalThis.unavailableRemaining--;
         return new Response(null, { status: 503, headers: { 'Retry-After': '0' } });
@@ -47,7 +55,7 @@ try {
         });
       }
       const results = inputs.map(({ requestId, attributes }) => {
-        let label = openai ? 'GPT 회전 설정' : '회전 설정 열기';
+        let label = groq ? 'Groq 회전 설정' : openai ? 'GPT 회전 설정' : '회전 설정 열기';
         if (attributes?.['data-action'] === 'unknown') label = globalThis.returnUnusableLabel ? 'button' : null;
         return { requestId, label };
       });
@@ -55,10 +63,15 @@ try {
         status: 'completed',
         output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ results }) }] }],
       });
+      if (groq) return Response.json({
+        choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ results }) } }],
+      });
       return Response.json({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(results) }] } }] });
     };
   ` + background);
   await writeFile(path.join(dir, 'probe.js'), `
+    const originalNow = Date.now;
+    Date.now = () => Number(document.documentElement.dataset.aiTestNow) || originalNow();
     const output = document.createElement('pre');
     output.id = 'ai-test-report';
     output.hidden = true;
@@ -66,7 +79,7 @@ try {
     document.documentElement.append(output);
     setInterval(() => {
       const result = window.__focusBridge;
-      output.textContent = JSON.stringify(result ? { report: result.report, aiStatus: result.aiStatus } : null);
+      output.textContent = JSON.stringify(result ? { report: result.report, aiStatus: result.aiStatus, scanId: result.scanId } : null);
     }, 50);
   `);
   browser = await chromium.launchPersistentContext(path.join(tmp, 'profile'), {
@@ -79,7 +92,7 @@ try {
   await settings.getByRole('status').filter({ hasText: '등록된 API 키가 없습니다.' }).waitFor();
   const modelSelect = settings.getByLabel('AI 모델');
   assert.deepEqual(await modelSelect.locator('option').allTextContents(),
-    ['Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol']);
+    ['Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol', 'Groq · GPT-OSS 20B']);
   const page = await browser.newPage();
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>상품</title></head><body>
     <header><button id="lookup" class="search"></button>
@@ -89,7 +102,7 @@ try {
     </body></html>`;
   await browser.route('https://example.com/**', (route) => route.fulfill({ contentType: 'text/html', body: html }));
   const read = (fn, arg = null) => page.waitForFunction(fn, arg, { timeout: 15000 });
-  const probe = (status) => page.waitForFunction((status) =>
+  const probe = (status, target = page) => target.waitForFunction((status) =>
     JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.aiStatus === status, status);
   const waitForStorage = (selector, status) => read(({ selector, status }) =>
     JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
@@ -145,6 +158,17 @@ try {
   assert.equal(rejected.labelApplied, false);
   assert.equal(await page.locator('#unknown').getAttribute('aria-label'), null);
   assert.deepEqual((await stored(page.url())).map(({ label }) => label), applyLabels ? ['회전 설정 열기'] : []);
+  let scanId = JSON.parse(await page.locator('#ai-test-report').textContent()).scanId;
+  for (const minutes of [2, 3]) {
+    await page.evaluate((minutes) => { document.documentElement.dataset.aiTestNow = Date.now() + minutes * 60000; }, minutes);
+    await read((previousScanId) => {
+      const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+      return result?.scanId > previousScanId && result.aiStatus === 'ok';
+    }, scanId);
+    scanId = JSON.parse(await page.locator('#ai-test-report').textContent()).scanId;
+  }
+  assert.equal(await worker.evaluate(() => requests.length), 1);
+  console.log('PASS 동일 요소 DOM 재검사에서 추가 API 요청 방지');
   await worker.evaluate(() => { globalThis.returnUnusableLabel = false; });
   if (applyLabels) {
     await page.reload();
@@ -166,48 +190,67 @@ try {
   assert.equal(await page.locator('#spin').getAttribute('aria-label'), '사이트가 제공한 이름');
   assert.deepEqual(await stored(page.url()), []);
 
-  await worker.evaluate(() => { globalThis.rejectRequest = true; });
+  const rateLimitStart = await worker.evaluate(() => {
+    globalThis.aiTestNow = Date.parse('2026-11-13T20:00:00Z');
+    globalThis.rejectRequest = true;
+    globalThis.holdResponse = true;
+    globalThis.releaseResponse = null;
+    return requests.length;
+  });
+  const otherPage = await browser.newPage();
   const logged = page.waitForEvent('console', { predicate: (message) => message.text() === '[FocusBridge AI] 응답 결과' });
-  await page.goto('https://example.com/rate-limit');
-  await probe('rate-limited');
+  await Promise.all([page.goto('https://example.com/rate-limit'), otherPage.goto('https://example.com/rate-limit-other-tab')]);
+  for (let i = 0; i < 100 && !(await worker.evaluate(() => Boolean(globalThis.releaseResponse))); i++) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  await worker.evaluate(() => { globalThis.holdResponse = false; globalThis.releaseResponse(); });
+  await Promise.all([probe('rate-limited'), probe('rate-limited', otherPage)]);
   await logged;
   await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
     ?.report.some((item) => item.aiStatus === 'rate-limited' && item.aiHttpStatus === 429
-      && item.aiModel === 'gemini-3.8-flash'));
+      && item.aiModel === 'gemini-3.8-flash' && item.aiRequestCount > 0));
+  assert.equal(await worker.evaluate(() => requests.length), rateLimitStart + 1);
   assert.deepEqual(await stored(page.url()), []);
-  await worker.evaluate(() => { globalThis.rejectRequest = false; });
+  await otherPage.close();
+  const reset = Date.parse('2026-11-14T08:00:00Z');
+  const storedReset = await worker.evaluate(async () => {
+    const key = 'focusbridgeAiBlockedUntil:google';
+    return (await chrome.storage.local.get(key))[key];
+  });
+  assert.equal(storedReset, reset);
+  await worker.evaluate((reset) => { globalThis.rejectRequest = false; globalThis.aiTestNow = reset - 1; }, reset);
+  await page.goto('https://example.com/before-quota-reset');
+  await probe('rate-limited');
+  assert.equal(await worker.evaluate(() => requests.length), rateLimitStart + 1);
+  await worker.evaluate((reset) => { globalThis.aiTestNow = reset; }, reset);
+  await page.goto('https://example.com/after-quota-reset');
+  await probe('ok');
+  assert.equal(await worker.evaluate(() => requests.length), rateLimitStart + 2);
+  console.log('PASS 429 후 다른 탭 차단, 일일 초기화 시각 보관 및 초기화 후 재개');
 
-  for (const [failures, expected] of [[1, 'ok'], [3, 'service-unavailable']]) {
-    const start = await worker.evaluate((failures) => {
-      globalThis.unavailableRemaining = failures;
-      return requests.length;
-    }, failures);
-    await page.goto(`https://example.com/unavailable-${failures}`);
-    await probe(expected);
-    const attempts = await worker.evaluate((start) => requests.slice(start), start);
-    assert.equal(attempts.length, 2);
-    assert.equal(attempts[0].url, attempts[1].url);
-    assert.deepEqual(attempts[0].inputs, attempts[1].inputs);
-    if (failures > 1) assert.deepEqual(await stored(page.url()), []);
-  }
-  for (const [failures, lastHttpStatus] of [[0, undefined], [1, 503]]) {
-    const start = await worker.evaluate((failures) => {
-      globalThis.unavailableRemaining = failures;
-      globalThis.simulateTimeout = true;
-      return requests.length;
-    }, failures);
-    await page.goto(`https://example.com/timeout-${failures}`);
-    await probe('timeout');
-    const { report } = JSON.parse(await page.locator('#ai-test-report').textContent());
-    const spin = report.find((item) => item.selector === '#spin');
-    assert.equal(spin.aiStatus, 'timeout');
-    assert.equal(spin.aiHttpStatus, lastHttpStatus);
-    assert.equal(spin.match.label, null);
-    assert.equal(await worker.evaluate((start) => requests.length - start, start), failures + 1);
-    assert.deepEqual(await stored(page.url()), []);
-  }
+  const unavailableStart = await worker.evaluate(() => { globalThis.unavailableRemaining = 2; return requests.length; });
+  await page.goto('https://example.com/unavailable');
+  await probe('service-unavailable');
+  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+    ?.report.some((item) => item.aiStatus === 'service-unavailable' && item.aiHttpStatus === 503));
+  assert.equal(await worker.evaluate(() => requests.length), unavailableStart + 1);
+  assert.deepEqual(await stored(page.url()), []);
+  await page.goto('https://example.com/unavailable-during-cooldown');
+  await probe('service-unavailable');
+  assert.equal(await worker.evaluate(() => requests.length), unavailableStart + 1);
+  await worker.evaluate(() => {
+    globalThis.aiTestNow += 60000;
+    globalThis.unavailableRemaining = 0;
+    globalThis.simulateTimeout = true;
+  });
+  await page.goto('https://example.com/timeout');
+  await probe('timeout');
+  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+    ?.report.some((item) => item.aiStatus === 'timeout' && item.aiHttpStatus === undefined && item.match.label === null));
+  assert.equal(await worker.evaluate(() => requests.length), unavailableStart + 2);
+  assert.deepEqual(await stored(page.url()), []);
   await worker.evaluate(() => { globalThis.simulateTimeout = false; });
-  console.log('PASS AI 요청 시간 초과, 재시도 전 HTTP 상태 보존, 실패 결과 저장 방지');
+  console.log('PASS 503 자동 재시도 중단, HTTP 상태 표시, Timeout 발생 시 저장 방지');
 
   // Changing providers keeps the first key and never forwards it to the other API.
   await worker.evaluate(() => chrome.storage.local.set({ aiProvider: 'openai' }));
@@ -256,6 +299,34 @@ try {
   await settings.reload();
   await settings.getByRole('status').filter({ hasText: 'API 키가 등록되어 있습니다.' }).waitFor();
   assert.equal(await modelSelect.inputValue(), 'gpt-6.1-sol');
+
+  await modelSelect.selectOption('openai/gpt-oss-20b');
+  await settings.getByLabel('Groq API 키').waitFor();
+  await settings.getByRole('status').filter({ hasText: '등록된 API 키가 없습니다.' }).waitFor();
+  const countBeforeGroq = await worker.evaluate(() => requests.length);
+  await page.goto('https://example.com/groq');
+  await probe('not-configured');
+  assert.equal(await worker.evaluate(() => requests.length), countBeforeGroq);
+  await settings.getByLabel('Groq API 키').fill('groq-test-key');
+  await settings.getByRole('button', { name: '키 저장', exact: true }).click();
+  await settings.getByRole('status').filter({ hasText: '키를 저장했습니다' }).waitFor();
+  await page.reload();
+  await probe('ok');
+  const groq = await worker.evaluate(() => requests.at(-1));
+  assert.equal(groq.url, 'https://api.groq.com/openai/v1/chat/completions');
+  assert.equal(groq.model, 'openai/gpt-oss-20b');
+  assert.equal(groq.authorized, true);
+  assert.equal(groq.reasoning, 'low');
+  assert.equal(groq.format, 'json_schema');
+  assert.equal(groq.strict, true);
+  await waitForStorage('#spin', applyLabels ? 'saved' : 'not-applied');
+  if (applyLabels) await page.getByRole('button', { name: 'Groq 회전 설정', exact: true }).waitFor();
+  assert.deepEqual((await stored(page.url())).map(({ label }) => label), applyLabels ? ['Groq 회전 설정'] : []);
+  console.log('PASS Groq 별도 키 설정, 모의 API 호출 및 라벨 처리');
+
+  await modelSelect.selectOption('gpt-6.1-sol');
+  await settings.getByLabel('GPT API 키').waitFor();
+  await settings.getByRole('status').filter({ hasText: 'API 키가 등록되어 있습니다.' }).waitFor();
   await settings.getByRole('button', { name: '등록한 키 삭제' }).click();
   await settings.getByRole('status').filter({ hasText: '키를 삭제했습니다' }).waitFor();
   await modelSelect.selectOption('gpt-6-luna');

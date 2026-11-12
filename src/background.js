@@ -9,6 +9,7 @@ const keyStorage = restrictKeyAccess().catch(() => null);
 chrome.runtime.onMessage.addListener(createAiMessageHandler({
   store,
   extensionId: chrome.runtime.id,
+  storageReady: keyStorage,
   readSettings: async () => {
     const storage = await keyStorage;
     return storage ? readAiSettings(storage) : null;

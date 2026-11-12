@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "background": { "service_worker": "dist/background.js" },
   "permissions": ["storage"],
-  "host_permissions": ["https://generativelanguage.googleapis.com/*", "https://api.openai.com/*"],
+  "host_permissions": ["https://generativelanguage.googleapis.com/*", "https://api.openai.com/*", "https://api.groq.com/*"],
   "options_ui": { "page": "options.html", "open_in_tab": true },
   "description": "스크린리더가 읽지 못하는 버튼·링크의 이름을 탐지하고 복구합니다.",
   "content_scripts": [

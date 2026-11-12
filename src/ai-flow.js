@@ -6,6 +6,7 @@ import { checkName } from './detector.js';
 import { createFingerprint, createPageKey, exactFingerprintMatch } from './previous-fingerprint.js';
 
 const memo = new WeakMap();
+const FAILED_REQUEST_COOLDOWN_MS = 60000;
 let network = Promise.resolve();
 
 function newRequestId() {
@@ -54,8 +55,10 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         request.promise = send.then((response) => {
           const reply = response?.results?.find((row) => row.requestId === request.payload.requestId);
           const status = response?.status === 'ok' && !reply ? 'stale' : response?.status || 'unavailable';
-          request.expires = Date.now() + (status === 'ok' ? 60000 : status === 'stale' ? 0 : 20000);
-          return { status, label: reply?.label, model: response?.model, httpStatus: response?.httpStatus };
+          request.expires = status === 'ok' ? Infinity : status === 'stale' ? 0
+            : response?.retryAt ?? Date.now() + FAILED_REQUEST_COOLDOWN_MS;
+          return { status, label: reply?.label, model: response?.model, httpStatus: response?.httpStatus,
+            requestCount: response?.requestCount };
         });
       }
     }
@@ -69,11 +72,12 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     let changed = false;
     readOriginal(() => {
       batch.forEach(({ element, entry, request }, i) => {
-        const { status, label, model, httpStatus } = replies[i];
+        const { status, label, model, httpStatus, requestCount } = replies[i];
         result.aiStatus = status;
         entry.aiStatus = status === 'ok' ? (label ? 'stale-element' : 'no-label') : status;
         entry.aiModel = model;
         entry.aiHttpStatus = httpStatus;
+        entry.aiRequestCount = requestCount;
         if (status !== 'ok' || !label || !currentTargets.has(element)) return;
         const now = checkName(element);
         if (now.status !== entry.status || now.name !== entry.currentName || now.role !== entry.role) return;
@@ -107,6 +111,8 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
           const outcome = saved?.results?.find((row) => row.requestId === request.payload.requestId);
           entry.aiStorage = outcome?.status || 'storage-error';
           if (outcome && outcome.status !== 'storage-error') request.saved = true;
+          // A worker restart or expiry can discard an unused save ticket.
+          if (!outcome && saved?.status === 'ok') request.expires = 0;
         }
       } catch {
         for (const { entry } of batch) {
@@ -118,6 +124,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     console.table(batch.map(({ entry }) => ({
       model: entry.aiModel,
       status: entry.labelApplied && entry.aiStatus === 'label-ready' ? 'applied' : entry.aiStatus,
+      requests: entry.aiRequestCount,
       http: entry.aiHttpStatus,
       label: entry.match.source === 'ai' ? entry.match.label : null,
       storage: entry.aiStorage,

@@ -4,7 +4,10 @@ export const AI_BATCH_SIZE = 8;
 export const MAX_AI_PAYLOAD = 24000;
 // Chrome can terminate the extension worker if fetch takes over 30 seconds.
 const REQUEST_TIMEOUT_MS = 25000;
-const MIN_RETRY_BUDGET_MS = 5000;
+const ONE_MINUTE_MS = 60000;
+const pacificDate = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Los_Angeles', year: 'numeric', month: 'numeric', day: 'numeric',
+});
 const instructions = [
   'Create a short, specific accessible name for each interactive element, in the page language if known, otherwise Korean.',
   'Describe its purpose or action, without the role word, explanation, or confidence score.',
@@ -18,6 +21,17 @@ const responseSchema = {
     type: 'object',
     properties: { requestId: { type: 'string' }, label: { type: ['string', 'null'] } },
     required: ['requestId', 'label'],
+    additionalProperties: false,
+  },
+};
+
+const accessibleNameSchema = {
+  name: 'accessible_names',
+  strict: true,
+  schema: {
+    type: 'object',
+    properties: { results: responseSchema },
+    required: ['results'],
     additionalProperties: false,
   },
 };
@@ -59,17 +73,7 @@ const providers = {
           reasoning: { effort: reasoningEffort },
           max_output_tokens: maxOutputTokens,
           text: {
-            format: {
-              type: 'json_schema',
-              name: 'accessible_names',
-              strict: true,
-              schema: {
-                type: 'object',
-                properties: { results: responseSchema },
-                required: ['results'],
-                additionalProperties: false,
-              },
-            },
+            format: { type: 'json_schema', ...accessibleNameSchema },
           },
         },
       };
@@ -84,6 +88,32 @@ const providers = {
       return parsed?.results;
     },
   },
+  groq: {
+    request(model, apiKey, elements, { reasoningEffort }) {
+      return {
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: {
+          model,
+          messages: [
+            { role: 'system', content: instructions },
+            { role: 'user', content: JSON.stringify(elements) },
+          ],
+          reasoning_effort: reasoningEffort,
+          max_completion_tokens: 2048,
+          response_format: { type: 'json_schema', json_schema: accessibleNameSchema },
+        },
+      };
+    },
+    readText(data) {
+      const choice = data?.choices?.[0];
+      if (choice?.finish_reason !== 'stop' || choice.message?.refusal) return null;
+      return typeof choice.message?.content === 'string' ? choice.message.content : null;
+    },
+    rows(parsed) {
+      return parsed?.results;
+    },
+  },
 };
 
 export function normalizeAiLabel(label) {
@@ -92,12 +122,36 @@ export function normalizeAiLabel(label) {
   return /[\p{L}\p{N}]/u.test(name) ? name : null;
 }
 
-function retryWaitMs(response) {
+function retryAfterTime(response, now) {
   const retryAfter = response.headers.get('Retry-After');
-  if (!retryAfter) return 1000;
-  if (/^\d+$/.test(retryAfter)) return Number(retryAfter) * 1000;
+  if (!retryAfter) return 0;
+  if (/^\d+$/.test(retryAfter)) {
+    const time = now + Number(retryAfter) * 1000;
+    return Number.isFinite(time) ? time : 0;
+  }
   const date = Date.parse(retryAfter);
-  return Number.isFinite(date) ? Math.max(0, date - Date.now()) : 1000;
+  return Number.isFinite(date) ? date : 0;
+}
+
+function nextPacificMidnight(now) {
+  const parts = Object.fromEntries(pacificDate.formatToParts(now).map(({ type, value }) => [type, value]));
+  const utcMidnight = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day) + 1);
+  // Pacific midnight is either 07:00 or 08:00 UTC, depending on daylight saving time.
+  const summerMidnight = utcMidnight + 7 * 60 * ONE_MINUTE_MS;
+  return pacificDate.format(summerMidnight) === pacificDate.format(now) ? summerMidnight + 60 * ONE_MINUTE_MS : summerMidnight;
+}
+
+function quotaRetryAt(provider, response, data, now) {
+  const headerTime = retryAfterTime(response, now);
+  if (provider !== 'google') return headerTime > now ? headerTime : now + ONE_MINUTE_MS;
+
+  const details = Array.isArray(data?.error?.details) ? data.error.details : [];
+  const daily = details.some((detail) => Array.isArray(detail?.violations)
+    && detail.violations.some((violation) => /perday|daily/i.test(violation?.quotaId ?? '')))
+    || /\b(per day|daily)\b/i.test(data?.error?.message ?? '');
+  const delay = details.find((detail) => /^\d+(\.\d+)?s$/.test(detail?.retryDelay))?.retryDelay;
+  const hintTime = Math.max(headerTime, delay ? now + Number.parseFloat(delay) * 1000 : 0);
+  return daily || hintTime <= now ? Math.max(hintTime, nextPacificMidnight(now)) : hintTime;
 }
 
 export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch) {
@@ -105,7 +159,6 @@ export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch
   const config = AI_MODELS[model];
   const provider = providers[config.provider];
   const { url, headers, body } = provider.request(model, apiKey, elements, config);
-  const deadline = Date.now() + REQUEST_TIMEOUT_MS;
   const request = {
     method: 'POST',
     redirect: 'error',
@@ -118,42 +171,37 @@ export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch
   let data;
   try {
     response = await fetchImpl(url, request);
-    if (response.status === 503) {
-      const wait = retryWaitMs(response);
-      if (wait <= 3000 && deadline - Date.now() - wait >= MIN_RETRY_BUDGET_MS) {
-        await response.body?.cancel().catch(() => {});
-        await new Promise((resolve) => setTimeout(resolve, wait));
-        if (deadline - Date.now() >= MIN_RETRY_BUDGET_MS && !request.signal.aborted) {
-          response = await fetchImpl(url, request);
-        }
-      }
-    }
     if (response.ok) data = await response.json();
+    if (response.status === 429 && config.provider === 'google') data = await response.json().catch(() => null);
   } catch (error) {
     if (request.signal.aborted || error?.name === 'TimeoutError') {
       return { status: 'timeout', httpStatus: response?.status };
     }
+    if (response?.ok) return { status: 'invalid-response', httpStatus: response.status };
     throw error;
   }
+  const httpStatus = response.status;
+  const now = Date.now();
+  if (httpStatus === 429) return { status: 'rate-limited', httpStatus, retryAt: quotaRetryAt(config.provider, response, data, now) };
+  if (httpStatus === 503) return {
+    status: 'service-unavailable', httpStatus, retryAt: Math.max(retryAfterTime(response, now), now + ONE_MINUTE_MS),
+  };
   if (!response.ok) return {
-    status: response.status === 503 ? 'service-unavailable'
-      : response.status === 429 ? 'rate-limited'
-      : [401, 403].includes(response.status) ? 'key-rejected' : 'api-error',
-    httpStatus: response.status,
+    status: [401, 403].includes(httpStatus) ? 'key-rejected' : 'api-error', httpStatus,
   };
   const json = provider.readText(data);
-  if (json === null) return { status: 'incomplete' };
+  if (json === null) return { status: 'incomplete', httpStatus };
   let parsed;
-  try { parsed = JSON.parse(json); } catch { return { status: 'invalid-response' }; }
+  try { parsed = JSON.parse(json); } catch { return { status: 'invalid-response', httpStatus }; }
   const rows = provider.rows ? provider.rows(parsed) : parsed;
-  if (!Array.isArray(rows)) return { status: 'invalid-response' };
+  if (!Array.isArray(rows)) return { status: 'invalid-response', httpStatus };
   const ids = new Set(elements.map(({ requestId }) => requestId));
   const results = [];
   for (const row of rows) {
     if (!ids.delete(row?.requestId) || (row.label !== null && !normalizeAiLabel(row.label))) {
-      return { status: 'invalid-response' };
+      return { status: 'invalid-response', httpStatus };
     }
     results.push({ requestId: row.requestId, label: normalizeAiLabel(row.label) });
   }
-  return ids.size ? { status: 'invalid-response' } : { status: 'ok', results };
+  return ids.size ? { status: 'invalid-response', httpStatus } : { status: 'ok', httpStatus, results };
 }
