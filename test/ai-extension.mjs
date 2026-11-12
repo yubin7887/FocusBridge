@@ -6,6 +6,7 @@ import path from 'node:path';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'focusbridge-ai-'));
 const dir = path.join(tmp, 'extension');
+const applyLabels = process.env.FOCUSBRIDGE_TEST_APPLY_LABELS === '1';
 let browser;
 try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
@@ -45,9 +46,11 @@ try {
           request.signal.addEventListener('abort', () => reject(request.signal.reason), { once: true });
         });
       }
-      const results = inputs.map(({ requestId, attributes }) => ({
-        requestId, label: attributes?.['data-action'] === 'unknown' ? null : openai ? 'GPT 회전 설정' : '회전 설정 열기',
-      }));
+      const results = inputs.map(({ requestId, attributes }) => {
+        let label = openai ? 'GPT 회전 설정' : '회전 설정 열기';
+        if (attributes?.['data-action'] === 'unknown') label = globalThis.returnUnusableLabel ? 'button' : null;
+        return { requestId, label };
+      });
       if (openai) return Response.json({
         status: 'completed',
         output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ results }) }] }],
@@ -85,9 +88,12 @@ try {
     <section id="panel" aria-label="회전 옵션"><input value="NEVER_SEND_PRIVATE_INPUT"><p>NEVER_SEND_PANEL_BODY</p></section>
     </body></html>`;
   await browser.route('https://example.com/**', (route) => route.fulfill({ contentType: 'text/html', body: html }));
-  const read = (fn) => page.waitForFunction(fn, null, { timeout: 15000 });
+  const read = (fn, arg = null) => page.waitForFunction(fn, arg, { timeout: 15000 });
   const probe = (status) => page.waitForFunction((status) =>
     JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.aiStatus === status, status);
+  const waitForStorage = (selector, status) => read(({ selector, status }) =>
+    JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.some((item) => item.selector === selector && item.aiStorage === status), { selector, status });
   await page.goto('https://example.com/shop?token=DO_NOT_SEND');
   await probe('not-configured');
   assert.equal(await worker.evaluate(() => requests.length), 0);
@@ -95,6 +101,7 @@ try {
   await settings.getByRole('button', { name: '키 저장', exact: true }).click();
   await settings.getByRole('status').filter({ hasText: '키를 저장했습니다' }).waitFor();
   assert.equal(await settings.getByLabel('Gemini API 키').inputValue(), '');
+  await worker.evaluate(() => { globalThis.returnUnusableLabel = true; });
   await page.reload();
   await probe('ok');
   const sent = await worker.evaluate(() => requests);
@@ -109,7 +116,7 @@ try {
   assert.doesNotMatch(JSON.stringify(sent[0].inputs), /NEVER_SEND|DO_NOT_SEND|fingerprint|dictionaryCandidates/);
   await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
     ?.report.some((item) => item.match.source === 'ai' && item.match.label === '회전 설정 열기'));
-  if (process.env.FOCUSBRIDGE_TEST_APPLY_LABELS === '1') {
+  if (applyLabels) {
     await page.getByRole('button', { name: '회전 설정 열기', exact: true }).waitFor();
     const cdp = await browser.newCDPSession(page);
     const { root } = await cdp.send('DOM.getDocument');
@@ -121,7 +128,6 @@ try {
     await cdp.detach();
     console.log('PASS Chromium 접근성 트리에 사전 및 Gemini 이름 적용');
   }
-  // Wait for the save to complete before testing reuse.
   const storeBundle = (await import('esbuild')).buildSync({
     stdin: { contents: 'export { createPreviousStore } from "./src/previous-store.js";', resolveDir: process.cwd() },
     bundle: true, format: 'iife', globalName: 'testStore', write: false,
@@ -131,11 +137,21 @@ try {
     const store = testStore.createPreviousStore();
     try { return await store.lookupPage(url); } finally { await store.close(); }
   }, url);
-  for (let i = 0; i < 30 && !(await stored(page.url())).length; i++) await new Promise((r) => setTimeout(r, 50));
-  assert.deepEqual((await stored(page.url())).map(({ label }) => label), ['회전 설정 열기']);
-  await page.reload();
-  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
-    ?.report.some((item) => item.match.source === 'previous' && item.match.label === '회전 설정 열기'));
+  await waitForStorage('#spin', applyLabels ? 'saved' : 'not-applied');
+  await waitForStorage('#unknown', 'not-applied');
+  const { report } = JSON.parse(await page.locator('#ai-test-report').textContent());
+  const rejected = report.find((item) => item.selector === '#unknown');
+  assert.equal(rejected.match.label, 'button');
+  assert.equal(rejected.labelApplied, false);
+  assert.equal(await page.locator('#unknown').getAttribute('aria-label'), null);
+  assert.deepEqual((await stored(page.url())).map(({ label }) => label), applyLabels ? ['회전 설정 열기'] : []);
+  await worker.evaluate(() => { globalThis.returnUnusableLabel = false; });
+  if (applyLabels) {
+    await page.reload();
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.some((item) => item.match.source === 'previous' && item.match.label === '회전 설정 열기'));
+  }
+  console.log('PASS 적용에 성공한 AI 이름만 IndexedDB에 저장');
 
   await worker.evaluate(() => { globalThis.holdResponse = true; });
   await page.goto('https://example.com/stale');
@@ -219,11 +235,11 @@ try {
   assert.equal(gpt.format, 'json_schema');
   await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
     ?.report.some((item) => item.match.source === 'ai' && item.match.label === 'GPT 회전 설정'));
-  if (process.env.FOCUSBRIDGE_TEST_APPLY_LABELS === '1') {
+  if (applyLabels) {
     await page.getByRole('button', { name: 'GPT 회전 설정', exact: true }).waitFor();
   }
-  for (let i = 0; i < 30 && !(await stored(page.url())).length; i++) await new Promise((r) => setTimeout(r, 50));
-  assert.deepEqual((await stored(page.url())).map(({ label }) => label), ['GPT 회전 설정']);
+  await waitForStorage('#spin', applyLabels ? 'saved' : 'not-applied');
+  assert.deepEqual((await stored(page.url())).map(({ label }) => label), applyLabels ? ['GPT 회전 설정'] : []);
 
   for (const [model, reasoning] of [['gpt-6.1-terra', 'none'], ['gpt-6.1-sol', 'low']]) {
     await modelSelect.selectOption(model);
@@ -255,7 +271,7 @@ try {
   assert.ok(last.url.endsWith('/gemini-3.8-flash:generateContent'));
   assert.equal(last.authorized, true);
 
-  console.log('PASS 모델 선택·호출 옵션·기존 설정 호환·키 공유와 분리·응답 적용과 저장·재방문');
+  console.log('PASS 모델 선택·호출 옵션·기존 설정 호환·키 공유와 분리');
 } finally {
   try { await browser?.close(); }
   finally {

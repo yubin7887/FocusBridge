@@ -66,7 +66,6 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       return;
     }
     const currentTargets = new Set(collectTargets(document));
-    const ids = [];
     let changed = false;
     readOriginal(() => {
       batch.forEach(({ element, entry, request }, i) => {
@@ -84,12 +83,22 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         if (signature !== request.signature) return;
         entry.match = { decision: 'confirm', pattern: 'AI', label, score: 0, candidates: [], source: 'ai' };
         entry.aiStatus = 'label-ready';
-        entry.aiStorage = !current ? 'ineligible' : request.saved ? 'already-saved' : 'pending';
         changed = true;
-        if (current && !request.saved) ids.push(request.payload.requestId);
       });
     });
     if (changed) window.dispatchEvent(new Event('focusbridge:ai-labels-ready'));
+
+    const ids = [];
+    for (const { element, entry, request } of batch) {
+      if (entry.aiStatus !== 'label-ready') continue;
+      if (entry.labelApplied !== true || !element.isConnected || element.getAttribute('aria-label') !== entry.match.label) {
+        entry.labelApplied = false;
+        entry.aiStorage = 'not-applied';
+        continue;
+      }
+      entry.aiStorage = !request.fingerprint ? 'ineligible' : request.saved ? 'already-saved' : 'pending';
+      if (entry.aiStorage === 'pending') ids.push(request.payload.requestId);
+    }
     if (ids.length && isCurrent()) {
       try {
         const saved = await runtime.sendMessage({ type: SAVE_NAMES, pageKey, ids });

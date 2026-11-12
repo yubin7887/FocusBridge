@@ -86,7 +86,7 @@ npm run test:all
   비교한다. iframe·다른 페이지 조회·다른 확장 발신자는 거부한다.
 - 메시지: `{type: 'focusbridge:previous:lookup', pageKey}`.
   응답: `{ok: true, records}` 또는 `{ok: false, error}`.
-- AI 응답과 일치하는 요청 ID를 같은 문서가 확인한 경우에만 저장한다.
+- AI 응답을 받은 문서가 해당 요소에 이름을 적용한 뒤 요청 ID를 보내면 저장한다.
 
 실제 확장 테스트는 [Playwright 공식 확장 테스트 방식](https://playwright.dev/docs/chrome-extensions)에
 따라 별도 Chromium과 임시 프로필을 사용한다. 개인 Chrome 프로필은 사용하지 않는다.
@@ -123,5 +123,6 @@ npm run test:extension
 ### AI 연결
 
 사전 매칭 결과가 `ai`인 요소의 필요한 단서만 설정에서 선택한 AI로 보낸다. Fingerprint는 확장 안에서 보관한다.
-응답 후 같은 페이지·요소인지 다시 확인하고, 유효한 이름과 저장 가능한 Fingerprint가 있는 경우
-Service Worker에서 `saveAiResult()`를 호출한다.
+응답 후 같은 페이지·요소인지 다시 확인한다. 저장 가능한 Fingerprint가 정확히 일치하고,
+`aria-label` 적용에 성공한 요소만 저장 요청을 보낸다. Service Worker는 기존 `saveAiResult()`로 저장한다.
+이름 적용이 성공하지 않은 경우 콘솔의 `storage` 열에 `not-applied`가 표시된다.
