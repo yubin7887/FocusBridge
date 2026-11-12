@@ -2,7 +2,7 @@
 
 식별 정보 생성·정확 비교, Service Worker의 IndexedDB 저장·조회,
 content.js의 이전 매칭 우선 실행까지 구현했다.
-AI 호출과 aria-label 적용은 아직 구현하지 않았다. 실제 방문만으로 저장이 발생하지 않는다.
+개인 API 키를 등록하면 AI가 생성한 이름을 IndexedDB에 저장해 다음 방문에 재사용한다.
 
 ## 사용 방법
 
@@ -86,8 +86,7 @@ npm run test:all
   비교한다. iframe·다른 페이지 조회·다른 확장 발신자는 거부한다.
 - 메시지: `{type: 'focusbridge:previous:lookup', pageKey}`.
   응답: `{ok: true, records}` 또는 `{ok: false, error}`.
-- 저장 메시지는 공개하지 않는다. 테스트는 별도 테스트 DB 또는 임시 확장 컨텍스트에서
-  AI 생성 결과를 가정한 데이터를 주입한다. 웹페이지가 임의로 확정 기록을 만들 수 있는 통로는 없다.
+- AI 응답과 일치하는 요청 ID를 같은 문서가 확인한 경우에만 저장한다.
 
 실제 확장 테스트는 [Playwright 공식 확장 테스트 방식](https://playwright.dev/docs/chrome-extensions)에
 따라 별도 Chromium과 임시 프로필을 사용한다. 개인 Chrome 프로필은 사용하지 않는다.
@@ -118,11 +117,11 @@ npm run test:extension
   `window.__focusBridgeReady`는 자동으로 시작한 최근 검사의 Promise이다.
   최신 검사가 예약된 동안에는 이전 Promise가 남을 수 있으므로 테스트는 유효한 report도 기다린다.
 - 결과에 `pageUrl`, `scanId`, `previousStatus`가 추가된다. 콘솔·오버레이도 유효한 결과에만 갱신한다.
-- 실제 AI가 없으므로 실제 확장 테스트는 Worker 안에 AI 생성 결과를 가정한 테스트 기록을 넣고 재방문을 확인한다.
+- 확장 테스트는 Gemini와 GPT 응답을 모의 처리하고, 재방문에서 저장된 이름이 사용되는지 확인한다.
   테스트 전용 보고서 전달 코드는 임시 확장에만 추가하며 제품 코드에는 넣지 않는다.
 
-### AI 담당자 연결 지점
+### AI 연결
 
-AI 요청 당시 Fingerprint를 보관하고, 응답 후 현재 페이지·요소가 여전히 같은지
-다시 확인한 다음 확장 컨텍스트에서 `saveAiResult()`를 호출한다. 이는 오래된 응답을 막는 확인이며
-AI 이름의 의미적 검증은 아니다. AI 호출 및 저장 연결은 AI 담당자와 함께 구현할 범위다. 현재 `ai`/`content` 결과는 처리 대상으로 남기며 DOM은 바꾸지 않는다.
+사전 매칭 결과가 `ai`인 요소의 필요한 단서만 설정에서 선택한 AI로 보낸다. Fingerprint는 확장 안에서 보관한다.
+응답 후 같은 페이지·요소인지 다시 확인하고, 유효한 이름과 저장 가능한 Fingerprint가 있는 경우
+Service Worker에서 `saveAiResult()`를 호출한다.

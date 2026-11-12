@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusBridge 설정</title>
+  <link rel="stylesheet" href="options.css">
+  <script type="module" src="src/options.js"></script>
+</head>
+<body>
+  <main>
+    <h1>FocusBridge 설정</h1>
+    <label for="ai-provider-select">AI 모델</label>
+    <select id="ai-provider-select" disabled></select>
+    <p>API 키를 등록하면 이름을 찾지 못한 요소의 단서를 <strong id="ai-provider">AI 서비스</strong>에 보냅니다. 호출은 등록한 키의 사용량에 포함됩니다.</p>
+    <form id="key-form">
+      <label for="api-key">AI API 키</label>
+      <input id="api-key" type="password" required maxlength="512" autocomplete="off" spellcheck="false">
+      <div class="actions">
+        <button type="submit">키 저장</button>
+        <button id="remove-key" type="button">등록한 키 삭제</button>
+      </div>
+    </form>
+    <p id="status" role="status"></p>
+  </main>
+</body>
+</html>

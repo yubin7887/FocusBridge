@@ -1,4 +1,5 @@
-// 수집 → 탐지 → 이전 방문 매칭 → 실패 항목 사전 매칭. AI·이름 적용은 아직 연결하지 않는다.
+// 수집 → 탐지 → 이전 방문 매칭 → 사전 매칭.
+import { resolveAiResults } from './ai-flow.js';
 import { collectTargets } from './collector.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
@@ -117,6 +118,8 @@ export async function scan(root = document) {
   showOverlay(missing);
   const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status };
   window.__focusBridge = result;
+  void resolveAiResults(result, fingerprints, () => scanId === generation && location.href === pageUrl)
+    .catch(() => { result.aiStatus = 'unavailable'; });
   return result;
 }
 

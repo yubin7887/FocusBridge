@@ -14,6 +14,12 @@ try {
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
   manifest.content_scripts.push({ matches: ['https://example.com/*'], js: ['probe.js'], run_at: 'document_idle' });
   await writeFile(path.join(extensionDir, 'manifest.json'), JSON.stringify(manifest));
+  if (manifest.options_ui) {
+    await mkdir(path.join(extensionDir, 'src'));
+    for (const file of ['options.html', 'options.css', 'src/options.js', 'src/ai-settings.js', 'src/ai-config.js']) {
+      await copyFile(file, path.join(extensionDir, file));
+    }
+  }
   for (const file of ['content.js', 'background.js']) {
     await copyFile(path.join('dist', file), path.join(extensionDir, 'dist', file));
   }
