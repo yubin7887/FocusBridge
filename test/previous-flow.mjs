@@ -60,7 +60,7 @@ try {
   await start();
   const previous = await finish(true);
   check('이전 매칭이 사전 결과보다 우선', previous[0].match.label === '상품 검색' && previous[0].match.source === 'previous');
-  check('결과만 생성하고 aria-label은 수정하지 않음', await page.locator('button').getAttribute('aria-label') === null);
+  check('이전 기록 이름을 실제 버튼에 적용', await page.getByRole('button', { name: '상품 검색', exact: true }).count() === 1);
   await start();
   await page.evaluate(() => requests.shift().reject(Error('DB failure')));
   await page.waitForFunction(() => window.__focusBridge?.report);
@@ -94,6 +94,17 @@ try {
   await page.evaluate(() => { document.querySelector('button').className = 'close'; document.querySelector('button').setAttribute('data-action', 'close'); });
   await page.waitForFunction(() => requests.length === 1);
   check('class 변경 후 다시 탐지·매칭', (await finish())[0].match.label === '닫기');
+  check('페이지가 바뀌면 확장이 부여한 이름도 갱신', await page.getByRole('button', { name: '닫기', exact: true }).count() === 1);
+  await page.locator('button').evaluate((el) => el.setAttribute('aria-label', '사이트 검색'));
+  await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
+  check('사이트가 직접 지정한 새 이름은 유지', await page.getByRole('button', { name: '사이트 검색', exact: true }).count() === 1);
+  await start('<header id="header"><span id="old" hidden>버튼</span><button id="search" class="search" data-action="search" aria-labelledby="old"></button></header>');
+  await finish();
+  check('의미 없는 aria-labelledby보다 복구 이름을 적용', await page.getByRole('button', { name: '검색', exact: true }).count() === 1);
+  await page.locator('#old').evaluate((el) => { el.textContent = '상품 찾기'; });
+  await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
+  check('원래 참조가 의미 있는 이름을 제공하면 복원', await page.getByRole('button', { name: '상품 찾기', exact: true }).count() === 1
+    && await page.locator('button').getAttribute('aria-labelledby') === 'old');
   await start();
   await page.evaluate(() => {
     window.latest = flow.scan(); // 같은 페이지의 진행 중 조회 공유
