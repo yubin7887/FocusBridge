@@ -5,6 +5,7 @@ import { showOverlay } from './overlay.js';
 import { pageCommon, matchItem } from './matcher.js';
 import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
+import { createLabelController } from './apply-labels.js';
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
@@ -54,6 +55,7 @@ function cssPath(el) {
 }
 
 const lookupPrevious = createPreviousLookup();
+const labels = createLabelController();
 let generation = 0;
 let timer = null;
 let observedUrl = location.href;
@@ -64,6 +66,7 @@ export async function scan(root = document) {
   window.__focusBridge = null;
   const pageUrl = location.href;
   observeRoots();
+  labels.restoreAll();
   const t0 = performance.now();
   const targets = collectTargets(root);
   const missing = detectMissingNames(targets);
@@ -97,6 +100,7 @@ export async function scan(root = document) {
     report[i].match = matchPrevious(fingerprints[i], previous.records)
       || matchItem(report[i], pageUrl, common);
   }
+  labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
   console.groupCollapsed(
@@ -115,7 +119,8 @@ export async function scan(root = document) {
   console.groupEnd();
 
   showOverlay(missing);
-  const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status };
+  const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status,
+    withOriginalLabels: labels.withOriginalLabels };
   window.__focusBridge = result;
   return result;
 }
@@ -126,7 +131,8 @@ function ignored(node) {
   return Boolean(element?.closest('[data-fb-ignore]'));
 }
 const observer = new MutationObserver((records) => {
-  if (records.some((r) => !ignored(r.target) && !(r.type === 'childList'
+  const pageRecords = records.filter((record) => !labels.ownMutation(record));
+  if (pageRecords.some((r) => !ignored(r.target) && !(r.type === 'childList'
     && [...r.addedNodes, ...r.removedNodes].length
     && [...r.addedNodes, ...r.removedNodes].every(ignored)))) scheduleScan();
 });
@@ -142,13 +148,14 @@ function observeRoots() {
     observedRoots.clear();
     for (const root of roots) {
       observedRoots.add(root);
-      observer.observe(root, { childList: true, subtree: true, attributes: true, characterData: true });
+      observer.observe(root, { childList: true, subtree: true, attributes: true, attributeOldValue: true, characterData: true });
     }
   }
   return changed;
 }
 function scheduleScan() {
   generation++; // 디바운스가 끝나기 전에 기존 응답부터 무효화한다.
+  labels.restoreAll();
   window.__focusBridge = null;
   clearTimeout(timer);
   timer = setTimeout(runScan, 500);
@@ -163,6 +170,10 @@ function checkNavigation() {
   }
 }
 function start() {
+  window.addEventListener('focusbridge:ai-labels-ready', () => {
+    const result = window.__focusBridge;
+    if (result?.scanId === generation && result.pageUrl === location.href) labels.applyMatches(result.missing, result.report);
+  });
   runScan();
   window.addEventListener('popstate', checkNavigation);
   window.addEventListener('hashchange', checkNavigation);
