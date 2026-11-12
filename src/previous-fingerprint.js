@@ -1,5 +1,6 @@
 // Previous Matching 1단계: DOM을 수정하거나 저장하지 않고 비교용 스냅샷만 만든다.
 import { checkName } from './detector.js';
+import { collectRoots } from './collector.js';
 
 export const FINGERPRINT_VERSION = 2;
 const MAX_NODES = 200;
@@ -121,6 +122,48 @@ function hasActionEvidence(el) {
   return Boolean(selfIdentity && parentIdentity && icon);
 }
 
+function samePageFragment(link, pageUrl) {
+  try {
+    const url = new URL(link.getAttribute('href'), link.baseURI);
+    const raw = url.hash.slice(1);
+    url.hash = '';
+    return raw && url.href === pageUrl ? { raw, decoded: decodeURIComponent(raw) } : null;
+  } catch { return null; }
+}
+
+function fragmentEvidenceFailure(el, pageKey) {
+  if (!el.matches('a[href]:not([download])')) return 'insufficient-evidence';
+  const doc = el.ownerDocument;
+  const pageUrl = pageKey.split('#', 1)[0];
+  const destination = samePageFragment(el, pageUrl);
+  if (!destination || destination.decoded.includes(':~:')) return 'insufficient-evidence';
+
+  const targetSelector = [destination.raw, destination.decoded].map((id) => {
+    const escaped = CSS.escape(id);
+    return `[id="${escaped}"], a[name="${escaped}"]`;
+  }).join(', ');
+  const targets = doc.querySelectorAll(targetSelector);
+  // HTML의 #top은 대상 요소가 없어도 문서의 시작을 가리킨다.
+  const isTop = destination.decoded.toLowerCase() === 'top';
+  if (targets.length > 1) return 'ambiguous-reference';
+  if (!targets.length && !isTop) return 'insufficient-evidence';
+
+  let candidateCount = 0;
+  for (const root of collectRoots(doc)) {
+    const links = root.querySelectorAll('a[href]');
+    candidateCount += links.length;
+    if (candidateCount > MAX_CANDIDATES) return 'too-many-candidates';
+    for (const other of links) {
+      if (other === el || other.closest('[data-fb-ignore]')) continue;
+      const fragment = samePageFragment(other, pageUrl)?.decoded;
+      if (fragment === destination.decoded || (isTop && fragment?.toLowerCase() === 'top')) {
+        return 'ambiguous-element';
+      }
+    }
+  }
+  return null;
+}
+
 function nearbyContext(el) {
   const parent = el.parentElement;
   return {
@@ -146,7 +189,10 @@ export function createFingerprint(el) {
   try {
     const name = checkName(el);
     if (name.status === 'ok') return fail('already-named');
-    if (!hasActionEvidence(el)) return fail('insufficient-evidence');
+    if (!hasActionEvidence(el)) {
+      const reason = fragmentEvidenceFailure(el, pageKey);
+      if (reason) return fail(reason);
+    }
     const element = tree(el);
     const identity = JSON.stringify(element);
     const candidates = el.getRootNode().querySelectorAll(el.localName);

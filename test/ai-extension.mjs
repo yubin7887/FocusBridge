@@ -54,7 +54,8 @@ try {
           request.signal.addEventListener('abort', () => reject(request.signal.reason), { once: true });
         });
       }
-      const results = inputs.map(({ requestId, attributes }) => {
+      const results = inputs.map(({ requestId, attributes, destination }) => {
+        if (destination?.href === '#top') return { requestId, label: '맨 위로 이동' };
         let label = groq ? 'Groq 회전 설정' : openai ? 'GPT 회전 설정' : '회전 설정 열기';
         if (attributes?.['data-action'] === 'unknown') label = globalThis.returnUnusableLabel ? 'button' : null;
         return { requestId, label };
@@ -343,6 +344,25 @@ try {
   assert.equal(last.authorized, true);
 
   console.log('PASS 모델 선택·호출 옵션·기존 설정 호환·키 공유와 분리');
+
+  if (applyLabels) {
+    await browser.route('https://example.com/fragment-link', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="ko"><body><footer><a id="fragment-link" href="#top"></a></footer></body></html>',
+    }));
+    await page.goto('https://example.com/fragment-link');
+    await waitForStorage('#fragment-link', 'saved');
+    const topLink = page.getByRole('link', { name: '맨 위로 이동', exact: true });
+    await topLink.waitFor({ state: 'attached' });
+    assert.deepEqual((await stored(page.url())).map(({ label }) => label), ['맨 위로 이동']);
+    const countBeforeRevisit = await worker.evaluate(() => requests.length);
+    await page.reload();
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.some((item) => item.selector === '#fragment-link' && item.match.source === 'previous'));
+    await topLink.waitFor({ state: 'attached' });
+    assert.equal(await worker.evaluate(() => requests.length), countBeforeRevisit);
+    console.log('PASS #top 링크에 AI 이름 적용 및 IndexedDB 저장 후 재방문에서 재사용');
+  }
 } finally {
   try { await browser?.close(); }
   finally {

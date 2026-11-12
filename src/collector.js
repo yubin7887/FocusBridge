@@ -32,7 +32,7 @@ export const TARGET_ROLES = new Set([
 
 // open shadow root까지 포함해 탐색할 루트들을 모은다.
 // (querySelectorAll은 shadow DOM 안을 보지 못함)
-function collectRoots(root) {
+export function collectRoots(root) {
   const roots = [root];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
   for (let n = walker.currentNode; n; n = walker.nextNode()) {
