@@ -14,7 +14,9 @@
   <button data-expect="empty"><i class="fa fa-search"></i></button>
 
   <!-- 의미 없는 이름 -->
-  <button data-expect="meaningless">button</button>
+  <button data-expect="ok">button</button>
+  <a href="/images" data-expect="ok">이미지</a>
+  <a href="/p/1" data-expect="meaningless"><img src="a.jpg" alt="이미지"><a/>
   <a href="/more" data-expect="meaningless">></a>
   <button data-expect="meaningless" aria-label="아이콘"></button>
   <a href="/y" data-expect="meaningless"><img src="x.png" alt="ic_search.png"></a>
