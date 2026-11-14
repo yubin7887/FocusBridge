@@ -10,7 +10,8 @@
     "test:match": "node test/unit.mjs && node test/match-eval.mjs && node test/e2e-match.mjs",
     "test:all": "npm test && npm run test:match && npm run test:previous",
     "test:previous": "node test/previous-fingerprint.mjs && node test/previous-store.mjs && node test/previous-flow.mjs",
-    "test:extension": "npm run build && node test/previous-extension.mjs"
+    "test:extension": "npm run build && node test/previous-extension.mjs",
+    "test:ai": "npm run build && node test/ai-extension.mjs"
   },
   "dependencies": {
     "dom-accessibility-api": "^0.7.0"

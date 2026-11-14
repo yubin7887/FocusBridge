@@ -1,5 +1,6 @@
 // Previous Matching 1단계: DOM을 수정하거나 저장하지 않고 비교용 스냅샷만 만든다.
 import { checkName } from './detector.js';
+import { collectRoots } from './collector.js';
 
 export const FINGERPRINT_VERSION = 2;
 const MAX_NODES = 200;
@@ -14,6 +15,14 @@ const ATTRS = new Set([
   'x1', 'x2', 'y1', 'y2', 'fill', 'stroke', 'transform',
 ]);
 const REFERENCES = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'form'];
+// These classes describe scroll positioning on containers, not the control's action.
+const SCROLL_LAYOUT_CLASSES = new Set([
+  'scrolled', 'is-scrolled', 'is-sticky', 'sticky-top', 'fixed-top',
+  'coursemos-coursepage-courseheader-show',
+  'coursemos-headroom-pin', 'coursemos-headroom-unpin',
+  'headroom--pinned', 'headroom--unpinned', 'headroom--top', 'headroom--not-top',
+  'headroom--bottom', 'headroom--not-bottom',
+]);
 const fail = (reason) => ({ eligible: false, reason });
 const classTokens = (value) => [...new Set(value.split(/\s+/).filter(Boolean))].sort();
 
@@ -26,21 +35,33 @@ export function createPageKey(href) {
   } catch { return null; }
 }
 
-function attributes(el) {
+function attributes(el, ancestor, disabledImageButton) {
   return [...el.attributes]
-    .filter((a) => ATTRS.has(a.name) || a.name.startsWith('aria-'))
+    .filter((a) => (ATTRS.has(a.name) || a.name.startsWith('aria-'))
+      && !(disabledImageButton && a.name === 'disabled'))
     .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
-    .map((a) => [a.name, a.name === 'class' ? classTokens(a.value) : a.value]);
+    .flatMap((a) => {
+      if (a.name !== 'class') return [[a.name, a.value]];
+      const tokens = classTokens(a.value).filter((token) => !disabledImageButton || token !== 'opacity-50');
+      if (!tokens.length && disabledImageButton) return [];
+      if (!ancestor) return [[a.name, tokens]];
+      const stable = tokens.filter((token) => !SCROLL_LAYOUT_CLASSES.has(token));
+      return stable.length ? [[a.name, stable]] : [];
+    });
 }
 
-function describe(el) {
+function describe(el, ancestor = false) {
+  // An image-only button still selects the same image when processing briefly disables it.
+  const disabledImageButton = el.matches('button[disabled]') && el.children.length === 1
+    && el.firstElementChild.matches('img[src]') && !el.textContent.trim()
+    && el.classList.contains('opacity-50');
   return {
     tag: el.localName,
     namespace: el.namespaceURI,
-    attributes: attributes(el),
+    attributes: attributes(el, ancestor, disabledImageButton),
     // 입력 내용(value)은 수집하지 않고 조작 상태만 비교한다.
     state: {
-      disabled: 'disabled' in el ? el.disabled : null,
+      disabled: disabledImageButton ? false : 'disabled' in el ? el.disabled : null,
       checked: 'checked' in el ? el.checked : null,
       selected: 'selected' in el ? el.selected : null,
       open: 'open' in el ? el.open : null,
@@ -81,8 +102,20 @@ function pathOf(el) {
     if (node.id && root.querySelectorAll(`#${CSS.escape(node.id)}`).length !== 1) {
       throw new Error('duplicate-id');
     }
-    const siblings = node.parentNode?.children;
-    path.unshift({ ...describe(node), index: siblings ? [...siblings].indexOf(node) : 0 });
+    const description = describe(node, node !== el);
+    if (node !== el && node.parentElement === node.ownerDocument.body) {
+      // Independently mounted widgets can shift a page wrapper's absolute index.
+      const signature = JSON.stringify(description);
+      let matchingSiblingIndex = 0;
+      for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling) {
+        if (sibling.localName === node.localName && !sibling.hasAttribute('data-fb-ignore')
+          && JSON.stringify(describe(sibling, true)) === signature) matchingSiblingIndex++;
+      }
+      path.unshift({ ...description, matchingSiblingIndex });
+    } else {
+      const siblings = node.parentNode?.children;
+      path.unshift({ ...description, index: siblings ? [...siblings].indexOf(node) : 0 });
+    }
     if (path.length > 64) throw new Error('context-too-large');
     if (node.parentElement) node = node.parentElement;
     else if (root.host) { path.unshift({ boundary: 'shadow' }); node = root.host; }
@@ -121,10 +154,52 @@ function hasActionEvidence(el) {
   return Boolean(selfIdentity && parentIdentity && icon);
 }
 
+function samePageFragment(link, pageUrl) {
+  try {
+    const url = new URL(link.getAttribute('href'), link.baseURI);
+    const raw = url.hash.slice(1);
+    url.hash = '';
+    return raw && url.href === pageUrl ? { raw, decoded: decodeURIComponent(raw) } : null;
+  } catch { return null; }
+}
+
+function fragmentEvidenceFailure(el, pageKey) {
+  if (!el.matches('a[href]:not([download])')) return 'insufficient-evidence';
+  const doc = el.ownerDocument;
+  const pageUrl = pageKey.split('#', 1)[0];
+  const destination = samePageFragment(el, pageUrl);
+  if (!destination || destination.decoded.includes(':~:')) return 'insufficient-evidence';
+
+  const targetSelector = [destination.raw, destination.decoded].map((id) => {
+    const escaped = CSS.escape(id);
+    return `[id="${escaped}"], a[name="${escaped}"]`;
+  }).join(', ');
+  const targets = doc.querySelectorAll(targetSelector);
+  // HTML의 #top은 대상 요소가 없어도 문서의 시작을 가리킨다.
+  const isTop = destination.decoded.toLowerCase() === 'top';
+  if (targets.length > 1) return 'ambiguous-reference';
+  if (!targets.length && !isTop) return 'insufficient-evidence';
+
+  let candidateCount = 0;
+  for (const root of collectRoots(doc)) {
+    const links = root.querySelectorAll('a[href]');
+    candidateCount += links.length;
+    if (candidateCount > MAX_CANDIDATES) return 'too-many-candidates';
+    for (const other of links) {
+      if (other === el || other.closest('[data-fb-ignore]')) continue;
+      const fragment = samePageFragment(other, pageUrl)?.decoded;
+      if (fragment === destination.decoded || (isTop && fragment?.toLowerCase() === 'top')) {
+        return 'ambiguous-element';
+      }
+    }
+  }
+  return null;
+}
+
 function nearbyContext(el) {
   const parent = el.parentElement;
   return {
-    parent: parent ? describe(parent) : null,
+    parent: parent ? describe(parent, true) : null,
     // 부모 전체 하위 트리 대신 직접 텍스트와 바로 앞뒤 요소만 비교한다.
     parentText: parent ? [...parent.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data) : [],
     previous: el.previousElementSibling ? tree(el.previousElementSibling, { context: true }) : null,
@@ -146,15 +221,19 @@ export function createFingerprint(el) {
   try {
     const name = checkName(el);
     if (name.status === 'ok') return fail('already-named');
-    if (!hasActionEvidence(el)) return fail('insufficient-evidence');
+    if (!hasActionEvidence(el)) {
+      const reason = fragmentEvidenceFailure(el, pageKey);
+      if (reason) return fail(reason);
+    }
     const element = tree(el);
     const identity = JSON.stringify(element);
     const candidates = el.getRootNode().querySelectorAll(el.localName);
     if (candidates.length > MAX_CANDIDATES) return fail('too-many-candidates');
+    const description = JSON.stringify(describe(el));
     // 같은 root에 동일 서명이 두 개 있으면 위치로 억지로 구분하지 않는다.
     for (const other of candidates) {
       if (other === el || other.closest('[data-fb-ignore]')) continue;
-      if (JSON.stringify(describe(other)) !== JSON.stringify(describe(el))) continue;
+      if (JSON.stringify(describe(other)) !== description) continue;
       try {
         if (JSON.stringify(tree(other)) === identity) return fail('ambiguous-element');
       } catch {

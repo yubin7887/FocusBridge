@@ -8,21 +8,18 @@ export function createPreviousLookup({ runtime = globalThis.chrome?.runtime, tim
     const pageKey = createPageKey(pageUrl);
     if (!pageKey || !runtime?.sendMessage) return Promise.resolve({ status: 'unavailable', records: [] });
     if (pending.has(pageKey)) return pending.get(pageKey);
+    let timer;
     const request = new Promise((resolve) => {
-      let settled = false;
-      const finish = (result) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve(result);
-      };
-      const timer = setTimeout(() => finish({ status: 'timeout', records: [] }), timeoutMs);
+      timer = setTimeout(() => resolve({ status: 'timeout', records: [] }), timeoutMs);
       Promise.resolve().then(() => runtime.sendMessage({ type: LOOKUP_PREVIOUS, pageKey })).then(
-        (response) => finish(response?.ok === true && Array.isArray(response.records)
+        (response) => resolve(response?.ok === true && Array.isArray(response.records)
           ? { status: 'ok', records: response.records } : { status: 'error', records: [] }),
-        () => finish({ status: 'error', records: [] }),
+        () => resolve({ status: 'error', records: [] }),
       );
-    }).finally(() => pending.delete(pageKey));
+    }).finally(() => {
+      clearTimeout(timer);
+      pending.delete(pageKey);
+    });
     pending.set(pageKey, request);
     return request;
   };

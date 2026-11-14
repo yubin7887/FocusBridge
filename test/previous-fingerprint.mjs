@@ -50,9 +50,57 @@ try {
     el = reset();
     el.style.marginTop = '100px';
     record('화면 위치 변화 허용', match(saved, capture(el)));
+    el = reset();
+    document.body.className = 'coursemos-coursepage-main coursemos-coursepage-courseheader-show coursemos-headroom-pin';
+    el.parentElement.className = 'fixed-top headroom headroom--top headroom--pinned headroom--not-bottom';
+    const courseHeader = capture(el);
+    document.body.className = 'coursemos-coursepage-main coursemos-headroom-unpin is-scrolled';
+    el.parentElement.className = 'headroom headroom--not-top headroom--unpinned headroom--bottom';
+    el.parentElement.classList.add('sticky-top');
+    record('스크롤로 바뀐 상위 레이아웃 클래스는 같은 지문으로 처리', match(courseHeader, capture(el)));
+    el.classList.add('is-scrolled');
+    record('요소 자체의 클래스 변경은 비교에 포함', !match(courseHeader, capture(el)));
+    el.classList.remove('is-scrolled');
+    el.parentElement.classList.replace('sticky-top', 'different-header');
+    record('상위 영역의 일반 클래스가 바뀌면 불일치', !match(courseHeader, capture(el)));
+    document.body.removeAttribute('class');
+    el = reset();
+    el.parentElement.classList.add('sticky-top');
+    el.parentElement.classList.remove('sticky-top');
+    record('스크롤 클래스가 제거된 뒤 남은 빈 상위 class 속성은 무시', match(saved, capture(el)));
+    reset('<div class="header-stack"><header><a href="/ko"><svg><path d="M1 1h4"/></svg></a></header></div>'
+      + '<div><main><div class="samples"><button class="sample"><img src="/sample-1.webp" alt=""></button>'
+      + '<button class="sample"><img src="/sample-2.webp" alt=""></button></div></main></div>');
+    const controls = [...document.querySelectorAll('header a, .samples button')];
+    const originalControls = controls.map(capture);
+    document.body.insertAdjacentHTML('afterbegin', '<div id="consent" aria-hidden="true"></div><script></script>');
+    document.querySelector('main').parentElement.before(Object.assign(document.createElement('div'), { id: 'widget' }));
+    record('최상위 위젯 삽입 후에도 홈과 각 샘플을 정확히 재사용',
+      originalControls.every((fingerprint) => fingerprint.eligible)
+      && controls.every((control, i) => match(originalControls[i], capture(control))));
+    record('샘플 이미지가 다른 버튼은 별도 기록으로 유지', !match(capture(controls[1]), capture(controls[2])));
+    for (const button of controls.slice(1)) {
+      button.disabled = true;
+      button.classList.add('opacity-50');
+    }
+    record('이미지 버튼 묶음이 처리 중 비활성화되어도 같은 지문 유지',
+      controls.slice(1).every((button, i) => match(originalControls[i + 1], capture(button))));
+    record('비활성 상태에서도 서로 다른 샘플 구분', !match(capture(controls[1]), capture(controls[2])));
+    controls[1].classList.remove('opacity-50');
+    record('처리 중 표시가 없는 이미지 버튼의 disabled 변경은 구분', !match(originalControls[1], capture(controls[1])));
+    controls[1].classList.add('opacity-50');
+    controls[1].querySelector('img').src = '/different-sample.webp';
+    record('샘플 이미지 자체가 바뀌면 이전 이름을 재사용하지 않음', !match(originalControls[1], capture(controls[1])));
+    const panels = '<div class="panel"><button data-action="cart"></button></div>' + '<div class="panel"></div>';
+    reset(panels);
+    const panelButton = document.querySelector('button');
+    const panelFingerprint = capture(panelButton);
+    document.body.lastElementChild.append(panelButton);
+    record('구조가 같은 최상위 컨테이너로 옮긴 요소는 구분', !match(panelFingerprint, capture(panelButton)));
     for (const [title, mutate] of [
       ['동작 변경 거부', (node) => node.setAttribute('data-action', 'delete')],
       ['상태 변경 거부', (node) => node.setAttribute('aria-expanded', 'true')],
+      ['일반 버튼의 disabled 변경 거부', (node) => { node.disabled = true; }],
       ['아이콘 변경 거부', (node) => node.querySelector('use').setAttribute('href', '#delete-icon')],
       ['주변 문맥 변경 거부', (node) => node.previousElementSibling.textContent = '다른 메뉴'],
       ['역할 변경 거부', (node) => node.setAttribute('role', 'switch')],
@@ -105,6 +153,28 @@ try {
     record('실제 목적지가 있는 링크 수집', link.eligible);
     el.href = '/delete';
     record('링크 목적지 변경 거부', !match(link, capture(el)));
+    const topLink = '<footer><a id="cart" href="#top"></a></footer>';
+    const top = capture(reset(topLink));
+    record('페이지에서 유일한 #top 링크 수집', top.eligible);
+    record('같은 #top 링크를 다시 수집하면 정확히 일치', match(top, capture(reset(topLink))));
+    el = reset('<section id="details"></section><footer><a id="cart" href="#details"></a></footer>');
+    const fragmentLink = capture(el);
+    record('문서에 유일한 대상이 있는 앵커 링크 수집', fragmentLink.eligible);
+    document.querySelector('#details').remove();
+    record('앵커의 대상이 사라지면 수집하지 않음', capture(el).reason === 'insufficient-evidence');
+    document.body.insertAdjacentHTML('afterbegin', '<section id="details"></section><section id="details"></section>');
+    record('앵커 대상이 중복되면 수집하지 않음', capture(el).reason === 'ambiguous-reference');
+    el = reset('<a name="상세"></a><footer><a id="cart" href="#%EC%83%81%EC%84%B8"></a></footer>');
+    record('인코딩된 앵커 주소가 기존 name 대상과 일치하면 수집', capture(el).eligible);
+    el = reset(`${topLink}<aside><a id="other-top" href="/shop#%54OP">맨 위</a></aside>`);
+    record('다른 위치와 표기라도 같은 목적지의 링크가 있으면 수집하지 않음', capture(el).reason === 'ambiguous-element');
+    el = reset(`${topLink}<div id="duplicate-host"></div>`);
+    document.querySelector('#duplicate-host').attachShadow({ mode: 'open' }).innerHTML = '<a href="#top"></a>';
+    record('열린 Shadow DOM에 같은 목적지의 링크가 있어도 수집하지 않음', capture(el).reason === 'ambiguous-element');
+    el = reset('<nav><a id="cart" href="#"></a></nav>');
+    record('빈 앵커 링크는 수집하지 않음', capture(el).reason === 'insufficient-evidence');
+    el = reset(`<base href="/other">${topLink}`);
+    record('base 때문에 다른 문서를 가리키는 앵커 링크는 새 규칙으로 수집하지 않음', capture(el).reason === 'insufficient-evidence');
     el = reset();
     const target = document.createElement('section'); target.id = 'panel'; target.textContent = '장바구니';
     document.body.append(target); el.setAttribute('aria-controls', 'panel');

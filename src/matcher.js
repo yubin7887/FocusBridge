@@ -22,6 +22,12 @@ const T = DICT.thresholds;
 const DIRECT = new Set(DICT.direct);
 const FILENAME_RE = /\.(png|jpe?g|gif|svg|webp|ico)$/i;
 const CONTENT_RE = new RegExp(`\\d{${T.contentDigits},}`);
+const TOP_POSITION_CLASS = /(?:^|:)-?top-(?:\d[\d./]*|px|auto|full|\[[^\]]+\]|\([^)]*\))!?$/i;
+
+function classTokens(className) {
+  // CSS offsets such as before:-top-px describe placement, not a scroll action.
+  return tokenize((className || '').split(/\s+/).filter((name) => !TOP_POSITION_CLASS.test(name)).join(' '));
+}
 
 // www.coupang.com, news.coupang.com → coupang.com  (대략적인 "같은 회사" 판정)
 function registrable(host) {
@@ -58,7 +64,7 @@ const result = (decision, pattern, label = null, score = 0, candidates = []) =>
  */
 export function pageCommon(report) {
   return {
-    cls: commonWords(report, (c) => [...tokenize(c.id), ...tokenize(c.className), ...tokenize(c.iconClass), ...tokenize(c.parentClass)]),
+    cls: commonWords(report, (c) => [...tokenize(c.id), ...classTokens(c.className), ...classTokens(c.iconClass), ...classTokens(c.parentClass)]),
     data: commonWords(report, (c) => dataTokens(c.dataAttrs)),
   };
 }
@@ -122,8 +128,8 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const notCommon = (t) => !common.cls.has(t);   // 페이지 공통 단어 빼기 (class 쪽)
   const src = {
     path: sameSite ? tokenize(url.pathname) : [],
-    self: [...tokenize(c.id), ...tokenize(c.className)].filter(notCommon),
-    icon: [...tokenize(c.iconClass).filter(notCommon), ...tokenize(fileStem(c.iconSrc))],
+    self: [...tokenize(c.id), ...classTokens(c.className)].filter(notCommon),
+    icon: [...classTokens(c.iconClass).filter(notCommon), ...tokenize(fileStem(c.iconSrc))],
     data: dataTokens(c.dataAttrs).filter((t) => !common.data.has(t)),   // data- 속성 쪽은 따로
   };
   const dataValues = Object.values(c.dataAttrs || {});   // 한국어 값 비교용 ('검색창')
@@ -133,7 +139,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   }
   const nearTexts = [c.prevSiblingText, c.nextSiblingText, c.parentText]
     .filter((t) => t && [...t].length <= T.nearMaxLen);          // 짧은 이웃 글자만
-  const nearClass = tokenize(c.parentClass).filter(notCommon);
+  const nearClass = classTokens(c.parentClass).filter(notCommon);
 
   const scored = [];
   for (const f of DICT.functions) {
