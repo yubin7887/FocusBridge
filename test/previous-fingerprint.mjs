@@ -50,6 +50,24 @@ try {
     el = reset();
     el.style.marginTop = '100px';
     record('화면 위치 변화 허용', match(saved, capture(el)));
+    el = reset();
+    document.body.className = 'coursemos-coursepage-main coursemos-coursepage-courseheader-show coursemos-headroom-pin';
+    el.parentElement.className = 'fixed-top headroom headroom--top headroom--pinned headroom--not-bottom';
+    const courseHeader = capture(el);
+    document.body.className = 'coursemos-coursepage-main coursemos-headroom-unpin is-scrolled';
+    el.parentElement.className = 'headroom headroom--not-top headroom--unpinned headroom--bottom';
+    el.parentElement.classList.add('sticky-top');
+    record('스크롤로 바뀐 상위 레이아웃 클래스는 같은 지문으로 처리', match(courseHeader, capture(el)));
+    el.classList.add('is-scrolled');
+    record('요소 자체의 클래스 변경은 비교에 포함', !match(courseHeader, capture(el)));
+    el.classList.remove('is-scrolled');
+    el.parentElement.classList.replace('sticky-top', 'different-header');
+    record('상위 영역의 일반 클래스가 바뀌면 불일치', !match(courseHeader, capture(el)));
+    document.body.removeAttribute('class');
+    el = reset();
+    el.parentElement.classList.add('sticky-top');
+    el.parentElement.classList.remove('sticky-top');
+    record('스크롤 클래스가 제거된 뒤 남은 빈 상위 class 속성은 무시', match(saved, capture(el)));
     for (const [title, mutate] of [
       ['동작 변경 거부', (node) => node.setAttribute('data-action', 'delete')],
       ['상태 변경 거부', (node) => node.setAttribute('aria-expanded', 'true')],

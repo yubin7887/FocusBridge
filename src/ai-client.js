@@ -95,9 +95,6 @@ const providers = {
       if (content.some((part) => part.type === 'refusal')) return null;
       return content.filter((part) => part.type === 'output_text').map((part) => part.text).join('');
     },
-    rows(parsed) {
-      return parsed?.results;
-    },
   },
   groq: {
     request(model, apiKey, elements, { reasoningEffort }) {
@@ -121,13 +118,10 @@ const providers = {
       if (choice?.finish_reason !== 'stop' || choice.message?.refusal) return null;
       return typeof choice.message?.content === 'string' ? choice.message.content : null;
     },
-    rows(parsed) {
-      return parsed?.results;
-    },
   },
 };
 
-export function normalizeAiLabel(label) {
+function normalizeAiLabel(label) {
   if (typeof label !== 'string' || label.length > 200 || /[\u0000-\u001f\u007f]/.test(label)) return null;
   const name = label.trim().replace(/\s+/g, ' ');
   return /[\p{L}\p{N}]/u.test(name) ? name : null;
@@ -204,15 +198,15 @@ export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch
   if (json === null) return { status: 'incomplete', httpStatus };
   let parsed;
   try { parsed = JSON.parse(json); } catch { return { status: 'invalid-response', httpStatus }; }
-  const rows = provider.rows ? provider.rows(parsed) : parsed;
+  const rows = config.provider === 'google' ? parsed : parsed?.results;
   if (!Array.isArray(rows)) return { status: 'invalid-response', httpStatus };
   const ids = new Set(elements.map(({ requestId }) => requestId));
   const results = [];
   for (const row of rows) {
-    if (!ids.delete(row?.requestId) || (row.label !== null && !normalizeAiLabel(row.label))) {
-      return { status: 'invalid-response', httpStatus };
-    }
-    results.push({ requestId: row.requestId, label: normalizeAiLabel(row.label) });
+    if (!ids.delete(row?.requestId)) return { status: 'invalid-response', httpStatus };
+    const label = normalizeAiLabel(row.label);
+    if (row.label !== null && label === null) return { status: 'invalid-response', httpStatus };
+    results.push({ requestId: row.requestId, label });
   }
   return ids.size ? { status: 'invalid-response', httpStatus } : { status: 'ok', httpStatus, results };
 }

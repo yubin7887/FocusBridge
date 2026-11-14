@@ -15,6 +15,14 @@ const ATTRS = new Set([
   'x1', 'x2', 'y1', 'y2', 'fill', 'stroke', 'transform',
 ]);
 const REFERENCES = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'form'];
+// These classes describe scroll positioning on containers, not the control's action.
+const SCROLL_LAYOUT_CLASSES = new Set([
+  'scrolled', 'is-scrolled', 'is-sticky', 'sticky-top', 'fixed-top',
+  'coursemos-coursepage-courseheader-show',
+  'coursemos-headroom-pin', 'coursemos-headroom-unpin',
+  'headroom--pinned', 'headroom--unpinned', 'headroom--top', 'headroom--not-top',
+  'headroom--bottom', 'headroom--not-bottom',
+]);
 const fail = (reason) => ({ eligible: false, reason });
 const classTokens = (value) => [...new Set(value.split(/\s+/).filter(Boolean))].sort();
 
@@ -27,18 +35,24 @@ export function createPageKey(href) {
   } catch { return null; }
 }
 
-function attributes(el) {
+function attributes(el, ancestor) {
   return [...el.attributes]
     .filter((a) => ATTRS.has(a.name) || a.name.startsWith('aria-'))
     .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
-    .map((a) => [a.name, a.name === 'class' ? classTokens(a.value) : a.value]);
+    .flatMap((a) => {
+      if (a.name !== 'class') return [[a.name, a.value]];
+      const tokens = classTokens(a.value);
+      if (!ancestor) return [[a.name, tokens]];
+      const stable = tokens.filter((token) => !SCROLL_LAYOUT_CLASSES.has(token));
+      return stable.length ? [[a.name, stable]] : [];
+    });
 }
 
-function describe(el) {
+function describe(el, ancestor = false) {
   return {
     tag: el.localName,
     namespace: el.namespaceURI,
-    attributes: attributes(el),
+    attributes: attributes(el, ancestor),
     // 입력 내용(value)은 수집하지 않고 조작 상태만 비교한다.
     state: {
       disabled: 'disabled' in el ? el.disabled : null,
@@ -83,7 +97,7 @@ function pathOf(el) {
       throw new Error('duplicate-id');
     }
     const siblings = node.parentNode?.children;
-    path.unshift({ ...describe(node), index: siblings ? [...siblings].indexOf(node) : 0 });
+    path.unshift({ ...describe(node, node !== el), index: siblings ? [...siblings].indexOf(node) : 0 });
     if (path.length > 64) throw new Error('context-too-large');
     if (node.parentElement) node = node.parentElement;
     else if (root.host) { path.unshift({ boundary: 'shadow' }); node = root.host; }
@@ -167,7 +181,7 @@ function fragmentEvidenceFailure(el, pageKey) {
 function nearbyContext(el) {
   const parent = el.parentElement;
   return {
-    parent: parent ? describe(parent) : null,
+    parent: parent ? describe(parent, true) : null,
     // 부모 전체 하위 트리 대신 직접 텍스트와 바로 앞뒤 요소만 비교한다.
     parentText: parent ? [...parent.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data) : [],
     previous: el.previousElementSibling ? tree(el.previousElementSibling, { context: true }) : null,
@@ -197,10 +211,11 @@ export function createFingerprint(el) {
     const identity = JSON.stringify(element);
     const candidates = el.getRootNode().querySelectorAll(el.localName);
     if (candidates.length > MAX_CANDIDATES) return fail('too-many-candidates');
+    const description = JSON.stringify(describe(el));
     // 같은 root에 동일 서명이 두 개 있으면 위치로 억지로 구분하지 않는다.
     for (const other of candidates) {
       if (other === el || other.closest('[data-fb-ignore]')) continue;
-      if (JSON.stringify(describe(other)) !== JSON.stringify(describe(el))) continue;
+      if (JSON.stringify(describe(other)) !== description) continue;
       try {
         if (JSON.stringify(tree(other)) === identity) return fail('ambiguous-element');
       } catch {

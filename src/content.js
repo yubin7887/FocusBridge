@@ -1,6 +1,7 @@
 // 수집 → 탐지 → 이전 방문 매칭 → 사전 매칭.
 import { resolveAiResults } from './ai-flow.js';
-import { collectTargets } from './collector.js';
+import { collectRoots, collectTargets } from './collector.js';
+import { findIcon } from './ai-payload.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
 import { pageCommon, matchItem } from './matcher.js';
@@ -10,9 +11,8 @@ import { createLabelController } from './apply-labels.js';
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
-  const icon = el.querySelector('svg, img, i, [class*="icon"]');
+  const icon = findIcon(el);
   const parent = el.parentElement;
-  const rect = el.getBoundingClientRect();
   return {
     tagName: el.tagName.toLowerCase(),
     id: el.id || null,
@@ -24,7 +24,6 @@ function extractContext(el) {
     parentText: (parent?.innerText || '').trim().slice(0, 100),
     prevSiblingText: (el.previousElementSibling?.innerText || '').trim().slice(0, 50),
     nextSiblingText: (el.nextElementSibling?.innerText || '').trim().slice(0, 50),
-    rect: { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height) },
     // ③ 기능 사전 매칭용: 요소 자신의 data- 속성 (최대 10개, 값은 50자까지). 예: { "data-type": "next" }
     dataAttrs: Object.fromEntries(
       [...el.attributes]
@@ -72,7 +71,6 @@ export async function scan(root = document) {
   const targets = collectTargets(root);
   const missing = detectMissingNames(targets);
 
-
   const report = missing.map((m) => ({
     status: m.status,
     role: m.role,
@@ -80,24 +78,27 @@ export async function scan(root = document) {
     selector: cssPath(m.element),
     context: extractContext(m.element),
   }));
-  const fingerprints = window === window.top ? missing.map((m) => createFingerprint(m.element)) : [];
-  const previous = missing.length && window === window.top
+  const canLookupPrevious = missing.length > 0 && window === window.top;
+  const fingerprints = canLookupPrevious ? missing.map((m) => createFingerprint(m.element)) : [];
+  const previous = canLookupPrevious
     ? await lookupPrevious(pageUrl) : { status: 'skipped', records: [] };
   // 이전 검사나 다른 URL의 응답은 게시하지 않는다.
   if (scanId !== generation || location.href !== pageUrl) return null;
   // observer가 감지하지 못하는 checked 등의 프로퍼티 변경도 다시 확인한다.
-  const currentMissing = detectMissingNames(collectTargets(root));
-  const changed = currentMissing.length !== missing.length || currentMissing.some((m, i) => {
-    if (m.element !== missing[i].element || m.status !== missing[i].status
-      || m.name !== missing[i].name || m.role !== missing[i].role) return true;
-    const { rect: oldRect, ...oldContext } = report[i].context;
-    const { rect: newRect, ...newContext } = extractContext(m.element);
-    if (JSON.stringify(oldContext) !== JSON.stringify(newContext)) return true;
-    return fingerprints[i]?.eligible && !exactFingerprintMatch(fingerprints[i], createFingerprint(m.element));
-  });
-  if (changed) { scheduleScan(); return null; }
+  if (canLookupPrevious) {
+    const currentMissing = detectMissingNames(collectTargets(root));
+    const changed = currentMissing.length !== missing.length || currentMissing.some((m, i) => {
+      if (m.element !== missing[i].element || m.status !== missing[i].status
+        || m.name !== missing[i].name || m.role !== missing[i].role) return true;
+      if (JSON.stringify(report[i].context) !== JSON.stringify(extractContext(m.element))) return true;
+      return fingerprints[i]?.eligible && !exactFingerprintMatch(fingerprints[i], createFingerprint(m.element));
+    });
+    if (changed) { scheduleScan(); return null; }
+  }
   const common = pageCommon(report); // 전체 report 기준을 유지한다.
   for (let i = 0; i < report.length; i++) {
+    const { x, y, width, height } = missing[i].element.getBoundingClientRect();
+    report[i].context.rect = { x: Math.round(x), y: Math.round(y), w: Math.round(width), h: Math.round(height) };
     report[i].match = matchPrevious(fingerprints[i], previous.records)
       || matchItem(report[i], pageUrl, common);
   }
@@ -141,10 +142,7 @@ const observer = new MutationObserver((records) => {
 });
 const observedRoots = new Set();
 function observeRoots() {
-  const roots = [document];
-  for (let i = 0; i < roots.length; i++) {
-    for (const el of roots[i].querySelectorAll('*')) if (el.shadowRoot) roots.push(el.shadowRoot);
-  }
+  const roots = collectRoots(document);
   const changed = roots.length !== observedRoots.size || roots.some((r) => !observedRoots.has(r));
   if (changed) {
     observer.disconnect();

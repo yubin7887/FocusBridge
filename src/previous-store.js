@@ -117,14 +117,12 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
   // 별도 타이머 없이 저장·조회 시 만료 인덱스로 정리한다.
   // 확장 프로그램이 꺼져 있는 동안에는 실행하지 않고 다음 사용 시 처리한다.
   async function removeExpired() {
-    return transaction('readwrite', (store, done) => {
-      let deleted = 0;
+    return transaction('readwrite', (store) => {
       const request = store.index('expiresAt').openCursor(IDBKeyRange.upperBound(now()));
       request.onsuccess = () => {
         const cursor = request.result;
-        if (!cursor) { done(deleted); return; }
+        if (!cursor) return;
         cursor.delete();
-        deleted++;
         cursor.continue();
       };
     });

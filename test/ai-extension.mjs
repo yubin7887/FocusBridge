@@ -424,6 +424,80 @@ try {
   console.log('PASS 직접 추출, 한 번 캡처한 아이콘의 픽셀, 모델별 이미지 입력');
 
   if (applyLabels) {
+    const storeLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
+      + '<a class="store-badge" href="/page/mlink?store=playstore"></a></section>';
+    await browser.route('https://example.com/store-links', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="ko"><body>' + storeLinks + storeLinks + '</body></html>',
+    }));
+    const beforeLinks = await worker.evaluate(() => requests.length);
+    await page.goto('https://example.com/store-links');
+    const readLinks = async (previousScanId) => {
+      const snapshot = await read((scanId) => {
+        const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+        return result?.scanId > scanId && result.report.length === 4
+          && result.report.every((item) => item.aiStorage === 'ineligible' && item.labelApplied) && result;
+      }, previousScanId);
+      return snapshot.jsonValue();
+    };
+    let linkScan = await readLinks(0);
+    assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
+    assert.equal(linkScan.report.filter((item) => item.aiReused).length, 2);
+    for (let pass = 0; pass < 2; pass++) {
+      // Replace both sets of anchors as a page framework would during a re-render.
+      await page.evaluate((html) => {
+        for (const section of document.querySelectorAll('section')) section.outerHTML = html;
+      }, storeLinks);
+      linkScan = await readLinks(linkScan.scanId);
+      assert.ok(linkScan.report.every((item) => item.aiReused));
+      assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 1);
+    }
+    await page.locator('a[href$="appstore"]').evaluateAll((links) => {
+      for (const link of links) link.href = '/page/mlink?store=appstore-changed';
+    });
+    await readLinks(linkScan.scanId);
+    assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 2);
+    const newInputs = await worker.evaluate(() => requests.at(-1).inputs);
+    assert.equal(newInputs.length, 1);
+    assert.equal(newInputs[0].destination.href, '/page/mlink');
+    assert.deepEqual(await stored(page.url()), []);
+    console.log('PASS 같은 중복 링크는 재생성 뒤에도 AI 결과 재사용, 변경된 목적지만 새 요청');
+
+    await browser.route('https://example.com/sticky-menu', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: `<!doctype html><html lang="ko"><body class="coursemos-coursepage-main coursemos-headroom-pin" style="min-height:250vh">
+        <header id="site-header" class="fixed-top headroom headroom--pinned headroom--top headroom--not-bottom" style="position:sticky;top:0">
+          <button id="toggle" class="navbar-toggler"><svg aria-hidden="true" width="16" height="16"><path d="M0 2h16 M0 8h16 M0 14h16"/></svg></button>
+        </header>
+        <script>
+          let previousScroll = 0;
+          addEventListener('scroll', () => {
+            const pinned = scrollY <= previousScroll;
+            document.body.className = 'coursemos-coursepage-main ' + (pinned ? 'coursemos-headroom-pin' : 'coursemos-headroom-unpin');
+            document.querySelector('header').className = 'headroom headroom--not-bottom '
+              + (pinned ? 'headroom--pinned ' : 'headroom--unpinned ')
+              + (scrollY === 0 ? 'headroom--top' : 'headroom--not-top');
+            previousScroll = scrollY;
+          });
+        </script>
+        </body></html>`,
+    }));
+    const beforeMenu = await worker.evaluate(() => requests.length);
+    await page.goto('https://example.com/sticky-menu');
+    await waitForStorage('#toggle', 'saved');
+    for (const scrollTop of [500, 250, 0, 800]) {
+      const scanId = JSON.parse(await page.locator('#ai-test-report').textContent()).scanId;
+      await page.evaluate((top) => scrollTo(0, top), scrollTop);
+      await read((previousScanId) => {
+        const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+        return result?.scanId > previousScanId && result.report.some((item) => item.selector === '#toggle'
+          && item.match.source === 'previous' && item.labelApplied);
+      }, scanId);
+      assert.equal(await worker.evaluate(() => requests.length), beforeMenu + 1);
+      assert.equal((await stored(page.url())).length, 1);
+    }
+    console.log('PASS 스크롤 재검사에서 같은 메뉴 이름 재사용 및 AI 요청·DB 저장 횟수 유지');
+
     await browser.route('https://example.com/fragment-link', (route) => route.fulfill({
       contentType: 'text/html',
       body: '<!doctype html><html lang="ko"><body><footer><a id="fragment-link" href="#top"></a></footer></body></html>',
