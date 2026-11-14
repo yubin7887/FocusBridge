@@ -1,6 +1,7 @@
 import { AI_MODELS, AI_PROVIDERS, DEFAULT_AI_MODEL } from './ai-config.js';
 
 export const AI_MODEL_KEY = 'aiModel';
+export const ICON_CAPTURE_KEY = 'iconCaptureEnabled';
 const LEGACY_PROVIDER_KEY = 'aiProvider';
 
 export async function restrictKeyAccess(storage = globalThis.chrome?.storage?.local) {

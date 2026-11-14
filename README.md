@@ -7,7 +7,7 @@
 2. Chrome의 `chrome://extensions`에서 개발자 모드를 켜고 프로젝트 폴더를 압축해제된 확장으로 로드합니다.
 3. FocusBridge의 세부정보 → 확장 프로그램 옵션에서 AI 모델을 선택하고 해당 제공업체의 본인 API 키를 저장합니다. 모델을 바꾸거나 키를 저장한 뒤 사용할 탭을 새로고침합니다.
 
-기본 모델은 Gemini 3.8 Flash입니다. 설정에서 GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol, Groq · GPT-OSS 20B도 선택할 수 있습니다. GPT-6 계열은 OpenAI 키 하나를 공유하며, Gemini와 Groq는 각각 해당 서비스의 키를 사용합니다. 이전 방문 매칭과 사전 매칭으로 해결되지 않은 요소만 선택한 모델로 보냅니다. AI가 생성한 이름은 Fingerprint가 일치하고 `aria-label`이 실제로 적용된 경우에만 브라우저의 IndexedDB에 보관합니다.
+기본 모델은 Gemini 3.5 Flash-Lite입니다. 설정에서 Gemini 3.8 Flash, GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol, Groq · GPT-OSS 20B도 선택할 수 있습니다. Gemini 모델은 Gemini 키 하나를 공유하고, GPT-6 계열은 OpenAI 키 하나를 공유합니다. Groq는 별도의 Groq 키를 사용합니다. 이전 방문 매칭과 사전 매칭으로 해결되지 않은 요소만 선택한 모델로 보냅니다. AI가 생성한 이름은 Fingerprint가 일치하고 `aria-label`이 실제로 적용된 경우에만 브라우저의 IndexedDB에 보관합니다.
 
 `npm run test:all`로 회귀 테스트를, Playwright Chromium 설치 후 `npm run test:ai`로 키 설정과 모의 Gemini/GPT/Groq 연동을 확인할 수 있습니다.
 

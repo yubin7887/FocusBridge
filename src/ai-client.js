@@ -1,4 +1,5 @@
 import { AI_MODELS } from './ai-config.js';
+import { PNG_PREFIX } from './ai-images.js';
 
 export const AI_BATCH_SIZE = 8;
 export const MAX_AI_PAYLOAD = 24000;
@@ -36,15 +37,21 @@ const accessibleNameSchema = {
   },
 };
 
+function iconParts(images, textPart, imagePart) {
+  return [...images].flatMap(([id, data]) => [textPart('Icon for requestId ' + id), imagePart(data)]);
+}
+
 const providers = {
   google: {
-    request(model, apiKey, elements, { thinkingLevel }) {
+    request(model, apiKey, elements, { thinkingLevel }, images) {
+      const parts = [{ text: JSON.stringify(elements) },
+        ...iconParts(images, (text) => ({ text }), (data) => ({ inlineData: { mimeType: 'image/png', data } }))];
       return {
         url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
         headers: { 'x-goog-api-key': apiKey },
         body: {
           systemInstruction: { parts: [{ text: instructions }] },
-          contents: [{ role: 'user', parts: [{ text: JSON.stringify(elements) }] }],
+          contents: [{ role: 'user', parts }],
           generationConfig: {
             thinkingConfig: { thinkingLevel },
             maxOutputTokens: 1024,
@@ -61,14 +68,18 @@ const providers = {
     },
   },
   openai: {
-    request(model, apiKey, elements, { reasoningEffort, maxOutputTokens = 1024 }) {
+    request(model, apiKey, elements, { reasoningEffort, maxOutputTokens = 1024 }, images) {
+      const text = JSON.stringify(elements);
+      const textPart = (text) => ({ type: 'input_text', text });
+      const content = images.size ? [textPart(text),
+        ...iconParts(images, textPart, (data) => ({ type: 'input_image', image_url: PNG_PREFIX + data, detail: 'low' }))] : null;
       return {
         url: 'https://api.openai.com/v1/responses',
         headers: { Authorization: `Bearer ${apiKey}` },
         body: {
           model,
           instructions,
-          input: JSON.stringify(elements),
+          input: content ? [{ role: 'user', content }] : text,
           store: false,
           reasoning: { effort: reasoningEffort },
           max_output_tokens: maxOutputTokens,
@@ -154,11 +165,11 @@ function quotaRetryAt(provider, response, data, now) {
   return daily || hintTime <= now ? Math.max(hintTime, nextPacificMidnight(now)) : hintTime;
 }
 
-export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch) {
+export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch, images = new Map()) {
   if (!Object.hasOwn(AI_MODELS, model)) return { status: 'unsupported-model' };
   const config = AI_MODELS[model];
   const provider = providers[config.provider];
-  const { url, headers, body } = provider.request(model, apiKey, elements, config);
+  const { url, headers, body } = provider.request(model, apiKey, elements, config, images);
   const request = {
     method: 'POST',
     redirect: 'error',

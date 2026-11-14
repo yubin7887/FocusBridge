@@ -41,11 +41,15 @@ function visibleText(element, max = 100) {
   return clean(text, max);
 }
 
+export function findIcon(element) {
+  return element.querySelector('svg, img, i, [class*="icon"]');
+}
+
 export function buildAiEvidence(element, entry) {
   const doc = element.ownerDocument;
   const attrs = (...names) => compact(Object.fromEntries(names.map((name) => [name, clean(element.getAttribute(name))])));
   const attr = (name) => clean(element.getAttribute(name));
-  const icon = element.querySelector('svg, img, i, [class*="icon"]');
+  const icon = findIcon(element);
   const ref = icon?.querySelector('use');
   const area = element.closest('section, nav, main, header, footer, aside, [role="region"]');
   const controls = [];

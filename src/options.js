@@ -1,5 +1,5 @@
 import { AI_MODELS, AI_PROVIDERS } from './ai-config.js';
-import { AI_MODEL_KEY, readAiSettings, restrictKeyAccess } from './ai-settings.js';
+import { AI_MODEL_KEY, ICON_CAPTURE_KEY, readAiSettings, restrictKeyAccess } from './ai-settings.js';
 
 const form = document.querySelector('#key-form');
 const select = document.querySelector('#ai-provider-select');
@@ -64,3 +64,35 @@ remove.addEventListener('click', () => {
   void update((storage) => storage.remove(credentialKey), '키를 삭제했습니다. 새 AI 요청을 중단합니다.');
 });
 void update(() => {}, '');
+
+const captureButton = document.querySelector('#toggle-icon-capture');
+const captureStatus = document.querySelector('#capture-status');
+const capturePermission = { origins: ['<all_urls>'] };
+let captureAllowed = false;
+
+async function refreshCapturePermission() {
+  const storage = await access;
+  if (!storage) throw new Error('Extension storage unavailable');
+  const stored = await storage.get(ICON_CAPTURE_KEY);
+  captureAllowed = stored[ICON_CAPTURE_KEY] === true && await chrome.permissions.contains(capturePermission);
+  captureButton.textContent = captureAllowed ? '아이콘 화면 캡처 끄기' : '아이콘 화면 캡처 허용';
+  captureButton.disabled = false;
+}
+
+captureButton.addEventListener('click', async () => {
+  captureButton.disabled = true;
+  try {
+    const enable = !captureAllowed;
+    const granted = !enable || await chrome.permissions.request(capturePermission);
+    const storage = await access;
+    await storage.set({ [ICON_CAPTURE_KEY]: enable && granted });
+    if (!enable) await chrome.permissions.remove(capturePermission);
+    await refreshCapturePermission();
+    captureStatus.textContent = granted ? (captureAllowed ? '아이콘 화면 캡처를 켰습니다.' : '아이콘 화면 캡처를 껐습니다.')
+      : '아이콘 화면 캡처 권한을 변경하지 않았습니다.';
+  } catch {
+    captureStatus.textContent = '아이콘 화면 캡처 권한을 변경하지 못했습니다.';
+    captureButton.disabled = false;
+  }
+});
+void refreshCapturePermission().catch(() => { captureStatus.textContent = '아이콘 화면 캡처 권한을 확인하지 못했습니다.'; });
