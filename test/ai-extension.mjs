@@ -12,7 +12,7 @@ try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
   await mkdir(path.join(dir, 'src'));
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
-  assert.ok(manifest.host_permissions.includes('https://api.groq.com/*'));
+  assert.ok(!manifest.host_permissions.includes('https://api.groq.com/*'));
   assert.ok(manifest.optional_host_permissions.includes('<all_urls>'));
   // Grant the optional host access to this test extension without a browser prompt.
   manifest.host_permissions.push('<all_urls>');
@@ -41,21 +41,18 @@ try {
     globalThis.fetch = async (url, request) => {
       const raw = JSON.parse(request.body);
       const openai = url === 'https://api.openai.com/v1/responses';
-      const groq = url === 'https://api.groq.com/openai/v1/chat/completions';
-      const parts = groq || typeof raw.input === 'string' ? []
+      const parts = typeof raw.input === 'string' ? []
         : openai ? raw.input[0].content : raw.contents[0].parts;
-      const inputs = JSON.parse(groq ? raw.messages.find(({ role }) => role === 'user').content
-        : typeof raw.input === 'string' ? raw.input : parts[0].text);
+      const inputs = JSON.parse(typeof raw.input === 'string' ? raw.input : parts[0].text);
       const images = parts.flatMap((part, i) => {
         const data = part.inlineData?.data || part.image_url?.split(',', 2)[1];
         return data ? [{ requestId: parts[i - 1].text.split(' ').at(-1), data }] : [];
       });
-      const authorized = groq || openai
-        ? request.headers.Authorization === (groq ? 'Bearer groq-test-key' : 'Bearer openai-test-key') && !request.headers['x-goog-api-key']
+      const authorized = openai
+        ? request.headers.Authorization === 'Bearer openai-test-key' && !request.headers['x-goog-api-key']
         : request.headers['x-goog-api-key'] === 'local-test-key' && !request.headers.Authorization;
-      requests.push({ url, inputs, images, authorized, model: raw.model, reasoning: raw.reasoning_effort ?? raw.reasoning?.effort,
-        store: raw.store, format: raw.response_format?.type ?? raw.text?.format?.type,
-        strict: raw.response_format?.json_schema?.strict, thinkingLevel: raw.generationConfig?.thinkingConfig?.thinkingLevel });
+      requests.push({ url, inputs, images, authorized, model: raw.model, reasoning: raw.reasoning?.effort,
+        store: raw.store, format: raw.text?.format?.type, thinkingLevel: raw.generationConfig?.thinkingConfig?.thinkingLevel });
       if (globalThis.holdResponse) await new Promise((resolve) => { globalThis.releaseResponse = resolve; });
       if (globalThis.rejectRequest) return Response.json({
         error: { details: [{ violations: [{ quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier' }] }] },
@@ -70,18 +67,21 @@ try {
           request.signal.addEventListener('abort', () => reject(request.signal.reason), { once: true });
         });
       }
-      const results = inputs.map(({ requestId, attributes, destination }) => {
+      const results = inputs.map(({ requestId, attributes, destination, visual, page }) => {
         if (destination?.href === '#top') return { requestId, label: '맨 위로 이동' };
-        let label = groq ? 'Groq 회전 설정' : openai ? 'GPT 회전 설정' : '회전 설정 열기';
+        if (page?.title === '무료 이미지 배경 지우기') {
+          const label = visual?.pattern === 'checkerboard' ? '투명 배경 선택'
+            : visual?.pattern === 'conic gradient' ? '배경 색상 선택'
+            : visual?.backgroundColor === 'rgb(255, 255, 255)' ? '흰색 배경 선택' : null;
+          return { requestId, label };
+        }
+        let label = openai ? 'GPT 회전 설정' : '회전 설정 열기';
         if (attributes?.['data-action'] === 'unknown') label = globalThis.returnUnusableLabel ? 'button' : null;
         return { requestId, label };
       });
       if (openai) return Response.json({
         status: 'completed',
         output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ results }) }] }],
-      });
-      if (groq) return Response.json({
-        choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ results }) } }],
       });
       return Response.json({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(results) }] } }] });
     };
@@ -109,7 +109,7 @@ try {
   await settings.getByRole('status').filter({ hasText: '등록된 API 키가 없습니다.' }).waitFor();
   const modelSelect = settings.getByLabel('AI 모델');
   assert.deepEqual(await modelSelect.locator('option').allTextContents(),
-    ['Gemini 3.5 Flash-Lite', 'Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol', 'Groq · GPT-OSS 20B']);
+    ['Gemini 3.5 Flash-Lite', 'Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol']);
   assert.equal(await modelSelect.inputValue(), 'gemini-3.5-flash-lite');
   const page = await browser.newPage();
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>상품</title></head><body>
@@ -318,29 +318,14 @@ try {
   await settings.getByRole('status').filter({ hasText: 'API 키가 등록되어 있습니다.' }).waitFor();
   assert.equal(await modelSelect.inputValue(), 'gpt-6.1-sol');
 
-  await modelSelect.selectOption('openai/gpt-oss-20b');
-  await settings.getByLabel('Groq API 키').waitFor();
-  await settings.getByRole('status').filter({ hasText: '등록된 API 키가 없습니다.' }).waitFor();
-  const countBeforeGroq = await worker.evaluate(() => requests.length);
-  await page.goto('https://example.com/groq');
-  await probe('not-configured');
-  assert.equal(await worker.evaluate(() => requests.length), countBeforeGroq);
-  await settings.getByLabel('Groq API 키').fill('groq-test-key');
-  await settings.getByRole('button', { name: '키 저장', exact: true }).click();
-  await settings.getByRole('status').filter({ hasText: '키를 저장했습니다' }).waitFor();
-  await page.reload();
+  await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'openai/gpt-oss-20b' }));
+  await settings.reload();
+  await settings.getByLabel('Gemini API 키').waitFor();
+  assert.equal(await modelSelect.inputValue(), 'gemini-3.5-flash-lite');
+  await page.goto('https://example.com/removed-model');
   await probe('ok');
-  const groq = await worker.evaluate(() => requests.at(-1));
-  assert.equal(groq.url, 'https://api.groq.com/openai/v1/chat/completions');
-  assert.equal(groq.model, 'openai/gpt-oss-20b');
-  assert.equal(groq.authorized, true);
-  assert.equal(groq.reasoning, 'low');
-  assert.equal(groq.format, 'json_schema');
-  assert.equal(groq.strict, true);
-  await waitForStorage('#spin', applyLabels ? 'saved' : 'not-applied');
-  if (applyLabels) await page.getByRole('button', { name: 'Groq 회전 설정', exact: true }).waitFor();
-  assert.deepEqual((await stored(page.url())).map(({ label }) => label), applyLabels ? ['Groq 회전 설정'] : []);
-  console.log('PASS Groq 별도 키 설정, 모의 API 호출 및 라벨 처리');
+  assert.ok(await worker.evaluate(() => requests.at(-1).url.endsWith('/gemini-3.5-flash-lite:generateContent')));
+  console.log('PASS 제거된 모델이 저장되어 있으면 기존 Gemini 키로 기본 모델 사용');
 
   await modelSelect.selectOption('gpt-6.1-sol');
   await settings.getByLabel('GPT API 키').waitFor();
@@ -398,14 +383,14 @@ try {
   await page.goto('https://example.com/icons-direct');
   await probe('ok');
   assert.deepEqual((await inspectIcons()).map(({ id, width, height }) => [id, width, height]),
-    [['shape', 64, 64], ['bitmap', 64, 64]]);
+    [['shape', 64, 64], ['bitmap', 64, 64], ['with-clue', 64, 64]]);
   assert.equal(await worker.evaluate(() => captureCount), 0);
 
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
   await page.goto('https://example.com/icons-capture');
   await probe('ok');
   const captured = await inspectIcons();
-  assert.deepEqual(captured.map(({ id }) => id), ['shape', 'glyph-first', 'glyph-second', 'bitmap']);
+  assert.deepEqual(captured.map(({ id }) => id), ['shape', 'glyph-first', 'glyph-second', 'bitmap', 'with-clue']);
   assert.deepEqual(captured.find(({ id }) => id === 'glyph-first').color, [12, 34, 56, 255]);
   assert.deepEqual(captured.find(({ id }) => id === 'glyph-second').color, [87, 65, 43, 255]);
   assert.equal(await worker.evaluate(() => captureCount), 1);
@@ -413,15 +398,60 @@ try {
   await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'gpt-6-luna', openAiApiKey: 'openai-test-key' }));
   await page.goto('https://example.com/icons-gpt');
   await probe('ok');
-  assert.ok((await inspectIcons()).some(({ id }) => id === 'shape'));
-  const beforeGroqCapture = await worker.evaluate(() => captureCount);
-  await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'openai/gpt-oss-20b' }));
-  await page.goto('https://example.com/icons-groq');
-  await probe('ok');
-  assert.deepEqual(await inspectIcons(), []);
-  assert.equal(await worker.evaluate(() => captureCount), beforeGroqCapture);
+  assert.deepEqual((await inspectIcons()).map(({ id }) => id), captured.map(({ id }) => id));
   await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'gemini-3.8-flash' }));
   console.log('PASS 직접 추출, 한 번 캡처한 아이콘의 픽셀, 모델별 이미지 입력');
+
+  const batchIcons = Array.from({ length: 10 }, (_, index) =>
+    `<button id="tile-${index}" style="width:32px;height:32px;background-color:rgb(${index * 20}, 40, 80)"></button>`);
+  await browser.route('https://example.com/batch-images', (route) => route.fulfill({
+    contentType: 'text/html',
+    body: '<!doctype html><style>body{display:flex;gap:12px}button{appearance:none;border:0}</style>' + batchIcons.join(''),
+  }));
+  const beforeBatchImages = await worker.evaluate(() => ({ calls: requests.length, captures: captureCount }));
+  await page.goto('https://example.com/batch-images');
+  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+    ?.report.filter((item) => item.aiStatus === 'label-ready').length === 10);
+  assert.deepEqual(await worker.evaluate(({ calls, captures }) => ({
+    images: requests.slice(calls).map(({ inputs, images }) => images.map(({ requestId }) =>
+      inputs.find((item) => item.requestId === requestId).attributes.id)),
+    captures: captureCount - captures,
+  }), beforeBatchImages), {
+    images: [Array.from({ length: 8 }, (_, i) => `tile-${i}`), ['tile-8', 'tile-9']], captures: 2,
+  });
+  console.log('PASS 두 묶음에 걸쳐 추출한 이미지 10개 모두 첨부');
+
+  const swatches = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>무료 이미지 배경 지우기</title><style>
+    button { width: 40px; height: 40px; border: 1px solid black; border-radius: 50%; }
+    .bg-damier-medium { background-image: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%); background-size: 12px 12px; }
+    .wheel { background-image: radial-gradient(white, transparent), conic-gradient(red, yellow, lime, blue, red); }
+    </style></head><body><main><h1>무료 이미지 배경 지우기</h1>
+    <button id="swatch-a" class="before:-top-px bg-damier-medium" style="background-color: white" aria-pressed="true"></button>
+    <button id="swatch-b" class="before:-top-px" style="background-color: white" aria-pressed="false"></button>
+    <button id="swatch-c" class="wheel" aria-haspopup="dialog" aria-expanded="false"></button>
+    </main></body></html>`;
+  await browser.route('https://example.com/swatches-*', (route) => route.fulfill({ contentType: 'text/html', body: swatches }));
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: false }));
+  await page.goto('https://example.com/swatches-text');
+  await probe('ok');
+  const swatchEvidence = await worker.evaluate(() => requests.at(-1).inputs.map(({ attributes, visual }) => [attributes.id, visual]));
+  assert.deepEqual(swatchEvidence, [
+    ['swatch-a', { pattern: 'checkerboard' }],
+    ['swatch-b', { backgroundColor: 'rgb(255, 255, 255)' }],
+    ['swatch-c', { pattern: 'conic gradient' }],
+  ]);
+  assert.deepEqual(await inspectIcons(), []);
+  if (applyLabels) {
+    for (const name of ['투명 배경 선택', '흰색 배경 선택', '배경 색상 선택']) {
+      await page.getByRole('button', { name, exact: true }).waitFor();
+    }
+  }
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
+  await page.goto('https://example.com/swatches-capture');
+  await probe('ok');
+  assert.deepEqual((await inspectIcons()).map(({ id, width, height }) => [id, width, height]),
+    ['swatch-a', 'swatch-b', 'swatch-c'].map((id) => [id, 64, 64]));
+  console.log('PASS CSS 위치 클래스 오탐 방지 및 체크무늬·흰색·색상 원의 AI 단서 전달');
 
   if (applyLabels) {
     const storeLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
@@ -462,6 +492,49 @@ try {
     assert.equal(newInputs[0].destination.href, '/page/mlink');
     assert.deepEqual(await stored(page.url()), []);
     console.log('PASS 같은 중복 링크는 재생성 뒤에도 AI 결과 재사용, 변경된 목적지만 새 요청');
+
+    await browser.route('https://example.com/widget-reflow', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: `<!doctype html><div class="header-stack"><header><a id="brand-mark" href="/ko">
+        <svg><path d="M1 1h4"/></svg></a></header></div><div><main><div class="samples">
+        <button id="sample-1"><img alt="" src="/sample-1.webp"></button>
+        <button id="sample-2"><img alt="" src="/sample-2.webp"></button></div></main></div>`,
+    }));
+    const beforeWidgets = await worker.evaluate(() => requests.length);
+    await page.goto('https://example.com/widget-reflow');
+    for (const id of ['#brand-mark', '#sample-1', '#sample-2']) await waitForStorage(id, 'saved');
+    const firstRecords = await stored(page.url());
+    assert.equal(firstRecords.length, 3);
+    for (const id of ['consent-host', 'popup-host']) {
+      const scanId = JSON.parse(await page.locator('#ai-test-report').textContent()).scanId;
+      await page.evaluate((id) => document.body.prepend(Object.assign(document.createElement('div'), { id })), id);
+      await read((previousScanId) => {
+        const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+        return result?.scanId > previousScanId && result.report.length === 3 && result.report.every((item) =>
+          item.match.source === 'previous' && item.labelApplied);
+      }, scanId);
+      assert.equal(await worker.evaluate(() => requests.length), beforeWidgets + 1);
+      assert.deepEqual(await stored(page.url()), firstRecords);
+    }
+    console.log('PASS 최상위 위젯 삽입 후에도 링크와 샘플 라벨을 재사용하고 DB 중복 방지');
+    for (const disabled of [true, false]) {
+      const scanId = JSON.parse(await page.locator('#ai-test-report').textContent()).scanId;
+      await page.locator('.samples button').evaluateAll((buttons, disabled) => {
+        for (const button of buttons) {
+          button.disabled = disabled;
+          button.classList.toggle('opacity-50', disabled);
+          if (!button.className) button.removeAttribute('class');
+        }
+      }, disabled);
+      await read((previousScanId) => {
+        const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+        return result?.scanId > previousScanId && result.report.length === 3 && result.report.every((item) =>
+          item.match.source === 'previous' && item.labelApplied);
+      }, scanId);
+      assert.equal(await worker.evaluate(() => requests.length), beforeWidgets + 1);
+      assert.deepEqual(await stored(page.url()), firstRecords);
+    }
+    console.log('PASS 샘플 이미지 처리 중 비활성화와 복귀 후에도 DB 기록 수 및 요청 횟수 유지');
 
     await browser.route('https://example.com/sticky-menu', (route) => route.fulfill({
       contentType: 'text/html',

@@ -2,11 +2,10 @@ import { AI_BATCH_SIZE, MAX_AI_PAYLOAD, inferLabels } from './ai-client.js';
 import { AI_MODELS } from './ai-config.js';
 import { createPageKey } from './previous-fingerprint.js';
 import { captureIconCrops } from './ai-capture.js';
-import { iconImageData, MAX_AI_IMAGES } from './ai-images.js';
+import { iconImageData } from './ai-images.js';
 
 export const INFER_NAMES = 'focusbridge:ai:infer';
 export const SAVE_NAMES = 'focusbridge:ai:save';
-export const AI_IMAGE_MODEL = 'focusbridge:ai:image-model';
 export const CAPTURE_ICONS = 'focusbridge:ai:capture-icons';
 
 // Only an AI result returned to the same document can be saved.
@@ -61,11 +60,9 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
       || sender.frameId !== 0 || !sender.documentId || !pageKey || pageKey !== message.pageKey) {
       return { status: 'invalid-request' };
     }
-    if (message.type === AI_IMAGE_MODEL || message.type === CAPTURE_ICONS) {
+    if (message.type === CAPTURE_ICONS) {
       const settings = await readSettings();
-      const model = settings?.apiKey && AI_MODELS[settings.model]?.imageInput ? settings.model : null;
-      if (message.type === AI_IMAGE_MODEL) return { model };
-      if (!model || model !== message.imageModel) return { images: [] };
+      if (!settings?.apiKey) return { images: [] };
       const images = await captureIconCrops(sender, pageKey, message.viewport, message.rects, await storageReady)
         .catch(() => []);
       return { images };
@@ -106,13 +103,9 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     const settings = await readSettings();
     if (settings === null) return { status: 'storage-unavailable' };
     if (!settings.apiKey) return { status: 'not-configured', model: settings.model };
-    if (message.imageModel && settings.model !== message.imageModel) return { status: 'stale', model: settings.model };
     const images = new Map();
-    if (message.imageModel === settings.model && AI_MODELS[settings.model].imageInput) {
-      for (const { payload, image } of items) {
-        if (images.size >= MAX_AI_IMAGES) break;
-        if (iconImageData(image)) images.set(payload.requestId, image);
-      }
+    for (const { payload, image } of items) {
+      if (iconImageData(image)) images.set(payload.requestId, image);
     }
     const response = await requestAi(settings, payloads, images);
     if (response.status !== 'ok') return response;
@@ -129,7 +122,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     return response;
   }
   return (message, sender, sendResponse) => {
-    if (![INFER_NAMES, SAVE_NAMES, AI_IMAGE_MODEL, CAPTURE_ICONS].includes(message?.type)) return false;
+    if (![INFER_NAMES, SAVE_NAMES, CAPTURE_ICONS].includes(message?.type)) return false;
     handle(message, sender).then(sendResponse, (error) => {
       sendResponse({ status: error?.name === 'TimeoutError' ? 'timeout' : 'api-error' });
     });

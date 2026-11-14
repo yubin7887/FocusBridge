@@ -1,12 +1,15 @@
-import { drawIcon, iconImageData, ICON_SIZE, MAX_AI_IMAGES, PNG_PREFIX } from './ai-images.js';
+import { AI_BATCH_SIZE } from './ai-client.js';
+import { drawIcon, iconImageData, ICON_SIZE, PNG_PREFIX } from './ai-images.js';
 import { ICON_CAPTURE_KEY } from './ai-settings.js';
 
-let lastCapture = -Infinity;
+// Chrome allows up to two calls per second, shared across tabs.
+const CAPTURE_INTERVAL_MS = 550;
+let nextCaptureAt = 0;
 
 export async function captureIconCrops(sender, pageKey, viewport, rects, storage) {
   const { width, height, pixelRatio } = viewport ?? {};
   if (![width, height, pixelRatio].every((value) => Number.isFinite(value) && value > 0)
-    || !Array.isArray(rects) || !rects.length || rects.length > MAX_AI_IMAGES) return [];
+    || !Array.isArray(rects) || !rects.length || rects.length > AI_BATCH_SIZE) return [];
   if (rects.some((r) => !r || ![r.x, r.y, r.width, r.height].every(Number.isFinite)
     || r.x < 0 || r.y < 0 || r.width < 2 || r.height < 2 || r.width > 96 || r.height > 96
     || r.x + r.width > width || r.y + r.height > height)) return [];
@@ -27,8 +30,13 @@ export async function captureIconCrops(sender, pageKey, viewport, rects, storage
   chrome.tabs.onUpdated.addListener(onUpdate);
   let bitmap;
   try {
-    if (!await isSourceTab() || invalidated || performance.now() - lastCapture < 1000) return [];
-    lastCapture = performance.now();
+    while (true) {
+      if (invalidated || !await isSourceTab() || invalidated) return [];
+      const wait = nextCaptureAt - performance.now();
+      if (wait <= 0) break;
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+    nextCaptureAt = performance.now() + CAPTURE_INTERVAL_MS;
     const screenshot = await chrome.tabs.captureVisibleTab(windowId, { format: 'png' });
     if (invalidated || !await isSourceTab() || invalidated) return [];
     if (!screenshot.startsWith(PNG_PREFIX)) return [];

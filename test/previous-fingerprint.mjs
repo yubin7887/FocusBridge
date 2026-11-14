@@ -68,9 +68,39 @@ try {
     el.parentElement.classList.add('sticky-top');
     el.parentElement.classList.remove('sticky-top');
     record('스크롤 클래스가 제거된 뒤 남은 빈 상위 class 속성은 무시', match(saved, capture(el)));
+    reset('<div class="header-stack"><header><a href="/ko"><svg><path d="M1 1h4"/></svg></a></header></div>'
+      + '<div><main><div class="samples"><button class="sample"><img src="/sample-1.webp" alt=""></button>'
+      + '<button class="sample"><img src="/sample-2.webp" alt=""></button></div></main></div>');
+    const controls = [...document.querySelectorAll('header a, .samples button')];
+    const originalControls = controls.map(capture);
+    document.body.insertAdjacentHTML('afterbegin', '<div id="consent" aria-hidden="true"></div><script></script>');
+    document.querySelector('main').parentElement.before(Object.assign(document.createElement('div'), { id: 'widget' }));
+    record('최상위 위젯 삽입 후에도 홈과 각 샘플을 정확히 재사용',
+      originalControls.every((fingerprint) => fingerprint.eligible)
+      && controls.every((control, i) => match(originalControls[i], capture(control))));
+    record('샘플 이미지가 다른 버튼은 별도 기록으로 유지', !match(capture(controls[1]), capture(controls[2])));
+    for (const button of controls.slice(1)) {
+      button.disabled = true;
+      button.classList.add('opacity-50');
+    }
+    record('이미지 버튼 묶음이 처리 중 비활성화되어도 같은 지문 유지',
+      controls.slice(1).every((button, i) => match(originalControls[i + 1], capture(button))));
+    record('비활성 상태에서도 서로 다른 샘플 구분', !match(capture(controls[1]), capture(controls[2])));
+    controls[1].classList.remove('opacity-50');
+    record('처리 중 표시가 없는 이미지 버튼의 disabled 변경은 구분', !match(originalControls[1], capture(controls[1])));
+    controls[1].classList.add('opacity-50');
+    controls[1].querySelector('img').src = '/different-sample.webp';
+    record('샘플 이미지 자체가 바뀌면 이전 이름을 재사용하지 않음', !match(originalControls[1], capture(controls[1])));
+    const panels = '<div class="panel"><button data-action="cart"></button></div>' + '<div class="panel"></div>';
+    reset(panels);
+    const panelButton = document.querySelector('button');
+    const panelFingerprint = capture(panelButton);
+    document.body.lastElementChild.append(panelButton);
+    record('구조가 같은 최상위 컨테이너로 옮긴 요소는 구분', !match(panelFingerprint, capture(panelButton)));
     for (const [title, mutate] of [
       ['동작 변경 거부', (node) => node.setAttribute('data-action', 'delete')],
       ['상태 변경 거부', (node) => node.setAttribute('aria-expanded', 'true')],
+      ['일반 버튼의 disabled 변경 거부', (node) => { node.disabled = true; }],
       ['아이콘 변경 거부', (node) => node.querySelector('use').setAttribute('href', '#delete-icon')],
       ['주변 문맥 변경 거부', (node) => node.previousElementSibling.textContent = '다른 메뉴'],
       ['역할 변경 거부', (node) => node.setAttribute('role', 'switch')],

@@ -45,11 +45,24 @@ export function findIcon(element) {
   return element.querySelector('svg, img, i, [class*="icon"]');
 }
 
+function visualEvidence(element) {
+  const { backgroundImage, backgroundColor } = element.ownerDocument.defaultView.getComputedStyle(element);
+  if (backgroundImage !== 'none' && /(?:^|[\s_-])(?:checkerboard|damier)(?=$|[\s_-])/i.test(element.getAttribute('class') || '')) {
+    return { pattern: 'checkerboard' };
+  }
+  if (/(?:^|,\s*)(?:repeating-)?conic-gradient\(/i.test(backgroundImage)) return { pattern: 'conic gradient' };
+  if (backgroundImage === 'none' && element.style?.backgroundColor && /^rgb\(\d+, \d+, \d+\)$/.test(backgroundColor)) {
+    return { backgroundColor };
+  }
+  return undefined;
+}
+
 export function buildAiEvidence(element, entry) {
   const doc = element.ownerDocument;
   const attrs = (...names) => compact(Object.fromEntries(names.map((name) => [name, clean(element.getAttribute(name))])));
   const attr = (name) => clean(element.getAttribute(name));
   const icon = findIcon(element);
+  const text = visibleText(element);
   const ref = icon?.querySelector('use');
   const area = element.closest('section, nav, main, header, footer, aside, [role="region"]');
   const controls = [];
@@ -69,7 +82,7 @@ export function buildAiEvidence(element, entry) {
   return compact({
     tagName: element.localName, role: clean(entry.role), type: attr('type'),
     currentName: clean(entry.currentName), status: entry.status,
-    text: visibleText(element),
+    text,
     attributes: attrs('title', 'aria-description', 'aria-haspopup', 'data-action', 'data-command', 'data-type', 'id', 'class'),
     state: compact({ disabled: element.disabled === true ? true : undefined,
       ...attrs('aria-disabled', 'aria-expanded', 'aria-pressed', 'aria-checked', 'aria-selected') }),
@@ -83,6 +96,7 @@ export function buildAiEvidence(element, entry) {
       reference: pathOnly(ref?.getAttribute('href') || ref?.getAttribute('xlink:href'), element.baseURI),
       className: clean(icon.getAttribute('class')),
     }) || undefined,
+    visual: entry.role === 'button' && !text && !icon ? visualEvidence(element) : undefined,
     context: compact({
       heading: visibleText(area?.querySelector('h1, h2, h3, h4, h5, h6, [role="heading"]')),
       parentText: clean([...parent?.childNodes || []].filter((n) => n.nodeType === 3)

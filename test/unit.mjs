@@ -54,6 +54,11 @@ check('[3] 거름망: 주소가 #인 링크는 메뉴 가능', () =>
   assert.equal(matchItem(item({ className: 'btn_sidemenu', href: '#' }, { role: 'link' }), PAGE).label, '메뉴'));
 check('[3] 두 기능이 동점이면 AI로', () =>
   assert.equal(matchItem(item({ className: 'search close' }), PAGE).decision, 'ai'));
+check('[3] CSS 위치 클래스 top을 맨 위로 기능으로 확정하지 않음', () => {
+  const className = "rounded-full before:-top-px after:-top-px top-0 sm:top-[3px]";
+  assert.equal(matchItem(item({ className }), PAGE).decision, 'ai');
+  assert.equal(matchItem(item({ className: 'back-to-top fixed top-0' }), PAGE).label, '맨 위로');
+});
 check('[3] AI로 넘길 때 후보를 함께 준다', () =>
   assert.equal(matchItem(item({ className: 'search close' }), PAGE).candidates.length, 2));
 check('단서가 전혀 없으면 AI로', () => assert.equal(matchItem(item({}), PAGE).decision, 'ai'));

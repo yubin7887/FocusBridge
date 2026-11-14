@@ -1,20 +1,11 @@
 import { findIcon } from './ai-payload.js';
-import { drawIcon, ICON_SIZE, MAX_AI_IMAGES, pngData } from './ai-images.js';
+import { drawIcon, ICON_SIZE, pngData } from './ai-images.js';
 
 const svgTags = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
 const svgAttributes = ['viewBox', 'preserveAspectRatio', 'x', 'y', 'x1', 'x2', 'y1', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'transform'];
 const svgStyles = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'opacity', 'visibility', 'display', 'transform', 'transform-origin'];
-const actionWords = /(?:^|[^a-z])(?:search|close|delete|menu|cart|share|play|pause|download|upload|print|save|edit|logout|login|home|next|previous|back|forward|refresh|settings|filter|zoom|expand|collapse)(?:$|[^a-z])/i;
 const sensitive = 'input, textarea, select, [contenteditable], iframe, video, canvas, object, embed';
 const privateGlyph = /^[\uE000-\uF8FF]$/u;
-
-function iconCanHelp({ text, attributes, destination, icon }) {
-  if ((text && !privateGlyph.test(text)) || attributes?.title || attributes?.['aria-description']
-    || icon?.alt || icon?.title) return false;
-  if (destination?.href?.toLowerCase() === '#top' || destination?.formAction) return false;
-  return ![attributes?.['data-action'], attributes?.['data-command'], attributes?.id, attributes?.class,
-    destination?.href, icon?.reference, icon?.className, icon?.src].some((value) => actionWords.test(value ?? ''));
-}
 
 function boxFor(icon) {
   const { x, y, width, height } = icon.getBoundingClientRect();
@@ -25,7 +16,8 @@ function boxFor(icon) {
 }
 
 function cssIcon(element) {
-  if (/^url\(/.test(getComputedStyle(element).backgroundImage)) return true;
+  const { backgroundImage, maskImage } = getComputedStyle(element);
+  if (backgroundImage !== 'none' || maskImage !== 'none') return true;
   return ['::before', '::after'].some((pseudo) => {
     const { content, backgroundImage, maskImage } = getComputedStyle(element, pseudo);
     return !['none', 'normal'].includes(content)
@@ -82,10 +74,15 @@ function visibleCrop(element, icon, viewport) {
   if (document.visibilityState !== 'visible' || !element.isConnected || !icon.isConnected
     || element.matches(sensitive) || icon.matches(sensitive) || icon.querySelector(sensitive)
     || element.closest(sensitive) || (text && !privateGlyph.test(text))) return null;
-  const box = boxFor(icon);
+  let box = boxFor(icon);
   if (!box) return null;
+  if (icon === element && getComputedStyle(icon).borderTopLeftRadius !== '0px') {
+    // Keep the crop inside rounded controls so that its corners don't include the page behind them.
+    const { x, y, width, height } = box;
+    box = { x: x + width * 0.16, y: y + height * 0.16, width: width * 0.68, height: height * 0.68 };
+  }
   const { x, y, width, height } = box;
-  if (x < 0 || y < 0 || x + width > viewport.width || y + height > viewport.height) return null;
+  if (width < 2 || height < 2 || x < 0 || y < 0 || x + width > viewport.width || y + height > viewport.height) return null;
   const root = icon.getRootNode();
   for (const dx of [1, width / 2, width - 1]) {
     for (const dy of [1, height / 2, height - 1]) {
@@ -105,13 +102,12 @@ function currentViewport() {
 export async function collectAiIcons(work, capture) {
   const candidates = [];
   for (const { element, request } of work) {
-    if (!iconCanHelp(request.payload) || !element.isConnected) continue;
+    if (!element.isConnected) continue;
     const icon = findIcon(element) || [...element.children].slice(0, 12).find(cssIcon)
-      || (cssIcon(element) ? element : null);
+      || (request.payload.visual || cssIcon(element) ? element : null);
     const box = icon && boxFor(icon);
     if (!box || icon.matches(sensitive) || icon.closest(sensitive)) continue;
     candidates.push({ element, icon, box, requestId: request.payload.requestId });
-    if (candidates.length === MAX_AI_IMAGES) break;
   }
   const results = new Map();
   const fallback = [];

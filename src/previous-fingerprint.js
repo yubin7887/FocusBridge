@@ -35,13 +35,15 @@ export function createPageKey(href) {
   } catch { return null; }
 }
 
-function attributes(el, ancestor) {
+function attributes(el, ancestor, disabledImageButton) {
   return [...el.attributes]
-    .filter((a) => ATTRS.has(a.name) || a.name.startsWith('aria-'))
+    .filter((a) => (ATTRS.has(a.name) || a.name.startsWith('aria-'))
+      && !(disabledImageButton && a.name === 'disabled'))
     .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
     .flatMap((a) => {
       if (a.name !== 'class') return [[a.name, a.value]];
-      const tokens = classTokens(a.value);
+      const tokens = classTokens(a.value).filter((token) => !disabledImageButton || token !== 'opacity-50');
+      if (!tokens.length && disabledImageButton) return [];
       if (!ancestor) return [[a.name, tokens]];
       const stable = tokens.filter((token) => !SCROLL_LAYOUT_CLASSES.has(token));
       return stable.length ? [[a.name, stable]] : [];
@@ -49,13 +51,17 @@ function attributes(el, ancestor) {
 }
 
 function describe(el, ancestor = false) {
+  // An image-only button still selects the same image when processing briefly disables it.
+  const disabledImageButton = el.matches('button[disabled]') && el.children.length === 1
+    && el.firstElementChild.matches('img[src]') && !el.textContent.trim()
+    && el.classList.contains('opacity-50');
   return {
     tag: el.localName,
     namespace: el.namespaceURI,
-    attributes: attributes(el, ancestor),
+    attributes: attributes(el, ancestor, disabledImageButton),
     // 입력 내용(value)은 수집하지 않고 조작 상태만 비교한다.
     state: {
-      disabled: 'disabled' in el ? el.disabled : null,
+      disabled: disabledImageButton ? false : 'disabled' in el ? el.disabled : null,
       checked: 'checked' in el ? el.checked : null,
       selected: 'selected' in el ? el.selected : null,
       open: 'open' in el ? el.open : null,
@@ -96,8 +102,20 @@ function pathOf(el) {
     if (node.id && root.querySelectorAll(`#${CSS.escape(node.id)}`).length !== 1) {
       throw new Error('duplicate-id');
     }
-    const siblings = node.parentNode?.children;
-    path.unshift({ ...describe(node, node !== el), index: siblings ? [...siblings].indexOf(node) : 0 });
+    const description = describe(node, node !== el);
+    if (node !== el && node.parentElement === node.ownerDocument.body) {
+      // Independently mounted widgets can shift a page wrapper's absolute index.
+      const signature = JSON.stringify(description);
+      let matchingSiblingIndex = 0;
+      for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling) {
+        if (sibling.localName === node.localName && !sibling.hasAttribute('data-fb-ignore')
+          && JSON.stringify(describe(sibling, true)) === signature) matchingSiblingIndex++;
+      }
+      path.unshift({ ...description, matchingSiblingIndex });
+    } else {
+      const siblings = node.parentNode?.children;
+      path.unshift({ ...description, index: siblings ? [...siblings].indexOf(node) : 0 });
+    }
     if (path.length > 64) throw new Error('context-too-large');
     if (node.parentElement) node = node.parentElement;
     else if (root.host) { path.unshift({ boundary: 'shadow' }); node = root.host; }

@@ -96,29 +96,6 @@ const providers = {
       return content.filter((part) => part.type === 'output_text').map((part) => part.text).join('');
     },
   },
-  groq: {
-    request(model, apiKey, elements, { reasoningEffort }) {
-      return {
-        url: 'https://api.groq.com/openai/v1/chat/completions',
-        headers: { Authorization: `Bearer ${apiKey}` },
-        body: {
-          model,
-          messages: [
-            { role: 'system', content: instructions },
-            { role: 'user', content: JSON.stringify(elements) },
-          ],
-          reasoning_effort: reasoningEffort,
-          max_completion_tokens: 2048,
-          response_format: { type: 'json_schema', json_schema: accessibleNameSchema },
-        },
-      };
-    },
-    readText(data) {
-      const choice = data?.choices?.[0];
-      if (choice?.finish_reason !== 'stop' || choice.message?.refusal) return null;
-      return typeof choice.message?.content === 'string' ? choice.message.content : null;
-    },
-  },
 };
 
 function normalizeAiLabel(label) {

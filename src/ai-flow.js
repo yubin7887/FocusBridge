@@ -1,5 +1,5 @@
 import { buildAiEvidence } from './ai-payload.js';
-import { AI_IMAGE_MODEL, CAPTURE_ICONS, INFER_NAMES, SAVE_NAMES } from './ai-messages.js';
+import { CAPTURE_ICONS, INFER_NAMES, SAVE_NAMES } from './ai-messages.js';
 import { collectAiIcons } from './ai-icon.js';
 import { AI_BATCH_SIZE } from './ai-client.js';
 import { collectTargets } from './collector.js';
@@ -65,22 +65,6 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     return [{ element, entry, request, reused: Boolean(shared || cached) }];
   }));
 
-  const imageCandidates = freshWork(work);
-  let iconRequest;
-  async function prepareIcons() {
-    try {
-      const { model } = await runtime.sendMessage({ type: AI_IMAGE_MODEL, pageKey }) ?? {};
-      if (!model || !isCurrent()) return {};
-      const images = await collectAiIcons(imageCandidates,
-        async (viewport, rects) => {
-          if (!isCurrent()) return [];
-          const result = await runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, imageModel: model, viewport, rects });
-          return result?.images;
-        });
-      return { images, imageModel: images.size ? model : undefined };
-    } catch { return {}; }
-  }
-
   for (let offset = 0; offset < work.length; offset += AI_BATCH_SIZE) {
     if (!isCurrent()) return;
     const batch = work.slice(offset, offset + AI_BATCH_SIZE);
@@ -88,13 +72,16 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     if (fresh.length) {
       const send = network.then(async () => {
         if (!fresh.some(({ request }) => request.isCurrent())) return { status: 'stale' };
-        iconRequest ??= prepareIcons();
-        const { images, imageModel } = await iconRequest;
+        const images = isCurrent() ? await collectAiIcons(fresh, async (viewport, rects) => {
+          if (!isCurrent()) return [];
+          const capture = await runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, viewport, rects });
+          return capture?.images;
+        }).catch(() => null) : null;
         const current = fresh.filter(({ request }) => request.isCurrent());
         if (!current.length) return { status: 'stale' };
         try {
           return await runtime.sendMessage({
-            type: INFER_NAMES, pageKey, imageModel,
+            type: INFER_NAMES, pageKey,
             items: current.map(({ request }) => ({ payload: request.payload, fingerprint: request.fingerprint,
               image: isCurrent() ? images?.get(request.payload.requestId)?.() : undefined })),
           });

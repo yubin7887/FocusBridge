@@ -1,5 +1,4 @@
 export const ICON_SIZE = 64;
-export const MAX_AI_IMAGES = 4;
 const MAX_ICON_DATA = 24000;
 export const PNG_PREFIX = 'data:image/png;base64,';
 
