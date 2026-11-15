@@ -63,13 +63,16 @@ check('[3] AI로 넘길 때 후보를 함께 준다', () =>
   assert.equal(matchItem(item({ className: 'search close' }), PAGE).candidates.length, 2));
 check('단서가 전혀 없으면 AI로', () => assert.equal(matchItem(item({}), PAGE).decision, 'ai'));
 
-// ── 페이지 공통 단어 (최종 시험 1차: 인프런 Mantine 라이브러리 함정) ──
-const mantine = (extra) => item({ className: `mantine-focus-auto mantine-next-Pagination-control ${extra}`,
+// ── 페이지 공통 단어 (최종 시험 1차: 인프런 Mantine 라이브러리 함정 / 0.4.0: 비율 → 종류 수) ──
+// 실제 인프런처럼 부품 종류(class)가 서로 다른 Mantine 버튼들. 모두 mantine-next-… 를 가진다.
+const MANTINE_KINDS = ['ActionIcon-root', 'Carousel-control', 'Pagination-control', 'Chip-root', 'Badge-root'];
+const mantine = (kind) => item({ className: `mantine-focus-auto mantine-next-${kind}`,
   parentClass: 'mantine-next-Group-root' });
-check('라이브러리 이름 속 next가 모든 버튼에 있으면 공통 단어로 뺀다', () =>
-  assert.ok(pageCommon([mantine(''), mantine(''), mantine(''), mantine(''), mantine('')]).cls.has('next')));
+const mantinePage = () => MANTINE_KINDS.map(mantine);
+check('라이브러리 이름 속 next가 서로 다른 종류의 버튼에 두루 있으면 공통 단어로 뺀다', () =>
+  assert.ok(pageCommon(mantinePage()).cls.has('next')));
 check('공통 단어로 빠지면 "다음"으로 확정하지 않는다', () => {
-  const report = [mantine(''), mantine(''), mantine(''), mantine(''), mantine('')];
+  const report = mantinePage();
   matchAll(report, PAGE);
   assert.ok(report.every((r) => r.match.decision === 'ai'));
 });
@@ -79,8 +82,34 @@ check('공통 단어가 아니면 그대로 쓴다 (5개 중 1개만 next)', () 
   matchAll(report, PAGE);
   assert.equal(report[0].match.label, '다음');
 });
-check('항목이 4개 미만이면 공통 단어를 찾지 않는다', () =>
-  assert.equal(pageCommon([mantine(''), mantine(''), mantine('')]).cls.size, 0));
+check('서로 다른 종류가 3가지 미만이면 공통 단어로 보지 않는다', () =>
+  assert.equal(pageCommon(MANTINE_KINDS.slice(0, 2).map(mantine)).cls.has('next'), false));
+check('같은 종류의 버튼이 반복되는 단어는 기능 단어로 남긴다 (더보기 링크 6개)', () => {
+  const more = () => item({ className: 'btn-more', href: '#', parentClass: 'section-head' }, { role: 'link' });
+  const report = [more(), more(), more(), more(), more(), more(), item({ className: 'navbar-toggler' })];
+  matchAll(report, PAGE);
+  assert.ok(report.slice(0, 6).every((r) => r.match.label === '더보기'));
+});
+check('e-class 이슈: 누락 요소가 3개에서 4개(#top 추가)가 돼도 btn-action-more 결과가 같다', () => {
+  const nav = () => item({ className: 'navbar-toggler', iconClass: 'fa fa-bars' });
+  const more = () => item({ className: 'btn-action-more', href: '#', parentClass: 'card-header' }, { role: 'link' });
+  const top = () => item({ className: 'scroll-to-top', href: '#top', iconClass: 'fa fa-angle-up' }, { role: 'link' });
+  const three = [nav(), more(), more()];
+  const four = [nav(), more(), more(), top()];
+  matchAll(three, PAGE); matchAll(four, PAGE);
+  for (const i of [1, 2]) {
+    assert.equal(three[i].match.label, '더보기');
+    assert.equal(four[i].match.label, '더보기');
+  }
+});
+check('흔한 단어가 없는 요소를 추가해도 기존 요소의 결과는 바뀌지 않는다 (인프런 + 상관없는 요소 15개)', () => {
+  const report = mantinePage();
+  const filler = Array.from({ length: 15 }, (_, i) => item({ className: `card-link-${String.fromCharCode(97 + i)}x`, href: '#' }, { role: 'link' }));
+  const mixed = [...mantinePage(), ...filler];
+  matchAll(report, PAGE); matchAll(mixed, PAGE);
+  report.forEach((r, i) => assert.equal(mixed[i].match.decision, r.match.decision));
+  assert.ok(mixed.slice(0, 5).every((r) => r.match.label !== '다음'));
+});
 
 // ── data- 속성 (0.3.0) ──
 check('data-type="next" → 다음', () =>
@@ -92,7 +121,7 @@ check('JSON 모양 값 속 단어도 읽음 { id: \'cart\' }', () =>
 check('상태 표시 값(true, default)은 무시', () =>
   assert.equal(matchItem(item({ dataAttrs: { 'data-disabled': 'true', 'data-variant': 'default' } }), PAGE).decision, 'ai'));
 check('class에서 흔한 next가 data-type="next"까지 지우지 않음 (출처별로 따로 셈)', () => {
-  const report = [mantine(''), mantine(''), mantine(''), mantine(''), mantine('')];
+  const report = mantinePage();
   report[0].context.dataAttrs = { 'data-type': 'next' };
   report[1].context.dataAttrs = { 'data-type': 'previous' };
   matchAll(report, PAGE);
