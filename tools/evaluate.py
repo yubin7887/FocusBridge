@@ -16,8 +16,8 @@ MARGIN = _CFG['thresholds']['margin']
 NEAR_MAX_LEN = _CFG['thresholds']['nearMaxLen']
 CONTENT_DIGITS = _CFG['thresholds']['contentDigits']
 PREFIX_MIN = _CFG['thresholds']['prefixMinLen']
-COMMON_RATIO = _CFG['thresholds']['commonRatio']
 COMMON_MIN_ITEMS = _CFG['thresholds']['commonMinItems']
+COMMON_MIN_KINDS = _CFG['thresholds']['commonMinKinds']
 DICT = _CFG['functions']
 SYMBOLS = _CFG['symbols']
 DOMAINS = _CFG['domains']
@@ -42,6 +42,12 @@ def split_tokens(s):
         out.append(p)
     return out
 
+# CSS 위치 class(before:-top-px, top-0, sm:top-[3px] …)는 '맨 위로' 기능이 아니므로 빼고 자른다 (matcher.js의 classTokens와 같음)
+TOP_POSITION_CLASS = re.compile(r'(?:^|:)-?top-(?:\d[\d./]*|px|auto|full|\[[^\]]+\]|\([^)]*\))!?$', re.I)
+
+def class_tokens(value):
+    return split_tokens(' '.join(n for n in (value or '').split() if not TOP_POSITION_CLASS.search(n)))
+
 def hit(token, kw):
     return token == kw or (len(kw) >= PREFIX_MIN and token.startswith(kw))   # 5자 이상 단어만 앞부분 일치 허용
 
@@ -55,18 +61,25 @@ def data_tokens(data_attrs):
     """data- 속성 값들 → 토큰 (matcher.js의 dataTokens와 같음)"""
     return [t for v in (data_attrs or {}).values() for t in split_tokens(v)]
 
+def _kind_of(c):
+    """요소의 종류: 자신의 class 값을 순서·중복 없이 정리한 것 (matcher.js의 kindOf와 같음)"""
+    return ' '.join(sorted(set((c.get('className') or '').split())))
+
 def _common_words(items, words_of):
-    if len(items) < COMMON_MIN_ITEMS: return set()
-    count = {}
+    """서로 다른 종류의 요소 여러 개에 두루 붙은 단어 (matcher.js의 commonWords와 같음)"""
+    count, kinds = {}, {}
     for it in items:
-        for w in set(words_of(it['context'])): count[w] = count.get(w, 0) + 1
-    return {w for w, n in count.items() if n / len(items) >= COMMON_RATIO}
+        c = it['context']
+        for w in set(words_of(c)):
+            count[w] = count.get(w, 0) + 1
+            kinds.setdefault(w, set()).add(_kind_of(c))
+    return {w for w, n in count.items() if n >= COMMON_MIN_ITEMS and len(kinds[w]) >= COMMON_MIN_KINDS}
 
 def page_common(items):
     """페이지 공통 단어 (matcher.js의 pageCommon과 같음): class 쪽과 data- 속성 쪽을 따로 센다"""
     return {
-        'cls': _common_words(items, lambda c: split_tokens(c.get('id')) + split_tokens(c.get('className')) +
-                             split_tokens(c.get('iconClass')) + split_tokens(c.get('parentClass'))),
+        'cls': _common_words(items, lambda c: split_tokens(c.get('id')) + class_tokens(c.get('className')) +
+                             class_tokens(c.get('iconClass')) + class_tokens(c.get('parentClass'))),
         'data': _common_words(items, lambda c: data_tokens(c.get('dataAttrs'))),
     }
 
@@ -118,8 +131,8 @@ def judge(item, page_url, common=NO_COMMON):
     # [3] F3 사전 매칭: 출처별 토큰 모으기
     src = {
         'path': split_tokens(url.path) if url and registrable(url.hostname or page_host) == registrable(page_host) else [],
-        'self': [t for t in split_tokens(c.get('id')) + split_tokens(c.get('className')) if t not in common['cls']],
-        'icon': [t for t in split_tokens(c.get('iconClass')) if t not in common['cls']] + split_tokens(file_stem(c.get('iconSrc'))),
+        'self': [t for t in split_tokens(c.get('id')) + class_tokens(c.get('className')) if t not in common['cls']],
+        'icon': [t for t in class_tokens(c.get('iconClass')) if t not in common['cls']] + split_tokens(file_stem(c.get('iconSrc'))),
         'data': [t for t in data_tokens(c.get('dataAttrs')) if t not in common['data']],
     }
     name = item.get('currentName') or ''
@@ -127,7 +140,7 @@ def judge(item, page_url, common=NO_COMMON):
         src['icon'] += split_tokens(os.path.splitext(name)[0])   # 파일명형 이름 = 아이콘 파일명
     near_texts = [t for t in (c.get('prevSiblingText'), c.get('nextSiblingText'), c.get('parentText'))
                   if t and len(t) <= NEAR_MAX_LEN]
-    near_class = [t for t in split_tokens(c.get('parentClass')) if t not in common['cls']]
+    near_class = [t for t in class_tokens(c.get('parentClass')) if t not in common['cls']]
     data_values = list((c.get('dataAttrs') or {}).values())
 
     scores = {}

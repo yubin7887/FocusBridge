@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -20,8 +20,8 @@
     "nearMaxLen": 20,
     "contentDigits": 5,
     "prefixMinLen": 5,
-    "commonRatio": 0.5,
-    "commonMinItems": 4
+    "commonMinItems": 3,
+    "commonMinKinds": 3
   },
   "stopwords": [
     "btn",

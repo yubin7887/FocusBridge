@@ -9,7 +9,7 @@
 //   [3] F3 사전 점수       직접 단서가 있고 35점 이상, 2등과 15점 이상 차이 → 확정
 //   그 밖에는 AI로 (상위 후보를 함께 넘김)
 //
-// 페이지 공통 단어: 같은 페이지의 누락 항목 절반 이상에 나오는 단어는 점수에서 뺀다.
+// 페이지 공통 단어: 같은 페이지에서 서로 다른 종류(class)의 누락 요소 3개 이상에 두루 붙은 단어는 점수에서 뺀다.
 //   (예: UI 라이브러리가 모든 버튼에 붙이는 'mantine-next-…'의 next를 "다음"으로 오해하지 않게)
 //   class 쪽과 data- 속성 쪽은 따로 센다.
 //
@@ -55,9 +55,15 @@ const result = (decision, pattern, label = null, score = 0, candidates = []) =>
   ({ decision, pattern, label, score, candidates });
 
 /**
- * 페이지 공통 단어 찾기: report 전체를 보고, 항목 절반 이상의 class에 나오는 단어 모음을 돌려준다.
- * 어느 버튼에나 붙는 단어는 "무슨 버튼인지"를 구별해 주지 못하므로 불용어처럼 취급한다.
- * 항목이 너무 적으면(4개 미만) 비율이 의미 없으므로 빈 모음을 돌려준다.
+ * 페이지 공통 단어 찾기: "서로 다른 종류의 요소 여러 개에 두루 붙은 단어"를 모은다.
+ * UI 라이브러리 이름(예: mantine-next-ActionIcon-root, mantine-next-Pagination-control의 next)처럼
+ * 종류가 다른 부품마다 붙는 단어는 "무슨 버튼인지"를 구별해 주지 못하므로 불용어처럼 취급한다.
+ * 같은 종류의 버튼이 반복될 때 겹치는 단어(btn-action-more 두 개의 more)는 진짜 기능 단어이므로 남긴다.
+ *
+ * 기준 (0.4.0): 그 단어가 commonMinItems개 이상의 항목에 있고, 그 항목들의 class 종류가
+ *   commonMinKinds가지 이상일 때. 종류 = 요소 자신의 class 값(순서·중복 무시).
+ * 비율(전체 중 몇 %)을 쓰지 않으므로, 그 단어가 없는 요소가 페이지에 추가되거나 빠져도
+ * 결과가 바뀌지 않는다. (0.3.0의 "절반 이상" 규칙은 누락 요소 3개 ↔ 4개에서 결과가 뒤집혔다.)
  *
  * 출처별로 따로 센다: class에서 흔한 'next'(라이브러리 이름)가 data-type="next"까지 지우면 안 되기 때문.
  * @returns {{ cls: Set<string>, data: Set<string> }}  cls = class 쪽 흔한 단어, data = data- 속성 쪽 흔한 단어
@@ -69,16 +75,26 @@ export function pageCommon(report) {
   };
 }
 
+// 요소의 "종류": 자신의 class 값을 순서·중복 없이 정리한 것. class가 같으면 같은 종류의 버튼으로 본다.
+function kindOf(context) {
+  return [...new Set((context.className || '').split(/\s+/).filter(Boolean))].sort().join(' ');
+}
+
 function commonWords(report, wordsOf) {
-  const out = new Set();
-  if (report.length < T.commonMinItems) return out;
-  const count = new Map();
+  const items = new Map();   // 단어 → 그 단어가 나온 항목 수
+  const kinds = new Map();   // 단어 → 그 항목들의 class 종류 모음
   for (const item of report) {
+    const c = item.context || {};
     // 한 항목 안에서 여러 번 나와도 한 번만 센다 (Set)
-    for (const w of new Set(wordsOf(item.context || {}))) count.set(w, (count.get(w) || 0) + 1);
+    for (const w of new Set(wordsOf(c))) {
+      items.set(w, (items.get(w) || 0) + 1);
+      if (!kinds.has(w)) kinds.set(w, new Set());
+      kinds.get(w).add(kindOf(c));
+    }
   }
-  for (const [w, n] of count) {
-    if (n / report.length >= T.commonRatio) out.add(w);
+  const out = new Set();
+  for (const [w, n] of items) {
+    if (n >= T.commonMinItems && kinds.get(w).size >= T.commonMinKinds) out.add(w);
   }
   return out;
 }

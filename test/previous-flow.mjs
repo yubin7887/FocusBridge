@@ -86,7 +86,9 @@ try {
   const currentId = await page.evaluate(() => __focusBridge.scanId);
   await page.evaluate(() => oldRequest.resolve({ ok: true, records: [] }));
   check('SPA 전환 후 늦은 이전 응답이 최신 결과를 덮어쓰지 않음', await page.evaluate((id) => __focusBridge.scanId === id && __focusBridge.pageUrl.endsWith('/other'), currentId));
-  await start('<header id="header"><button id="a" class="next" data-action="a"></button><button id="b" class="next" data-action="b"></button><button id="c" data-action="c"></button><button id="d" data-action="d"></button></header>');
+  // 공통 단어 규칙(사전 0.4.0): 서로 다른 종류(class) 3개 이상에 두루 붙은 단어만 뺀다.
+  // #a가 공통 단어 계산에 포함될 때만 next가 3종류가 되어 #b가 AI로 간다.
+  await start('<header id="header"><button id="a" class="ui-next-a" data-action="a"></button><button id="b" class="ui-next-b" data-action="b"></button><button id="c" class="ui-next-c" data-action="c"></button><button id="d" data-action="d"></button></header>');
   const common = await finish(true);
   check('이전 매칭 성공 항목을 포함한 전체 공통 단어 기준 유지', common[0].match.source === 'previous' && common[1].match.decision === 'ai');
   await start();
