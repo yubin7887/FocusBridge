@@ -32,8 +32,14 @@ export function checkName(el) {
 
   const lower = name.toLowerCase();
   // 기호/숫자 한 글자, 아이콘 폰트의 Private Use Area 문자(Font Awesome 등)
-  const onlySymbols = /^[\p{P}\p{S}\p{N}\s-]+$/u.test(name);
-  if (MEANINGLESS.has(lower) || onlySymbols || looksLikeFilename(name)) {
+  const onlySymbols = /^[\p{P}\p{S}\p{N}\s\uE000-\uF8FF]+$/u.test(name);
+
+  // 이름이 화면에 보이는 글자와 같으면, 일부러 붙인 메뉴 이름으로 보고 단어 목록 검사를 건너뜀
+  const visibleText = normalize(el.innerText).toLowerCase();
+  const isVisibleLabel = visibleText === lower;
+  const badWord = MEANINGLESS.has(lower) && !isVisibleLabel;
+
+  if (badWord || onlySymbols || looksLikeFilename(name)) {
     return { status: 'meaningless', name, role };
   }
   return { status: 'ok', name, role };
