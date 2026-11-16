@@ -96,12 +96,13 @@ function tree(el, { context = false } = {}) {
 }
 
 function pathOf(el) {
+  if (el.id && el.getRootNode().querySelectorAll(`#${CSS.escape(el.id)}`).length !== 1) {
+    throw new Error('duplicate-id');
+  }
   const path = [];
   for (let node = el; node; ) {
     const root = node.getRootNode();
-    if (node.id && root.querySelectorAll(`#${CSS.escape(node.id)}`).length !== 1) {
-      throw new Error('duplicate-id');
-    }
+    // Ancestor IDs are context attributes. The full path also records each node's position.
     const description = describe(node, node !== el);
     if (node !== el && node.parentElement === node.ownerDocument.body) {
       // Independently mounted widgets can shift a page wrapper's absolute index.
@@ -136,6 +137,12 @@ function referenceContext(el) {
   }));
 }
 
+function hasIconIdentity(el) {
+  const parent = el.parentElement || el.getRootNode().host;
+  return ['id', 'class'].some((a) => el.getAttribute(a)?.trim())
+    && ['id', 'class', 'role'].some((a) => parent?.getAttribute(a)?.trim());
+}
+
 function hasActionEvidence(el) {
   // 명시적 동작 정보 또는 서로 다른 종류의 식별 단서 조합을 요구한다.
   if (['data-action', 'data-command'].some((a) => el.getAttribute(a)?.trim())) return true;
@@ -144,14 +151,38 @@ function hasActionEvidence(el) {
     if (raw && !raw.startsWith('#')
       && ['http:', 'https:'].includes(new URL(raw, el.baseURI).protocol)) return true;
   }
-  const identified = (node) => node && ['id', 'class', 'role'].some((a) => node.getAttribute(a)?.trim());
-  const selfIdentity = ['id', 'class'].some((a) => el.getAttribute(a)?.trim());
-  const parentIdentity = identified(el.parentElement || el.getRootNode().host);
-  const icon = el.querySelector(
-    'img[src], svg use[href], svg use[xlink\\:href], svg path[d], svg polygon[points], i[class], [class*="icon"]'
-  );
+  const icon = 'img[src], svg use[href], svg use[xlink\\:href], svg path[d], svg polygon[points], i[class], [class*="icon"]'
+    + ', svg rect[width][height], svg circle[r], svg line[x2][y2], svg polyline[points]';
   // 빈 svg나 위치 하나는 근거로 세지 않는다. 실제 유일성은 아래에서 별도 검사한다.
-  return Boolean(selfIdentity && parentIdentity && icon);
+  return hasIconIdentity(el) && !!el.querySelector(icon);
+}
+
+function graphicsOf(style, allowGradient) {
+  const { backgroundImage, maskImage } = style;
+  const background = backgroundImage.includes('url(') || (allowGradient && backgroundImage.includes('gradient('))
+    ? [backgroundImage, style.backgroundPosition, style.backgroundSize, style.backgroundRepeat] : null;
+  const mask = maskImage !== 'none' ? [maskImage, style.maskPosition, style.maskSize, style.maskRepeat] : null;
+  return background || mask ? { background, mask } : null;
+}
+
+function cssButtonEvidence(el) {
+  const win = el.ownerDocument.defaultView;
+  const style = win.getComputedStyle(el);
+  const toggle = /^(true|false)$/.test(el.getAttribute('aria-pressed'));
+  const popup = /^(true|menu|listbox|tree|grid|dialog)$/.test(el.getAttribute('aria-haspopup'));
+  const swatch = toggle || popup;
+  const color = toggle && el.style.backgroundColor && /^rgb\(\d+, \d+, \d+\)$/.test(style.backgroundColor)
+    ? style.backgroundColor : null;
+  const pseudoGraphic = (node, pseudo) => {
+    const pseudoStyle = win.getComputedStyle(node, pseudo);
+    return ['none', 'normal'].includes(pseudoStyle.content) ? null : graphicsOf(pseudoStyle, swatch);
+  };
+  const graphics = [graphicsOf(style, swatch), pseudoGraphic(el, '::before'), pseudoGraphic(el, '::after')];
+  if (el.children.length === 1) {
+    const child = el.firstElementChild;
+    graphics.push(graphicsOf(win.getComputedStyle(child), swatch), pseudoGraphic(child, '::before'), pseudoGraphic(child, '::after'));
+  }
+  return color || graphics.some(Boolean) ? { color, graphics } : null;
 }
 
 function samePageFragment(link, pageUrl) {
@@ -221,12 +252,17 @@ export function createFingerprint(el) {
   try {
     const name = checkName(el);
     if (name.status === 'ok') return fail('already-named');
+    let visual;
     if (!hasActionEvidence(el)) {
-      const reason = fragmentEvidenceFailure(el, pageKey);
-      if (reason) return fail(reason);
+      if (el.localName === 'button' && hasIconIdentity(el)) visual = cssButtonEvidence(el);
+      if (!visual) {
+        const reason = fragmentEvidenceFailure(el, pageKey);
+        if (reason) return fail(reason);
+      }
     }
     const element = tree(el);
     const identity = JSON.stringify(element);
+    const visualIdentity = visual ? JSON.stringify(visual) : null;
     const candidates = el.getRootNode().querySelectorAll(el.localName);
     if (candidates.length > MAX_CANDIDATES) return fail('too-many-candidates');
     const description = JSON.stringify(describe(el));
@@ -235,7 +271,8 @@ export function createFingerprint(el) {
       if (other === el || other.closest('[data-fb-ignore]')) continue;
       if (JSON.stringify(describe(other)) !== description) continue;
       try {
-        if (JSON.stringify(tree(other)) === identity) return fail('ambiguous-element');
+        if (JSON.stringify(tree(other)) !== identity) continue;
+        if (!visualIdentity || JSON.stringify(cssButtonEvidence(other)) === visualIdentity) return fail('ambiguous-element');
       } catch {
         // 읽지 못하는 후보를 다르다고 가정하지 않는다.
         return fail('ambiguous-candidate');
@@ -246,6 +283,7 @@ export function createFingerprint(el) {
       version: FINGERPRINT_VERSION,
       name,
       element,
+      ...(visual ? { visual } : {}),
       path: pathOf(el),
       context: nearbyContext(el),
       references: referenceContext(el),

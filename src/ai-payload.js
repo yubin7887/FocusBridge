@@ -41,8 +41,9 @@ function visibleText(element, max = 100) {
   return clean(text, max);
 }
 
-export function findIcon(element) {
-  return element.querySelector('svg, img, i, [class*="icon"]');
+export function findIcon(element, accept) {
+  const selector = 'svg, img, i, [class*="icon"]';
+  return accept ? [...element.querySelectorAll(selector)].find(accept) : element.querySelector(selector);
 }
 
 function visualEvidence(element) {

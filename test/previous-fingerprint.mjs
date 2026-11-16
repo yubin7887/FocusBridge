@@ -128,6 +128,57 @@ try {
     record('부모 식별 단서 없는 아이콘 버튼 제외', capture(el).reason === 'insufficient-evidence');
     el = reset(); el.removeAttribute('data-action'); el.removeAttribute('id'); el.after(el.cloneNode(true));
     record('완화된 후보도 중복되면 거부', capture(el).reason === 'ambiguous-element');
+
+    const swatches = '<div class="swatches"><button class="swatch" aria-pressed="false" style="background-color: white"></button>'
+      + '<button class="swatch" aria-pressed="false" style="background-color: white; background-image: repeating-conic-gradient(white 0% 25%, gray 0% 50%)"></button>'
+      + '<button class="swatch" aria-haspopup="dialog" style="background-image: conic-gradient(red, blue, red)"></button></div>';
+    reset(swatches);
+    const colors = [...document.querySelectorAll('.swatch')].map(capture);
+    record('색상·체크무늬·색상 선택기 후보 수집', colors.every(({ eligible }) => eligible));
+    reset(swatches);
+    record('CSS 배경 버튼 세 개를 재생성해도 각각 일치',
+      [...document.querySelectorAll('.swatch')].every((button, i) => match(colors[i], capture(button))));
+    const white = document.querySelector('.swatch');
+    white.style.backgroundColor = 'red';
+    record('버튼의 인라인 색상 변경을 구분', !match(colors[0], capture(white)));
+    white.style.backgroundColor = 'white';
+    document.body.append(white.cloneNode(true));
+    record('식별된 부모 밖에 동일한 색상 버튼이 있어도 중복으로 거부', capture(white).reason === 'ambiguous-element');
+    el = reset('<nav class="tools"><button id="cart" style="background-color: white"></button></nav>');
+    record('단일 배경색의 일반 버튼은 제외', capture(el).reason === 'insufficient-evidence');
+
+    const keyboard = '<form class="search-tools"><button id="cart" class="text-input-assistant"><span class="keycap" aria-hidden="true"></span></button></form>';
+    reset('<style>.keycap::before { content: ""; background-image: url(/key-sprite.png); background-position: -20px 0; }</style>' + keyboard);
+    el = document.getElementById('cart');
+    const keys = capture(el);
+    record('자식의 CSS 스프라이트를 사용하는 키보드 버튼 수집', keys.eligible);
+    document.querySelector('style').textContent = '.keycap::before { content: ""; background-image: url(/key-sprite.png); background-position: -40px 0; }';
+    record('같은 CSS 스프라이트에서 다른 아이콘 위치를 구분', !match(keys, capture(el)));
+    document.querySelector('style').textContent = '.keycap::before { background-image: url(/key-sprite.png); }';
+    record('생성되지 않는 가상 요소의 배경 이미지는 제외', capture(el).reason === 'insufficient-evidence');
+    el = reset('<form class="search-tools"><button id="cart"><svg><rect width="16" height="10"/></svg></button></form>');
+    record('SVG 사각형으로 그린 키보드 버튼 수집', capture(el).eligible);
+
+    const searchBar = '<header><div id="center"><input aria-label="동영상 검색">'
+      + '<button class="ytdTextInputAssistantButton"><svg><rect width="16" height="10"/></svg></button></div></header>'
+      + '<main><div id="center"></div></main>';
+    reset(searchBar);
+    const keyboardFingerprint = capture(document.querySelector('button'));
+    record('상위 컨테이너 ID가 중복돼도 유일한 키보드 버튼 수집', keyboardFingerprint.eligible);
+    reset(searchBar);
+    const keyboardButton = document.querySelector('button');
+    record('중복 ID가 있는 상위 경로도 같은 구조로 재방문하면 일치', match(keyboardFingerprint, capture(keyboardButton)));
+    keyboardButton.setAttribute('aria-controls', 'center');
+    record('버튼이 중복 ID를 직접 참조하면 제외', capture(keyboardButton).reason === 'ambiguous-reference');
+    keyboardButton.removeAttribute('aria-controls');
+    document.querySelector('main > div').append(keyboardButton.cloneNode(true));
+    record('두 컨테이너에 동일한 키보드 버튼이 있으면 제외', capture(keyboardButton).reason === 'ambiguous-element');
+    keyboardButton.id = 'keyboard';
+    const otherKeyboard = document.querySelector('main button');
+    otherKeyboard.id = 'keyboard';
+    otherKeyboard.classList.add('other');
+    record('버튼 자체의 ID가 중복되면 제외', capture(keyboardButton).reason === 'duplicate-id');
+
     el = reset(); el.removeAttribute('id'); el.after(el.cloneNode(true));
     record('위치만 다른 동일 버튼 거부', capture(el).reason === 'ambiguous-element');
     el = reset(); el.previousElementSibling.textContent = 'x'.repeat(17000);

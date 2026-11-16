@@ -12,20 +12,40 @@ try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
   await mkdir(path.join(dir, 'src'));
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
-  assert.ok(!manifest.host_permissions.includes('https://api.groq.com/*'));
+  assert.ok(manifest.host_permissions.includes('https://api.groq.com/*'));
   assert.ok(manifest.optional_host_permissions.includes('<all_urls>'));
   // Grant the optional host access to this test extension without a browser prompt.
   manifest.host_permissions.push('<all_urls>');
   delete manifest.optional_host_permissions;
   manifest.content_scripts[0].js.push('probe.js');
   await writeFile(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
-  for (const file of ['dist/content.js', 'src/options.js', 'src/ai-settings.js', 'src/ai-config.js', 'options.html', 'options.css']) {
+  for (const file of ['src/options.js', 'src/ai-settings.js', 'src/ai-config.js', 'options.html', 'options.css']) {
     await copyFile(file, path.join(dir, file));
   }
+  const content = await readFile('dist/content.js', 'utf8');
+  await writeFile(path.join(dir, 'dist/content.js'), `
+    if (location.pathname === '/retry-text-only') {
+      const setTimer = globalThis.setTimeout.bind(globalThis);
+      globalThis.setTimeout = (callback, delay, ...args) => {
+        if (delay < 55000) return setTimer(callback, delay, ...args);
+        const output = document.getElementById('ai-test-report');
+        output.dataset.retryDelay = delay;
+        output.dataset.retryTimers = Number(output.dataset.retryTimers || 0) + 1;
+        document.addEventListener('test-ai-fire-retry', () => callback(...args), { once: true });
+        return 0;
+      };
+    }
+  ` + content);
   const background = await readFile('dist/background.js', 'utf8');
   await writeFile(path.join(dir, 'dist/background.js'), `
     globalThis.requests = [];
     globalThis.captureCount = 0;
+    globalThis.imageStatusLog = [];
+    const info = console.info.bind(console);
+    console.info = (...args) => {
+      if (args[0] === '[FocusBridge AI] API 요청') imageStatusLog.push(args[1].imageStatus);
+      info(...args);
+    };
     const captureVisibleTab = chrome.tabs.captureVisibleTab.bind(chrome.tabs);
     chrome.tabs.captureVisibleTab = (...args) => {
       globalThis.captureCount++;
@@ -41,14 +61,22 @@ try {
     globalThis.fetch = async (url, request) => {
       const raw = JSON.parse(request.body);
       const openai = url === 'https://api.openai.com/v1/responses';
-      const parts = typeof raw.input === 'string' ? []
-        : openai ? raw.input[0].content : raw.contents[0].parts;
-      const inputs = JSON.parse(typeof raw.input === 'string' ? raw.input : parts[0].text);
+      const groq = url === 'https://api.groq.com/openai/v1/chat/completions';
+      const input = groq ? raw.messages[1].content
+        : openai ? (typeof raw.input === 'string' ? raw.input : raw.input[0].content) : raw.contents[0].parts;
+      const parts = typeof input === 'string' ? [] : input;
+      const inputs = JSON.parse(typeof input === 'string' ? input : parts[0].text);
       const images = parts.flatMap((part, i) => {
-        const data = part.inlineData?.data || part.image_url?.split(',', 2)[1];
-        return data ? [{ requestId: parts[i - 1].text.split(' ').at(-1), data }] : [];
+        const imageUrl = groq ? part.image_url?.url : part.image_url;
+        const data = part.inlineData?.data || imageUrl?.split(',', 2)[1];
+        if (!data) return [];
+        const reference = parts[i - 1].text;
+        const sheetPrefix = 'Match each numbered icon tile to its element using this mapping. ';
+        return [reference.startsWith(sheetPrefix)
+          ? { tiles: JSON.parse(reference.slice(sheetPrefix.length)), data }
+          : { requestId: reference.split(' ').at(-1), data }];
       });
-      const authorized = openai
+      const authorized = groq ? request.headers.Authorization === 'Bearer local-groq-test-key' && !request.headers['x-goog-api-key'] : openai
         ? request.headers.Authorization === 'Bearer openai-test-key' && !request.headers['x-goog-api-key']
         : request.headers['x-goog-api-key'] === 'local-test-key' && !request.headers.Authorization;
       requests.push({ url, inputs, images, authorized, model: raw.model, reasoning: raw.reasoning?.effort,
@@ -61,6 +89,9 @@ try {
         globalThis.unavailableRemaining--;
         return new Response(null, { status: 503, headers: { 'Retry-After': '0' } });
       }
+      if (images.length > globalThis.maxWorkingImages) {
+        return new Response(null, { status: 503, headers: { 'Retry-After': '75' } });
+      }
       if (globalThis.simulateTimeout) {
         request.signal.throwIfAborted();
         await new Promise((_, reject) => {
@@ -69,6 +100,7 @@ try {
       }
       const results = inputs.map(({ requestId, attributes, destination, visual, page }) => {
         if (destination?.href === '#top') return { requestId, label: '맨 위로 이동' };
+        if (page?.title === 'YouTube 키보드 테스트') return { requestId, label: '가상 키보드' };
         if (page?.title === '무료 이미지 배경 지우기') {
           const label = visual?.pattern === 'checkerboard' ? '투명 배경 선택'
             : visual?.pattern === 'conic gradient' ? '배경 색상 선택'
@@ -79,6 +111,9 @@ try {
         if (attributes?.['data-action'] === 'unknown') label = globalThis.returnUnusableLabel ? 'button' : null;
         return { requestId, label };
       });
+      if (groq) return Response.json({
+        choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ results }) } }],
+      });
       if (openai) return Response.json({
         status: 'completed',
         output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ results }) }] }],
@@ -88,8 +123,8 @@ try {
   ` + background);
   await writeFile(path.join(dir, 'probe.js'), `
     const originalNow = Date.now;
-    Date.now = () => Number(document.documentElement.dataset.aiTestNow) || originalNow();
     const output = document.createElement('pre');
+    Date.now = () => Number(output.dataset.now || document.documentElement.dataset.aiTestNow) || originalNow();
     output.id = 'ai-test-report';
     output.hidden = true;
     output.dataset.fbIgnore = '';
@@ -109,7 +144,7 @@ try {
   await settings.getByRole('status').filter({ hasText: '등록된 API 키가 없습니다.' }).waitFor();
   const modelSelect = settings.getByLabel('AI 모델');
   assert.deepEqual(await modelSelect.locator('option').allTextContents(),
-    ['Gemini 3.5 Flash-Lite', 'Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol']);
+    ['Gemini 3.5 Flash-Lite', 'Gemini 3.8 Flash', 'GPT-6 Luna', 'GPT-6.1 Terra', 'GPT-6.1 Sol', 'Qwen 3.8 27B (Groq)']);
   assert.equal(await modelSelect.inputValue(), 'gemini-3.5-flash-lite');
   const page = await browser.newPage();
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>상품</title></head><body>
@@ -125,6 +160,29 @@ try {
   const waitForStorage = (selector, status) => read(({ selector, status }) =>
     JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
       ?.report.some((item) => item.selector === selector && item.aiStorage === status), { selector, status });
+  await modelSelect.selectOption('qwen/qwen3.8-27b');
+  await settings.getByLabel('Groq API 키').fill('local-groq-test-key');
+  await settings.getByRole('button', { name: '키 저장', exact: true }).click();
+  await settings.getByRole('status').filter({ hasText: '키를 저장했습니다' }).waitFor();
+  await browser.route('https://example.com/groq-preview', (route) => route.fulfill({ contentType: 'text/html', body:
+    '<!doctype html><html lang="ko"><button id="groq-sample"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg></button></html>',
+  }));
+  await page.goto('https://example.com/groq-preview');
+  await probe('ok');
+  if (applyLabels) await page.getByRole('button', { name: '회전 설정 열기', exact: true }).waitFor();
+  const groqRequest = await worker.evaluate(() => requests.at(-1));
+  assert.equal(groqRequest.model, 'qwen/qwen3.8-27b');
+  assert.equal(groqRequest.authorized, true);
+  assert.equal(groqRequest.images.length, 1);
+  assert.equal(groqRequest.images[0].requestId, groqRequest.inputs[0].requestId);
+  console.log('PASS Groq 모델 선택, 아이콘 전송, 모의 응답 적용');
+  await worker.evaluate(async () => {
+    await chrome.storage.local.remove(['aiModel', 'groqApiKey']);
+    requests.length = 0;
+  });
+  await settings.reload();
+  await settings.getByLabel('Gemini API 키').waitFor();
+
   await page.goto('https://example.com/shop?token=DO_NOT_SEND');
   await probe('not-configured');
   assert.equal(await worker.evaluate(() => requests.length), 0);
@@ -268,7 +326,7 @@ try {
   assert.equal(await worker.evaluate(() => requests.length), unavailableStart + 2);
   assert.deepEqual(await stored(page.url()), []);
   await worker.evaluate(() => { globalThis.simulateTimeout = false; });
-  console.log('PASS 503 자동 재시도 중단, HTTP 상태 표시, Timeout 발생 시 저장 방지');
+  console.log('PASS 503 대기 중 추가 호출 차단, HTTP 상태 표시, Timeout 발생 시 저장 방지');
 
   // Changing providers keeps the first key and never forwards it to the other API.
   await worker.evaluate(() => chrome.storage.local.set({ aiProvider: 'openai' }));
@@ -349,6 +407,18 @@ try {
   console.log('PASS 모델 선택·호출 옵션·기존 설정 호환·키 공유와 분리');
 
   const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=';
+  const sprite = await worker.evaluate(async () => {
+    const canvas = new OffscreenCanvas(40, 20);
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#ca2c36';
+    context.fillRect(0, 0, 20, 20);
+    context.fillStyle = '#176bb5';
+    context.fillRect(20, 0, 20, 20);
+    return [...new Uint8Array(await (await canvas.convertToBlob()).arrayBuffer())];
+  });
+  await browser.route('https://example.com/icon-sprite.png', (route) => route.fulfill({
+    contentType: 'image/png', body: Buffer.from(sprite),
+  }));
   const icons = `<!doctype html><html lang="ko"><head><style>
     button { margin: 12px; padding: 10px; }
     .glyph, i { display: block; width: 18px; height: 18px; }
@@ -356,6 +426,10 @@ try {
     #glyph-a::before { background: rgb(12, 34, 56); mask-image: linear-gradient(black, black); }
     #glyph-b { color: transparent; background: rgb(87, 65, 43); }
     #offscreen { position: absolute; top: 300vh; }
+    #sprite-offscreen { position: absolute; top: 350vh; }
+    .sprite-icon { display: block; width: 20px; height: 20px; }
+    .sprite-icon::before { content: ''; display: block; width: 20px; height: 20px;
+      background: url('/icon-sprite.png') -20px 0 / 40px 20px no-repeat; }
     </style></head><body>
     <button id="shape"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg></button>
     <button id="glyph-first"><span class="glyph" id="glyph-a"></span></button>
@@ -363,37 +437,63 @@ try {
     <button id="bitmap"><img width="20" height="20" alt="" src="${pixel}"></button>
     <button id="offscreen"><span class="icon" style="display:block;width:20px;height:20px"></span></button>
     <a id="with-clue" href="#top"><svg aria-hidden="true" width="20" height="20"><circle cx="10" cy="10" r="7"/></svg></a>
+    <button id="sprite-offscreen"><span class="sprite-icon"></span></button>
     </body></html>`;
   await browser.route('https://example.com/icons-*', (route) => route.fulfill({ contentType: 'text/html', body: icons }));
   const inspectIcons = () => worker.evaluate(async () => {
     const { inputs, images } = requests.at(-1);
-    return Promise.all(images.map(async ({ requestId, data }) => {
+    const decoded = await Promise.all(images.map(async ({ requestId, data, tiles }) => {
       const bytes = Uint8Array.from(atob(data), (char) => char.charCodeAt(0));
       const image = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
       const canvas = new OffscreenCanvas(64, 64);
       const context = canvas.getContext('2d');
-      context.drawImage(image, 0, 0);
       const { width, height } = image;
-      image.close();
-      return { id: inputs.find((row) => row.requestId === requestId)?.attributes.id, width, height,
-        color: [...context.getImageData(32, 32, 1, 1).data] };
+      try {
+        if (tiles && (width !== 176 || height !== Math.ceil(tiles.length / 2) * 88)) {
+          throw new Error('Unexpected size for numbered icon sheet');
+        }
+        return (tiles ?? [{ requestId }]).map(({ requestId: id, tile }) => {
+          const x = tile ? ((tile - 1) % 2) * 88 + 12 : 0;
+          const y = tile ? Math.floor((tile - 1) / 2) * 88 + 20 : 0;
+          const w = tile ? 64 : width;
+          const h = tile ? 64 : height;
+          context.clearRect(0, 0, 64, 64);
+          context.drawImage(image, x, y, w, h, 0, 0, w, h);
+          return { id: inputs.find((row) => row.requestId === id)?.attributes.id, width: w, height: h,
+            color: [...context.getImageData(32, 32, 1, 1).data] };
+        });
+      } finally {
+        image.close();
+      }
     }));
+    return decoded.flat();
   });
   await page.bringToFront();
   await page.goto('https://example.com/icons-direct');
   await probe('ok');
-  assert.deepEqual((await inspectIcons()).map(({ id, width, height }) => [id, width, height]),
-    [['shape', 64, 64], ['bitmap', 64, 64], ['with-clue', 64, 64]]);
+  const directIcons = await inspectIcons();
+  assert.deepEqual(directIcons.map(({ id, width, height }) => [id, width, height]),
+    ['shape', 'glyph-first', 'bitmap', 'with-clue', 'sprite-offscreen'].map((id) => [id, 64, 64]));
+  assert.deepEqual(directIcons.find(({ id }) => id === 'sprite-offscreen').color, [23, 107, 181, 255]);
   assert.equal(await worker.evaluate(() => captureCount), 0);
+  console.log('PASS 화면 밖 CSS 가상 요소에서 스프라이트의 올바른 영역 추출');
 
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
   await page.goto('https://example.com/icons-capture');
   await probe('ok');
   const captured = await inspectIcons();
-  assert.deepEqual(captured.map(({ id }) => id), ['shape', 'glyph-first', 'glyph-second', 'bitmap', 'with-clue']);
+  assert.deepEqual(captured.map(({ id }) => id), ['shape', 'glyph-first', 'glyph-second', 'bitmap', 'with-clue', 'sprite-offscreen']);
   assert.deepEqual(captured.find(({ id }) => id === 'glyph-first').color, [12, 34, 56, 255]);
   assert.deepEqual(captured.find(({ id }) => id === 'glyph-second').color, [87, 65, 43, 255]);
   assert.equal(await worker.evaluate(() => captureCount), 1);
+  const iconReport = JSON.parse(await page.locator('#ai-test-report').textContent()).report;
+  assert.deepEqual(Object.fromEntries(iconReport.map(({ selector, aiImageSource }) => [selector, aiImageSource])), {
+    '#shape': 'svg', '#glyph-first': 'css', '#glyph-second': 'capture', '#bitmap': 'img', '#offscreen': 'none',
+    '#with-clue': 'svg', '#sprite-offscreen': 'css',
+  });
+  assert.equal(await worker.evaluate(() => requests.at(-1).inputs.some(({ attributes }) => attributes.id === 'offscreen')), true);
+  assert.equal(await worker.evaluate(() => imageStatusLog.at(-1)), 'element-outside-viewport');
+  console.log('PASS 화면 밖 요소는 대기 없이 같은 요청에 텍스트 단서 포함');
 
   await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'gpt-6-luna', openAiApiKey: 'openai-test-key' }));
   await page.goto('https://example.com/icons-gpt');
@@ -401,6 +501,40 @@ try {
   assert.deepEqual((await inspectIcons()).map(({ id }) => id), captured.map(({ id }) => id));
   await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'gemini-3.8-flash' }));
   console.log('PASS 직접 추출, 한 번 캡처한 아이콘의 픽셀, 모델별 이미지 입력');
+
+  const imageBody = Buffer.from(pixel.split(',', 2)[1], 'base64');
+  await browser.route('https://images.example.test/**', (route) => route.fulfill({
+    contentType: 'image/png',
+    body: imageBody,
+    // A supplied origin header prevents Playwright from adding an automatic CORS allowance.
+    headers: { 'access-control-allow-origin': route.request().url().endsWith('/public.png') ? '*' : 'https://elsewhere.test' },
+  }));
+  await browser.route((url) => url.origin === 'https://example.com' && url.pathname === '/image-links', (route) => route.fulfill({
+    contentType: 'text/html; charset=utf-8',
+    body: `<!doctype html><style>a {display:block;margin:12px;width:240px}img {display:block}</style>
+      <a id="large-picture" href="/portfolio/a"><svg aria-hidden="true" style="display:none"><rect width="8" height="8"/></svg>
+        <img src="${pixel}" width="240" height="120" alt=""></a>
+      <a id="public-cdn" href="/portfolio/b"><img src="https://images.example.test/public.png" width="120" height="40" alt=""></a>
+      <a id="restricted-cdn" href="/portfolio/c"><img src="https://images.example.test/restricted.png"
+        width="120" height="40" alt="" style="background:rgb(41,82,123)"></a>
+      <a id="url-link" href="/portfolio/d" style="height:48px;position:relative;left:-28px;background:rgb(53,106,159)">https://example.com/d</a>`,
+  }));
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: false }));
+  await page.goto('https://example.com/image-links');
+  await probe('ok');
+  assert.equal(await worker.evaluate(() => requests.at(-1).images.length), 2);
+  assert.deepEqual((await inspectIcons()).map(({ id, width, height }) => [id, width, height]),
+    ['large-picture', 'public-cdn'].map((id) => [id, 64, 64]));
+  assert.equal(await worker.evaluate(() => imageStatusLog.at(-1)), 'capture-disabled');
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
+  await page.goto('https://example.com/image-links?capture=1');
+  await probe('ok');
+  const imageLinks = await inspectIcons();
+  assert.deepEqual(imageLinks.map(({ id }) => id), ['large-picture', 'public-cdn', 'restricted-cdn', 'url-link']);
+  assert.deepEqual(imageLinks[2].color, [41, 82, 123, 255]);
+  assert.deepEqual(imageLinks[3].color, [53, 106, 159, 255]);
+  assert.equal(await worker.evaluate(() => imageStatusLog.at(-1)), 'attached');
+  console.log('PASS 큰 이미지, CDN 이미지, 화면에 일부 보이는 텍스트 링크의 PNG 첨부');
 
   const batchIcons = Array.from({ length: 10 }, (_, index) =>
     `<button id="tile-${index}" style="width:32px;height:32px;background-color:rgb(${index * 20}, 40, 80)"></button>`);
@@ -413,23 +547,77 @@ try {
   await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
     ?.report.filter((item) => item.aiStatus === 'label-ready').length === 10);
   assert.deepEqual(await worker.evaluate(({ calls, captures }) => ({
-    images: requests.slice(calls).map(({ inputs, images }) => images.map(({ requestId }) =>
+    icons: requests.slice(calls).map(({ inputs, images }) => images.flatMap(({ requestId, tiles }) => tiles ?? [{ requestId }]).map(({ requestId }) =>
       inputs.find((item) => item.requestId === requestId).attributes.id)),
+    imageParts: requests.slice(calls).map(({ images }) => images.length),
     captures: captureCount - captures,
   }), beforeBatchImages), {
-    images: [Array.from({ length: 8 }, (_, i) => `tile-${i}`), ['tile-8', 'tile-9']], captures: 2,
+    icons: [Array.from({ length: 8 }, (_, i) => `tile-${i}`), ['tile-8', 'tile-9']], imageParts: [1, 2], captures: 2,
   });
   console.log('PASS 두 묶음에 걸쳐 추출한 이미지 10개 모두 첨부');
+
+  await browser.route('https://example.com/combined-icons', (route) => route.fulfill({
+    contentType: 'text/html',
+    body: '<!doctype html><style>body{display:flex;gap:12px}button{appearance:none;border:0}</style>'
+      + batchIcons.slice(0, 5).join(''),
+  }));
+  const beforeCombined = await worker.evaluate(() => { globalThis.maxWorkingImages = 2; return requests.length; });
+  await page.goto('https://example.com/combined-icons');
+  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+    ?.report.filter((item) => item.aiStatus === 'label-ready').length === 5);
+  const combined = await worker.evaluate((start) => requests.slice(start), beforeCombined);
+  assert.equal(combined.length, 1);
+  assert.equal(combined[0].images.length, 1);
+  assert.deepEqual(combined[0].images[0].tiles, combined[0].inputs.map(({ requestId }, index) => ({ tile: index + 1, requestId })));
+  assert.deepEqual((await inspectIcons()).map(({ color }) => color),
+    Array.from({ length: 5 }, (_, index) => [index * 20, 40, 80, 255]));
+  await worker.evaluate(() => { delete globalThis.maxWorkingImages; });
+  console.log('PASS Gemini 아이콘 5개를 번호 및 요청 ID와 함께 PNG 한 장에 담아 한 번 호출');
+
+  const retryPage = await browser.newPage();
+  const retryTime = Date.now();
+  await browser.route('https://example.com/retry-text-only', (route) => route.fulfill({
+    contentType: 'text/html', body: '<!doctype html><button id="retry-text" data-action="quantumspin"></button>',
+  }));
+  const beforeTextRetry = await worker.evaluate((now) => {
+    globalThis.aiTestNow = now;
+    globalThis.unavailableRemaining = 2;
+    return requests.length;
+  }, retryTime);
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: false }));
+  await retryPage.goto('https://example.com/retry-text-only');
+  await retryPage.bringToFront();
+  await probe('service-unavailable', retryPage);
+  const { beforeRetryScan, retryDelay } = await retryPage.locator('#ai-test-report[data-retry-delay]').evaluate((node) => ({
+    beforeRetryScan: JSON.parse(node.textContent).scanId, retryDelay: Number(node.dataset.retryDelay),
+  }));
+  assert.ok(retryDelay >= 55000 && retryDelay <= 60000);
+  assert.equal(await worker.evaluate(() => requests.length), beforeTextRetry + 1);
+  await worker.evaluate(() => { globalThis.aiTestNow += 60000; });
+  await retryPage.evaluate((now) => {
+    document.querySelector('#ai-test-report').dataset.now = now;
+    document.dispatchEvent(new Event('test-ai-fire-retry'));
+  }, retryTime + 60000);
+  await retryPage.waitForFunction((before) => {
+    const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+    return result?.scanId > before && result.aiStatus === 'service-unavailable';
+  }, beforeRetryScan);
+  assert.deepEqual(await worker.evaluate((start) => requests.slice(start).map(({ images }) => images.length), beforeTextRetry), [0, 0]);
+  assert.equal(await retryPage.locator('#ai-test-report').getAttribute('data-retry-timers'), '1');
+  assert.equal(await worker.evaluate(() => requests.length), beforeTextRetry + 2);
+  await retryPage.close();
+  await worker.evaluate(() => { globalThis.aiTestNow += 60000; });
+  console.log('PASS 이미지 없는 Gemini 503도 대기 후 자동으로 한 번만 재검사');
 
   const swatches = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>무료 이미지 배경 지우기</title><style>
     button { width: 40px; height: 40px; border: 1px solid black; border-radius: 50%; }
     .bg-damier-medium { background-image: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%); background-size: 12px 12px; }
     .wheel { background-image: radial-gradient(white, transparent), conic-gradient(red, yellow, lime, blue, red); }
-    </style></head><body><main><h1>무료 이미지 배경 지우기</h1>
+    </style></head><body><main><h1>무료 이미지 배경 지우기</h1><div class="swatches">
     <button id="swatch-a" class="before:-top-px bg-damier-medium" style="background-color: white" aria-pressed="true"></button>
     <button id="swatch-b" class="before:-top-px" style="background-color: white" aria-pressed="false"></button>
     <button id="swatch-c" class="wheel" aria-haspopup="dialog" aria-expanded="false"></button>
-    </main></body></html>`;
+    </div></main></body></html>`;
   await browser.route('https://example.com/swatches-*', (route) => route.fulfill({ contentType: 'text/html', body: swatches }));
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: false }));
   await page.goto('https://example.com/swatches-text');
@@ -440,11 +628,25 @@ try {
     ['swatch-b', { backgroundColor: 'rgb(255, 255, 255)' }],
     ['swatch-c', { pattern: 'conic gradient' }],
   ]);
-  assert.deepEqual(await inspectIcons(), []);
+  const swatchImages = await inspectIcons();
+  assert.deepEqual(swatchImages.map(({ id }) => id), ['swatch-a', 'swatch-b', 'swatch-c']);
+  assert.deepEqual(swatchImages[1].color, [255, 255, 255, 255]);
+  assert.notDeepEqual(swatchImages[0].color, swatchImages[2].color);
   if (applyLabels) {
     for (const name of ['투명 배경 선택', '흰색 배경 선택', '배경 색상 선택']) {
       await page.getByRole('button', { name, exact: true }).waitFor();
     }
+    for (const selector of ['#swatch-a', '#swatch-b', '#swatch-c']) {
+      await waitForStorage(selector, 'saved');
+    }
+    const requestsBeforeRevisit = await worker.evaluate(() => requests.length);
+    await page.reload();
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 3 && report.every((row) => row.match.source === 'previous' && row.labelApplied);
+    });
+    assert.equal(await worker.evaluate(() => requests.length), requestsBeforeRevisit);
+    console.log('PASS CSS 배경 버튼별 저장, 같은 URL 재방문 시 AI 호출 없이 이름 적용');
   }
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
   await page.goto('https://example.com/swatches-capture');
@@ -454,6 +656,25 @@ try {
   console.log('PASS CSS 위치 클래스 오탐 방지 및 체크무늬·흰색·색상 원의 AI 단서 전달');
 
   if (applyLabels) {
+    await browser.route('https://example.com/keyboard-revisit', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>YouTube 키보드 테스트</title></head><body>'
+        + '<header><div id="center"><input aria-label="동영상 검색">'
+        + '<button class="ytdTextInputAssistantButton"><svg aria-hidden="true" width="16" height="10">'
+        + '<rect width="16" height="10"/></svg></button></div></header><main><div id="center"></div></main></body></html>',
+    }));
+    await page.goto('https://example.com/keyboard-revisit');
+    await page.getByRole('button', { name: '가상 키보드', exact: true }).waitFor();
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.some(({ aiStorage }) => aiStorage === 'saved'));
+    const requestsBeforeKeyboardRevisit = await worker.evaluate(() => requests.length);
+    await page.reload();
+    await page.getByRole('button', { name: '가상 키보드', exact: true }).waitFor();
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.some(({ match }) => match.source === 'previous' && match.label === '가상 키보드'));
+    assert.equal(await worker.evaluate(() => requests.length), requestsBeforeKeyboardRevisit);
+    console.log('PASS 중복 컨테이너 ID가 있는 가상 키보드 저장 및 재방문 재사용');
+
     const storeLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
       + '<a class="store-badge" href="/page/mlink?store=playstore"></a></section>';
     await browser.route('https://example.com/store-links', (route) => route.fulfill({
