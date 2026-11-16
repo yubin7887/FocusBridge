@@ -80,11 +80,19 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         const current = fresh.filter(({ request }) => request.isCurrent());
         if (!current.length) return { status: 'stale' };
         try {
-          return await runtime.sendMessage({
-            type: INFER_NAMES, pageKey,
-            items: current.map(({ request }) => ({ payload: request.payload, fingerprint: request.fingerprint,
-              image: isCurrent() ? images?.get(request.payload.requestId)?.() : undefined })),
-          });
+          const items = current.map(({ request }) => ({
+            payload: request.payload,
+            fingerprint: request.fingerprint,
+            image: isCurrent() ? images?.get(request.payload.requestId)?.() : undefined,
+          }));
+          const attached = items.filter(({ image }) => Boolean(image)).length;
+          console.groupCollapsed('[FocusBridge AI] 이미지 전달(백그라운드): ' + attached + '/' + items.length + '개');
+          console.table(items.map(({ payload, image }, i) => ({
+            no: i + 1, requestId: payload.requestId.slice(0, 8),
+            tag: payload.tagName, image: image ? 'attached' : 'none',
+          })));
+          console.groupEnd();
+          return await runtime.sendMessage({ type: INFER_NAMES, pageKey, items });
         } catch { return { status: 'unavailable' }; }
       });
       network = send.then(() => {});
