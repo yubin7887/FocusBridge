@@ -35,6 +35,12 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
       if (current?.model !== model || current?.apiKey !== settings.apiKey) return { status: 'stale', model };
 
       const requestCount = ++state.requestCount;
+      console.groupCollapsed('[FocusBridge AI] API 이미지 입력 검증: ' + images.size + '/' + payloads.length + '개 (요청 #' + requestCount + ')');
+      console.table(payloads.map(({ requestId, tagName }, i) => ({
+        no: i + 1, requestId: requestId.slice(0, 8),
+        tag: tagName, image: images.has(requestId) ? 'valid-png' : 'none-or-invalid',
+      })));
+      console.groupEnd();
       let response;
       try {
         response = await infer(settings, payloads, undefined, images);
