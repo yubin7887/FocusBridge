@@ -3,7 +3,7 @@
 // DOM을 읽지 않는 순수 함수라서 브라우저 없이 Node에서도 테스트할 수 있다.
 //
 // 판별 순서 (위에서부터, 걸리면 멈춤)
-//   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → AI로
+//   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
 //   [1] F1 다른 사이트     도메인 목록에 있으면 확정
 //   [2] F2 홈              지금 사이트와 같은 곳의 첫 화면이면 확정
 //   [3] F3 사전 점수       직접 단서가 있고 35점 이상, 2등과 15점 이상 차이 → 확정
@@ -122,10 +122,13 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const url = realUrl ? parseUrl(href, pageUrl) : null;
   const pageHost = parseUrl(pageUrl)?.hostname || '';
 
-  // [0] 콘텐츠형 가려내기
-  if (realUrl && CONTENT_RE.test(href)) return result('content', 'C');
+  // [0] 콘텐츠형 가려내기 (#17): 주소에 5자리 이상 숫자가 있으면 콘텐츠형 후보.
+  //   다만 요소 자신(class·id·아이콘·data-)이 기능을 분명히 가리키면 그 기능으로 확정한다.
+  //   (예: e-class 게시판 "+" 링크 view.php?id=147981 + class btn-more → 더보기)
+  //   주소 단어는 쓰지 않는다: '/login?trcid=812431326273' 같은 배너는 계속 콘텐츠형.
+  const contentLike = realUrl && CONTENT_RE.test(href);
 
-  if (url && (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname) {
+  if (!contentLike && url && (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname) {
     const host = url.hostname.toLowerCase();
     if (registrable(host) !== registrable(pageHost)) {
       // [1] F1 다른 사이트 링크
@@ -143,7 +146,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const sameSite = url && registrable(url.hostname || pageHost) === registrable(pageHost);
   const notCommon = (t) => !common.cls.has(t);   // 페이지 공통 단어 빼기 (class 쪽)
   const src = {
-    path: sameSite ? tokenize(url.pathname) : [],
+    path: sameSite && !contentLike ? tokenize(url.pathname) : [],
     self: [...tokenize(c.id), ...classTokens(c.className)].filter(notCommon),
     icon: [...classTokens(c.iconClass).filter(notCommon), ...tokenize(fileStem(c.iconSrc))],
     data: dataTokens(c.dataAttrs).filter((t) => !common.data.has(t)),   // data- 속성 쪽은 따로
@@ -173,7 +176,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
     const score = Object.values(evidence).reduce((a, b) => a + b, 0);
     if (score > 0) scored.push({ label: f.label, score, evidence });
   }
-  if (scored.length === 0) return result('ai', null);
+  if (scored.length === 0) return contentLike ? result('content', 'C') : result('ai', null);
 
   scored.sort((a, b) => b.score - a.score);
   const [best, second] = scored;
@@ -182,6 +185,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   if (hasDirect && best.score >= T.confirm && best.score - (second?.score || 0) >= T.margin) {
     return result('confirm', 'F3', best.label, best.score, top);
   }
+  if (contentLike) return result('content', 'C');
   return result('ai', null, null, 0, top);
 }
 

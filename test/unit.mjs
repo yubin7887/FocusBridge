@@ -32,6 +32,22 @@ check('[0] 주소에 5자리 숫자 → 콘텐츠형', () =>
   assert.equal(matchItem(item({ href: '/products/7481213' }, { role: 'link' }), PAGE).decision, 'content'));
 check('[0] 주소가 로그인이어도 배너 번호가 있으면 콘텐츠형', () =>
   assert.equal(matchItem(item({ href: '/login?trcid=812431326273' }, { role: 'link' }), PAGE).decision, 'content'));
+// #17: 주소에 숫자가 있어도 요소 자신의 단서가 기능을 분명히 가리키면 그 기능
+const ECLASS = 'https://eclass.dongguk.edu/course/view.php?id=12345';
+check('[0] #17 e-class 게시판 "+" 링크: 주소에 id 숫자가 있어도 btn-more + fa-plus → 더보기', () => {
+  const r = matchItem(item({ href: 'https://eclass.dongguk.edu/mod/ubboard/view.php?id=147981',
+    className: 'btn btn-default btn-more', iconClass: 'fa fa-plus' }, { role: 'link' }), ECLASS);
+  assert.equal(r.decision, 'confirm'); assert.equal(r.label, '더보기');
+});
+check('[0] #17 숫자 주소에서는 주소 단어(login)를 단서로 쓰지 않는다 → 콘텐츠형 유지', () =>
+  assert.equal(matchItem(item({ href: '/login?trcid=812431326273', className: 'banner-img' }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] #17 이웃 글자만 있는 숫자 주소 링크는 콘텐츠형 유지', () =>
+  assert.equal(matchItem(item({ href: '/products/7481213', parentText: '더보기' }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] #17 숫자 주소 링크에도 거름망 유지 (close class라도 닫기가 아님)', () =>
+  assert.equal(matchItem(item({ href: '/notice/view?id=55555', className: 'close' }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] #17 숫자 주소 링크에서 두 기능이 동점이면 콘텐츠형', () =>
+  assert.equal(matchItem(item({ href: '/v/123456', className: 'cart more' }, { role: 'link' }), PAGE).decision, 'content'));
+
 check('[1] 다른 사이트: 인스타그램', () =>
   assert.equal(matchItem(item({ href: 'https://www.instagram.com/x' }, { role: 'link' }), PAGE).label, '인스타그램'));
 check('[1] 기호 x보다 주소(X 트위터)가 우선', () =>
