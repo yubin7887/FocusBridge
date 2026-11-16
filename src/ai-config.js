@@ -8,6 +8,10 @@ export const AI_PROVIDERS = {
     providerName: 'GPT',
     credentialKey: 'openAiApiKey',
   },
+  groq: {
+    providerName: 'Groq',
+    credentialKey: 'groqApiKey',
+  },
 };
 
 export const AI_MODELS = {
@@ -16,4 +20,5 @@ export const AI_MODELS = {
   'gpt-6-luna': { name: 'GPT-6 Luna', provider: 'openai', reasoningEffort: 'none' },
   'gpt-6.1-terra': { name: 'GPT-6.1 Terra', provider: 'openai', reasoningEffort: 'none' },
   'gpt-6.1-sol': { name: 'GPT-6.1 Sol', provider: 'openai', reasoningEffort: 'low', maxOutputTokens: 2048 },
+  'qwen/qwen3.8-27b': { name: 'Qwen 3.8 27B (Groq)', provider: 'groq', maxImages: 3 },
 };

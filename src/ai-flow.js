@@ -72,19 +72,21 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     if (fresh.length) {
       const send = network.then(async () => {
         if (!fresh.some(({ request }) => request.isCurrent())) return { status: 'stale' };
-        const images = isCurrent() ? await collectAiIcons(fresh, async (viewport, rects) => {
-          if (!isCurrent()) return [];
-          const capture = await runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, viewport, rects });
-          return capture?.images;
+        const captured = isCurrent() ? await collectAiIcons(fresh, async (viewport, rects) => {
+          if (!isCurrent()) return { images: [], status: 'scan-changed' };
+          return runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, viewport, rects });
         }).catch(() => null) : null;
         const current = fresh.filter(({ request }) => request.isCurrent());
         if (!current.length) return { status: 'stale' };
         try {
-          return await runtime.sendMessage({
-            type: INFER_NAMES, pageKey,
-            items: current.map(({ request }) => ({ payload: request.payload, fingerprint: request.fingerprint,
-              image: isCurrent() ? images?.get(request.payload.requestId)?.() : undefined })),
+          const items = current.map(({ request }) => {
+            const image = isCurrent() ? captured?.images.get(request.payload.requestId)?.() : undefined;
+            request.imageSource = image?.source;
+            return { payload: request.payload, fingerprint: request.fingerprint, image: image?.data };
           });
+          const imageStatus = items.every(({ image }) => image) ? 'attached'
+            : captured?.status === 'captured' ? 'geometry-changed' : captured?.status || 'scan-changed';
+          return await runtime.sendMessage({ type: INFER_NAMES, pageKey, items, imageStatus });
         } catch { return { status: 'unavailable' }; }
       });
       network = send.then(() => {});
@@ -97,11 +99,12 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         } else memo.set(element, request);
         request.promise = send.then((response) => {
           const reply = response?.results?.find((row) => row.requestId === request.payload.requestId);
-          const status = response?.status === 'ok' && !reply ? 'stale' : response?.status || 'unavailable';
+          const status = reply ? 'ok' : response?.status === 'ok' ? 'stale' : response?.status || 'unavailable';
           request.expires = status === 'ok' ? Infinity : status === 'stale' ? 0
             : response?.retryAt ?? Date.now() + FAILED_REQUEST_COOLDOWN_MS;
-          return { status, label: reply?.label, model: response?.model, httpStatus: response?.httpStatus,
-            requestCount: response?.requestCount };
+          return { status, label: reply?.label, model: response?.model,
+            httpStatus: reply?.httpStatus ?? response?.httpStatus, requestCount: reply?.requestCount ?? response?.requestCount,
+            retryAt: response?.retryAt };
         });
       }
     }
@@ -120,6 +123,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       entry.aiHttpStatus = httpStatus;
       entry.aiRequestCount = requestCount;
       entry.aiReused = item.reused;
+      entry.aiImageSource = item.request.imageSource ?? 'none';
       return status === 'ok' && label ? [{ ...item, label }] : [];
     });
     let changed = false;
@@ -179,11 +183,13 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       requests: entry.aiReused ? undefined : entry.aiRequestCount,
       reused: entry.aiReused,
       http: entry.aiHttpStatus,
+      imageSource: entry.aiImageSource,
       label: entry.match.source === 'ai' ? entry.match.label : null,
       storage: entry.aiStorage,
       selector: entry.selector,
     })));
     console.groupEnd();
-    if (replies.some(({ status }) => status !== 'ok')) break;
+    const failure = replies.find(({ status }) => status !== 'ok');
+    if (failure) return failure.status === 'service-unavailable' ? failure.retryAt : undefined;
   }
 }

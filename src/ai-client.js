@@ -43,9 +43,14 @@ function iconParts(images, textPart, imagePart) {
 
 const providers = {
   google: {
-    request(model, apiKey, elements, { thinkingLevel }, images) {
-      const parts = [{ text: JSON.stringify(elements) },
-        ...iconParts(images, (text) => ({ text }), (data) => ({ inlineData: { mimeType: 'image/png', data } }))];
+    request(model, apiKey, elements, { thinkingLevel }, images, iconSheet) {
+      const imagePart = (data) => ({ inlineData: { mimeType: 'image/png', data } });
+      const visualParts = iconSheet ? [
+        { text: 'Match each numbered icon tile to its element using this mapping. '
+          + JSON.stringify([...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId }))) },
+        imagePart(iconSheet),
+      ] : iconParts(images, (text) => ({ text }), imagePart);
+      const parts = [{ text: JSON.stringify(elements) }, ...visualParts];
       return {
         url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
         headers: { 'x-goog-api-key': apiKey },
@@ -96,6 +101,30 @@ const providers = {
       return content.filter((part) => part.type === 'output_text').map((part) => part.text).join('');
     },
   },
+  groq: {
+    request(model, apiKey, elements, _config, images) {
+      const text = JSON.stringify(elements);
+      const textPart = (value) => ({ type: 'text', text: value });
+      const content = images.size ? [textPart(text),
+        ...iconParts(images, textPart, (data) => ({ type: 'image_url', image_url: { url: PNG_PREFIX + data } }))] : text;
+      return {
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: {
+          model,
+          messages: [{ role: 'system', content: instructions }, { role: 'user', content }],
+          reasoning_effort: 'none',
+          max_completion_tokens: 1024,
+          response_format: { type: 'json_schema', json_schema: accessibleNameSchema },
+        },
+      };
+    },
+    readText(data) {
+      const choice = data?.choices?.[0];
+      if (choice?.finish_reason !== 'stop' || choice.message?.refusal) return null;
+      return choice.message?.content ?? null;
+    },
+  },
 };
 
 function normalizeAiLabel(label) {
@@ -136,11 +165,11 @@ function quotaRetryAt(provider, response, data, now) {
   return daily || hintTime <= now ? Math.max(hintTime, nextPacificMidnight(now)) : hintTime;
 }
 
-export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch, images = new Map()) {
+export async function inferLabels({ model, apiKey }, elements, fetchImpl = fetch, images = new Map(), iconSheet) {
   if (!Object.hasOwn(AI_MODELS, model)) return { status: 'unsupported-model' };
   const config = AI_MODELS[model];
   const provider = providers[config.provider];
-  const { url, headers, body } = provider.request(model, apiKey, elements, config, images);
+  const { url, headers, body } = provider.request(model, apiKey, elements, config, images, iconSheet);
   const request = {
     method: 'POST',
     redirect: 'error',

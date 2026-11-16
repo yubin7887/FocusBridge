@@ -59,6 +59,17 @@ const labels = createLabelController();
 let generation = 0;
 let timer = null;
 let observedUrl = location.href;
+let aiRetryTimer = null;
+let aiRetried = false;
+function scheduleAiRetry(retryAt, pageUrl) {
+  if (!Number.isFinite(retryAt) || aiRetried || aiRetryTimer !== null) return;
+  aiRetryTimer = setTimeout(() => {
+    aiRetryTimer = null;
+    if (location.href !== pageUrl || document.visibilityState !== 'visible') return;
+    aiRetried = true;
+    scheduleScan();
+  }, Math.max(0, retryAt - Date.now()));
+}
 
 export async function scan(root = document) {
   clearTimeout(timer);
@@ -114,6 +125,7 @@ export async function scan(root = document) {
       : !fingerprints[i]?.eligible ? 'ineligible'
       : previous.status !== 'ok' ? previous.status
       : r.match.source === 'previous' ? 'hit' : 'miss',
+    previousReason: fingerprints[i]?.reason,
     match: r.match.decision, label: r.match.label, // ③ 결과: confirm(확정)/ai/content
     selector: r.selector,
   })));
@@ -124,7 +136,9 @@ export async function scan(root = document) {
   const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status,
     withOriginalLabels: labels.withOriginalLabels };
   window.__focusBridge = result;
-  void resolveAiResults(result, fingerprints, () => scanId === generation && location.href === pageUrl)
+  const isCurrent = () => scanId === generation && location.href === pageUrl;
+  void resolveAiResults(result, fingerprints, isCurrent)
+    .then((retryAt) => { if (isCurrent()) scheduleAiRetry(retryAt, pageUrl); })
     .catch(() => { result.aiStatus = 'unavailable'; });
   return result;
 }
@@ -167,6 +181,9 @@ function runScan() {
 function checkNavigation() {
   if (location.href !== observedUrl) {
     observedUrl = location.href;
+    clearTimeout(aiRetryTimer);
+    aiRetryTimer = null;
+    aiRetried = false;
     scheduleScan();
   }
 }
