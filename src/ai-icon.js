@@ -99,40 +99,104 @@ function currentViewport() {
   return { width: innerWidth, height: innerHeight, scrollX, scrollY, pixelRatio: devicePixelRatio };
 }
 
+// Diagnostics report only element IDs and outcomes, never the image bytes.
+function logIconDiagnostics(work, diagnostics, results) {
+  console.groupCollapsed('[FocusBridge AI] 이미지 추출: ' + results.size + '/' + work.length + '개 준비');
+  console.table(work.map(({ request }, i) => {
+    const info = diagnostics.get(request.payload.requestId);
+    return {
+      no: i + 1,
+      requestId: request.payload.requestId.slice(0, 8),
+      tag: request.payload.tagName,
+      icon: info?.icon || '-',
+      status: info?.status || 'unknown',
+    };
+  }));
+  console.groupEnd();
+}
+
 export async function collectAiIcons(work, capture) {
+  const diagnostics = new Map();
   const candidates = [];
   for (const { element, request } of work) {
-    if (!element.isConnected) continue;
+    const info = { icon: '-', status: 'icon-not-found' };
+    diagnostics.set(request.payload.requestId, info);
+    if (!element.isConnected) {
+      info.status = 'element-disconnected';
+      continue;
+    }
     const icon = findIcon(element) || [...element.children].slice(0, 12).find(cssIcon)
       || (request.payload.visual || cssIcon(element) ? element : null);
-    const box = icon && boxFor(icon);
-    if (!box || icon.matches(sensitive) || icon.closest(sensitive)) continue;
+    if (!icon) continue;
+    info.icon = icon.localName;
+    const box = boxFor(icon);
+    if (!box) {
+      info.status = 'icon-hidden-or-size-out-of-range';
+      continue;
+    }
+    if (icon.matches(sensitive) || icon.closest(sensitive)) {
+      info.status = 'sensitive-element-excluded';
+      continue;
+    }
+    info.status = 'direct-pending';
     candidates.push({ element, icon, box, requestId: request.payload.requestId });
   }
   const results = new Map();
   const fallback = [];
   const direct = await Promise.all(candidates.map(({ icon, box }) => directImage(icon, box)));
   for (const [i, candidate] of candidates.entries()) {
-    if (direct[i]) results.set(candidate.requestId, () => candidate.icon.isConnected ? direct[i] : undefined);
-    else fallback.push(candidate);
+    const info = diagnostics.get(candidate.requestId);
+    if (direct[i]) {
+      info.status = 'direct-' + candidate.icon.localName;
+      results.set(candidate.requestId, () => candidate.icon.isConnected ? direct[i] : undefined);
+    } else {
+      info.status = 'direct-unavailable';
+      fallback.push(candidate);
+    }
   }
   const viewport = fallback.length && currentViewport();
-  if (!viewport || !capture) return results;
+  if (!viewport || !capture) {
+    for (const { requestId } of fallback) {
+      diagnostics.get(requestId).status = !viewport ? 'capture-viewport-unavailable' : 'capture-not-available';
+    }
+    logIconDiagnostics(work, diagnostics, results);
+    return results;
+  }
   const crops = fallback.flatMap((candidate) => {
     const rect = visibleCrop(candidate.element, candidate.icon, viewport);
-    return rect ? [{ ...candidate, rect }] : [];
+    if (!rect) {
+      diagnostics.get(candidate.requestId).status = 'crop-rejected-offscreen-or-obscured';
+      return [];
+    }
+    diagnostics.get(candidate.requestId).status = 'capture-pending';
+    return [{ ...candidate, rect }];
   });
-  if (!crops.length) return results;
+  if (!crops.length) {
+    logIconDiagnostics(work, diagnostics, results);
+    return results;
+  }
   try {
     const images = await capture(viewport, crops.map(({ rect }) => rect));
-    if (!Array.isArray(images)) return results;
+    if (!Array.isArray(images)) {
+      for (const { requestId } of crops) diagnostics.get(requestId).status = 'capture-no-response';
+      logIconDiagnostics(work, diagnostics, results);
+      return results;
+    }
     for (const [i, { element, icon, rect, requestId }] of crops.entries()) {
-      if (!images[i]) continue;
+      if (!images[i]) {
+        diagnostics.get(requestId).status = 'capture-no-image-or-permission';
+        continue;
+      }
+      diagnostics.get(requestId).status = 'capture-ready';
       results.set(requestId, () => {
         if (JSON.stringify(currentViewport()) === JSON.stringify(viewport)
           && JSON.stringify(visibleCrop(element, icon, viewport)) === JSON.stringify(rect)) return images[i];
       });
     }
-  } catch { /* Keep the text evidence when capture is unavailable. */ }
+  } catch {
+    // Keep the text evidence when capture is unavailable.
+    for (const { requestId } of crops) diagnostics.get(requestId).status = 'capture-error';
+  }
+  logIconDiagnostics(work, diagnostics, results);
   return results;
 }
