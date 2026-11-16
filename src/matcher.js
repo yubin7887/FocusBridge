@@ -14,6 +14,7 @@
 //   class 쪽과 data- 속성 쪽은 따로 센다.
 //
 // data- 속성(0.3.0): 요소 자신의 data- 값도 직접 단서로 쓴다 (예: data-type="next" → 다음, data-button-name="검색창" → 검색)
+//   단, 상태·모양만 나타내는 속성(data-state="closed" 등, dictionary.json의 ignoredDataAttrs)은 읽지 않는다 (0.5.0)
 import DICT from './dictionary.json' with { type: 'json' };
 import { tokenize, fileStem } from './tokenizer.js';
 
@@ -99,9 +100,18 @@ function commonWords(report, wordsOf) {
   return out;
 }
 
+// 단서로 쓸 data- 속성 값들. 상태·모양만 나타내는 속성(data-state="closed" 등)은 뺀다.
+// (사전 0.5.0: Radix 팝업 버튼의 data-state="closed"가 "닫기"로 확정되던 문제, 이슈 #13)
+const IGNORED_DATA = new Set(DICT.ignoredDataAttrs || []);
+function dataValuesOf(dataAttrs) {
+  return Object.entries(dataAttrs || {})
+    .filter(([name]) => !IGNORED_DATA.has(name.toLowerCase()))
+    .map(([, value]) => value);
+}
+
 // data- 속성 값들 → 토큰 ('{ id: 'cart' }' → ['cart'], 'search_window' → ['search', 'window'])
 function dataTokens(dataAttrs) {
-  return Object.values(dataAttrs || {}).flatMap((v) => tokenize(v));
+  return dataValuesOf(dataAttrs).flatMap((v) => tokenize(v));
 }
 
 const NO_COMMON = { cls: new Set(), data: new Set() };
@@ -148,7 +158,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
     icon: [...classTokens(c.iconClass).filter(notCommon), ...tokenize(fileStem(c.iconSrc))],
     data: dataTokens(c.dataAttrs).filter((t) => !common.data.has(t)),   // data- 속성 쪽은 따로
   };
-  const dataValues = Object.values(c.dataAttrs || {});   // 한국어 값 비교용 ('검색창')
+  const dataValues = dataValuesOf(c.dataAttrs);   // 한국어 값 비교용 ('검색창')
   const name = item.currentName || '';
   if (item.status === 'meaningless' && FILENAME_RE.test(name)) {
     src.icon.push(...tokenize(name.replace(/\.[^.]*$/, '')));   // 'ic_search.png'은 아이콘 파일명과 같다
