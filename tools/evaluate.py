@@ -114,10 +114,10 @@ def judge(item, page_url, common=NO_COMMON):
     url = urlsplit(urljoin(page_url, href)) if real_url else None
     page_host = urlsplit(page_url).hostname or ''
 
-    # [0] 콘텐츠형 가려내기
-    if real_url and re.search(r'\d{%d,}' % CONTENT_DIGITS, href):
-        return ('content', None, {})
-    if url and url.scheme in ('http', 'https') and url.hostname:
+    # [0] 콘텐츠형 가려내기 (#17): 주소에 숫자가 길면 콘텐츠형 후보.
+    #     요소 자신(class·id·아이콘·data-)의 단서로 [3]이 확정되면 그 기능, 아니면 콘텐츠형. 주소 단어는 쓰지 않음.
+    content_like = bool(real_url and re.search(r'\d{%d,}' % CONTENT_DIGITS, href))
+    if not content_like and url and url.scheme in ('http', 'https') and url.hostname:
         host = url.hostname.lower()
         # [1] F1 다른 사이트 링크
         if registrable(host) != registrable(page_host):
@@ -130,7 +130,7 @@ def judge(item, page_url, common=NO_COMMON):
 
     # [3] F3 사전 매칭: 출처별 토큰 모으기
     src = {
-        'path': split_tokens(url.path) if url and registrable(url.hostname or page_host) == registrable(page_host) else [],
+        'path': split_tokens(url.path) if url and not content_like and registrable(url.hostname or page_host) == registrable(page_host) else [],
         'self': [t for t in split_tokens(c.get('id')) + class_tokens(c.get('className')) if t not in common['cls']],
         'icon': [t for t in class_tokens(c.get('iconClass')) if t not in common['cls']] + split_tokens(file_stem(c.get('iconSrc'))),
         'data': [t for t in data_tokens(c.get('dataAttrs')) if t not in common['data']],
@@ -155,12 +155,13 @@ def judge(item, page_url, common=NO_COMMON):
         if any(tx in t for t in near_texts for tx in f['texts']) or \
            any(hit(t, k) for t in near_class for k in f['tokens']): got['near'] = W['near']
         if got: scores[f['label']] = (sum(got.values()), got)
-    if not scores: return ('AI', None, {})
+    if not scores: return ('content', None, {}) if content_like else ('AI', None, {})
     ranked = sorted(scores.items(), key=lambda kv: -kv[1][0])
     best_label, (best, got) = ranked[0]
     second = ranked[1][1][0] if len(ranked) > 1 else 0
     if best >= CONFIRM and (DIRECT & set(got)) and best - second >= MARGIN:
         return ('F3', best_label, dict(ranked))
+    if content_like: return ('content', None, {})
     return ('AI', None, dict(ranked))
 
 def main():
