@@ -22,6 +22,7 @@ DICT = _CFG['functions']
 SYMBOLS = _CFG['symbols']
 DOMAINS = _CFG['domains']
 STOP = set(_CFG['stopwords'])
+IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)
 
 def file_stem(src):
     """그림 주소 → 확장자를 뺀 파일 이름 (data: 주소는 무시)"""
@@ -57,9 +58,13 @@ def registrable(host):
     if len(parts) >= 3 and parts[-2] in ('co','or','go','ac','ne') : return '.'.join(parts[-3:])
     return '.'.join(parts[-2:])
 
+def data_values(data_attrs):
+    """단서로 쓸 data- 속성 값들. 상태 속성(data-state 등)은 뺀다 (matcher.js의 dataValuesOf와 같음)"""
+    return [v for k, v in (data_attrs or {}).items() if k.lower() not in IGNORED_DATA]
+
 def data_tokens(data_attrs):
     """data- 속성 값들 → 토큰 (matcher.js의 dataTokens와 같음)"""
-    return [t for v in (data_attrs or {}).values() for t in split_tokens(v)]
+    return [t for v in data_values(data_attrs) for t in split_tokens(v)]
 
 def _kind_of(c):
     """요소의 종류: 자신의 class 값을 순서·중복 없이 정리한 것 (matcher.js의 kindOf와 같음)"""
@@ -141,7 +146,7 @@ def judge(item, page_url, common=NO_COMMON):
     near_texts = [t for t in (c.get('prevSiblingText'), c.get('nextSiblingText'), c.get('parentText'))
                   if t and len(t) <= NEAR_MAX_LEN]
     near_class = [t for t in class_tokens(c.get('parentClass')) if t not in common['cls']]
-    data_values = list((c.get('dataAttrs') or {}).values())
+    dvals = data_values(c.get('dataAttrs'))
 
     scores = {}
     for f in DICT:
@@ -150,7 +155,7 @@ def judge(item, page_url, common=NO_COMMON):
         got = {}
         for cat in ('path', 'self', 'icon', 'data'):
             if any(hit(t, k) for t in src[cat] for k in f['tokens']): got[cat] = W[cat]
-        if any(tx in v for v in data_values for tx in f['texts']): got['data'] = W['data']
+        if any(tx in v for v in dvals for tx in f['texts']): got['data'] = W['data']
         if SYMBOLS.get(name.strip()) == f['id']: got['symbol'] = W['symbol']
         if any(tx in t for t in near_texts for tx in f['texts']) or \
            any(hit(t, k) for t in near_class for k in f['tokens']): got['near'] = W['near']

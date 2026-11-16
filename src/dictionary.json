@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -76,7 +76,45 @@
     "not",
     "set",
     "null",
-    "undefined"
+    "undefined",
+    "closed",
+    "opened",
+    "checked",
+    "unchecked",
+    "selected",
+    "unselected",
+    "expanded",
+    "collapsed",
+    "pressed",
+    "enabled",
+    "disabled",
+    "inactive",
+    "loading",
+    "indeterminate",
+    "highlighted",
+    "focused"
+  ],
+  "ignoredDataAttrs": [
+    "data-state",
+    "data-disabled",
+    "data-active",
+    "data-selected",
+    "data-checked",
+    "data-highlighted",
+    "data-pressed",
+    "data-expanded",
+    "data-open",
+    "data-orientation",
+    "data-side",
+    "data-align",
+    "data-placement",
+    "data-variant",
+    "data-size",
+    "data-theme",
+    "data-headlessui-state",
+    "data-inactive",
+    "data-loading",
+    "data-with-padding"
   ],
   "functions": [
     {

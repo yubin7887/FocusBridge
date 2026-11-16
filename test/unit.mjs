@@ -146,5 +146,25 @@ check('class에서 흔한 next가 data-type="next"까지 지우지 않음 (출�
   assert.equal(report[2].match.decision, 'ai');
 });
 
+// ── 상태 data- 속성 (0.5.0, 이슈 #13: Photoroom 색상 선택 버튼에 "닫기") ──
+const PHOTOROOM_SWATCH = "interaction-transition relative box-border flex h-10 w-10 items-center justify-center rounded-full outline-hidden transition-all bg-[radial-gradient(50%_50%_at_50%_50%,#FFF_7.29%,rgba(255,255,255,0.00)_100%),conic-gradient(from_180deg_at_50%_50%,#FF4040_0deg,#FFDF40_60.00000178813934deg,#3DF297_120.00000357627869deg,#40DFFF_180deg,#6040FF_240.00000715255737deg,#FF40FF_299.9999928474426deg,#FF4040_360deg)] hover:border-neutral-alpha-300 before:interaction-transition before:absolute before:rounded-full before:content-[''] before:h-full before:w-full before:start-0 before:top-0 active:before:bg-neutral-alpha-300 after:interaction-transition after:absolute after:rounded-full after:content-[''] after:misc-border-size-default after:h-full after:w-full after:start-0 after:top-0 focus-visible:ring-misc-focus-indicator focus-visible:misc-border-size-focus-ring after:border-misc-border";
+check('이슈 #13: 팝업을 여는 버튼의 data-state="closed"는 "닫기"가 아니다 (실제 Photoroom 버튼)', () =>
+  assert.equal(matchItem(item({ className: PHOTOROOM_SWATCH, dataAttrs: { 'data-state': 'closed' } }), 'https://www.photoroom.com/ko/tools/background-remover').decision, 'ai'));
+check('상태 data- 속성의 다른 값(open, checked …)도 단서로 쓰지 않는다', () => {
+  for (const v of ['open', 'checked', 'unchecked', 'active', 'on']) {
+    assert.equal(matchItem(item({ dataAttrs: { 'data-state': v } }), PAGE).decision, 'ai', v);
+  }
+});
+check('다른 이름의 속성이나 class에 들어온 상태 단어 closed도 "닫기"가 아니다', () => {
+  assert.equal(matchItem(item({ dataAttrs: { 'data-status': 'closed' } }), PAGE).decision, 'ai');
+  assert.equal(matchItem(item({ className: 'dropdown is-closed' }), PAGE).decision, 'ai');
+});
+check('상태 속성과 함께 있는 기능 단서는 그대로 쓴다 (data-state + data-type="next")', () =>
+  assert.equal(matchItem(item({ dataAttrs: { 'data-state': 'closed', 'data-type': 'next' } }), PAGE).label, '다음'));
+check('진짜 닫기 단서는 그대로 닫기 (data-testid="close-button", class="modal-close")', () => {
+  assert.equal(matchItem(item({ dataAttrs: { 'data-testid': 'close-button' } }), PAGE).label, '닫기');
+  assert.equal(matchItem(item({ className: 'modal-close' }), PAGE).label, '닫기');
+});
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);
