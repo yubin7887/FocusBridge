@@ -116,8 +116,10 @@ export async function scan(root = document) {
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
+  const frame = window === window.top ? 'TOP' : 'iframe';
   console.groupCollapsed(
-    `[FocusBridge] 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
+    `[FocusBridge] ${frame} ${location.href.slice(0, 80)} 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
+    //`[FocusBridge] 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
   );
   console.table(report.map((r, i) => ({
     no: i + 1, status: r.status, role: r.role, name: r.currentName,

@@ -30,9 +30,11 @@ export function checkName(el) {
 
   if (name === '') return { status: 'empty', name, role };
 
-  const lower = name.toLowerCase();
-  // 기호/숫자 한 글자, 아이콘 폰트의 Private Use Area 문자(Font Awesome 등)
-  const onlySymbols = /^[\p{P}\p{S}\p{N}\s\uE000-\uF8FF]+$/u.test(name);
+  const lower = name.toLowerCase();  
+  // 기호만 있는 이름: ")", "|", ">", 아이콘 폰트 문자 → 문맥과 무관하게 의미 없음
+  const onlySymbols = /^[\p{P}\p{S}\s\uE000-\uF8FF]+$/u.test(name);
+  // 숫자가 섞인 짧은 식별자: "#15", "0", "3/10" → 문장 속에 있으면 문맥으로 이해 가능
+  const numericId = !onlySymbols && /^[\p{P}\p{S}\p{N}\s]+$/u.test(name);
 
   // 이름이 화면에 보이는 글자와 같으면, 일부러 붙인 메뉴 이름으로 보고 단어 목록 검사를 건너뜀
   const visibleText = normalize(el.innerText).toLowerCase();
@@ -42,7 +44,22 @@ export function checkName(el) {
   if (badWord || onlySymbols || looksLikeFilename(name)) {
     return { status: 'meaningless', name, role };
   }
+  if (numericId && !inSentence(el)) {
+    return { status: 'meaningless', name, role };
+  }
   return { status: 'ok', name, role };
+}
+// 링크가 글자 사이에 끼어 문장의 일부로 읽히는지 (예: "Merge pull request #15 from ...")
+function inSentence(el) {
+  if (!getComputedStyle(el).display.startsWith('inline')) return false;
+  const around = adjacentText(el, 'previousSibling') + adjacentText(el, 'nextSibling');
+  return /\p{L}/u.test(around); // 양옆 노드에 글자(한글·영문 등)가 있으면 문장으로 판단
+}
+// 공백만 있는 노드는 건너뛰고, 글자가 있는 첫 이웃 노드의 텍스트를 가져온다
+function adjacentText(el, dir) {
+  let n = el[dir];
+  while (n && normalize(n.textContent) === '') n = n[dir];
+  return normalize(n?.textContent);
 }
 
 /**
