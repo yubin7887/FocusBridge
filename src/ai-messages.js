@@ -1,6 +1,6 @@
 import { AI_BATCH_SIZE, MAX_AI_PAYLOAD, inferLabels } from './ai-client.js';
 import { AI_MODELS } from './ai-config.js';
-import { createPageKey } from './previous-fingerprint.js';
+import { isCurrentMessagePage } from './message-page.js';
 import { captureIconCrops } from './ai-capture.js';
 import { buildIconSheet, iconImageData } from './ai-images.js';
 
@@ -9,11 +9,11 @@ export const SAVE_NAMES = 'focusbridge:ai:save';
 export const CAPTURE_ICONS = 'focusbridge:ai:capture-icons';
 
 // Only an AI result returned to the same document can be saved.
-export function createAiMessageHandler({ store, extensionId, readSettings, storageReady, infer = inferLabels }) {
+export function createAiMessageHandler({ store, extensionId, readSettings, storageReady, infer = inferLabels, getFrame }) {
   const completed = new Map();
   const providers = new Map();
 
-  function requestAi(settings, payloads, images, imageStatus) {
+  function requestAi(settings, payloads, images, imageStatus, iconSheet, isCurrent) {
     const { model } = settings;
     const { provider } = AI_MODELS[model];
     if (!providers.has(provider)) providers.set(provider, { queue: Promise.resolve(), requestCount: 0 });
@@ -37,8 +37,8 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
 
       const current = await readSettings();
       if (current?.model !== model || current?.apiKey !== settings.apiKey) return { status: 'stale', model };
+      if (!await isCurrent()) return { status: 'stale', model };
 
-      const iconSheet = provider === 'google' && images.size > 2 ? await buildIconSheet(images).catch(() => null) : null;
       const requestCount = ++state.requestCount;
       let response;
       try {
@@ -66,9 +66,9 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
   }
 
   async function handle(message, sender) {
-    const pageKey = createPageKey(sender.url);
-    if (sender.id !== extensionId || !Number.isInteger(sender.tab?.id)
-      || sender.frameId !== 0 || !sender.documentId || !pageKey || pageKey !== message.pageKey) {
+    const pageKey = message.pageKey;
+    const isCurrent = () => isCurrentMessagePage(pageKey, sender, extensionId, getFrame);
+    if (!await isCurrent()) {
       return { status: 'invalid-request' };
     }
     if (message.type === CAPTURE_ICONS) {
@@ -114,11 +114,15 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     if (settings === null) return { status: 'storage-unavailable' };
     if (!settings.apiKey) return { status: 'not-configured', model: settings.model };
     const { maxImages = Infinity } = AI_MODELS[settings.model];
+    const allImages = new Map(items.filter(({ image }) => iconImageData(image))
+      .map(({ payload, image }) => [payload.requestId, image]));
+    const iconSheet = allImages.size > 2 ? await buildIconSheet(allImages).catch(() => null) : null;
     const batches = [];
     let batch = { payloads: [], images: new Map() };
-    for (const { payload, image } of items) {
-      if (iconImageData(image)) {
-        if (batch.images.size === maxImages) {
+    for (const payload of payloads) {
+      const image = allImages.get(payload.requestId);
+      if (image) {
+        if (!iconSheet && batch.images.size === maxImages) {
           batches.push(batch);
           batch = { payloads: [], images: new Map() };
         }
@@ -130,7 +134,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     let response;
     const results = [];
     for (const { payloads, images } of batches) {
-      response = await requestAi(settings, payloads, images, message.imageStatus);
+      response = await requestAi(settings, payloads, images, message.imageStatus, iconSheet, isCurrent);
       if (response.status !== 'ok') break;
       for (const row of response.results) {
         results.push({ ...row, httpStatus: response.httpStatus, requestCount: response.requestCount });
@@ -138,7 +142,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     }
     if (!results.length) return response;
     const current = await readSettings();
-    if (!current || current.model !== settings.model || current.apiKey !== settings.apiKey) {
+    if (!current || current.model !== settings.model || current.apiKey !== settings.apiKey || !await isCurrent()) {
       return { status: 'stale', model: settings.model };
     }
     for (const { requestId, label } of results) {

@@ -9,7 +9,7 @@
 
 기본 모델은 Gemini 3.5 Flash-Lite입니다. 설정에서 Gemini 3.8 Flash, GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol도 선택할 수 있습니다. Gemini 모델은 Gemini 키 하나를 공유하고, GPT-6 계열은 OpenAI 키 하나를 공유합니다. 이전 방문 매칭과 사전 매칭으로 해결되지 않은 요소를 최대 8개씩 선택한 모델로 보내며, 추출한 아이콘은 해당 요소와 함께 보냅니다. CSS 아이콘의 화면 캡처는 확장 프로그램 옵션에서 허용할 수 있습니다. AI가 생성한 이름은 Fingerprint가 일치하고 `aria-label`이 실제로 적용된 경우에만 브라우저의 IndexedDB에 보관합니다.
 
-Qwen 3.8 27B (Groq)를 선택하면 별도의 Groq API 키를 사용합니다. 한 요청에 아이콘 이미지를 최대 3장씩 보냅니다.
+모든 모델은 아이콘 이미지가 3개 이상이면 번호를 붙인 PNG 한 장으로 합쳐 보내며, 1~2개는 개별 첨부합니다. Qwen 3.8 27B (Groq)는 별도의 Groq API 키를 사용하며, PNG 합성에 실패하면 개별 이미지를 최대 3장씩 나눠 보냅니다.
 
 `npm run test:all`로 회귀 테스트를, Playwright Chromium 설치 후 `npm run test:ai`로 키 설정과 모의 Gemini/GPT/Groq 연동을 확인할 수 있습니다.
 

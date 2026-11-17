@@ -115,11 +115,20 @@ try {
   });
   await report(page, 'previous');
   await page.evaluate(() => history.pushState(null, '', '/spa'));
-  assert.equal((await report(page)).report[0].match.source, undefined);
+  const spa = await report(page);
+  assert.equal(spa.previousStatus, 'ok');
+  assert.equal(spa.report[0].match.source, undefined);
   console.log('PASS DOM 변경 없는 SPA 주소 변경도 다른 페이지로 처리');
   await page.evaluate(() => history.replaceState(null, '', '/shop'));
   assert.equal((await report(page, 'previous')).report[0].match.label, '장바구니');
   console.log('PASS SPA 원래 주소 복귀 시 이전 매칭 복구');
+  await page.evaluate(() => { location.hash = 'today'; });
+  const hash = await report(page);
+  assert.equal(hash.previousStatus, 'ok');
+  assert.equal(hash.report[0].match.source, undefined);
+  await page.evaluate(() => history.replaceState(null, '', '/shop'));
+  assert.equal((await report(page, 'previous')).previousStatus, 'ok');
+  console.log('PASS 해시 변경 후 정상 조회 및 원래 URL의 기록 분리');
   assert.deepEqual(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name)), []);
   console.log('PASS 방문 사이트의 IndexedDB와 분리');
   await page.goto('https://example.com/other');
@@ -131,7 +140,7 @@ try {
   await revisited.goto('https://example.com/shop');
   assert.equal((await response(revisited)).records[0].label, '장바구니');
   assert.equal((await report(revisited, 'previous')).report[0].match.label, '장바구니');
-  console.log('PASS 브라우저·Service Worker 재시작 후 기록 유지 및 이전 매칭\n\n10/10 passed');
+  console.log('PASS 브라우저·Service Worker 재시작 후 기록 유지 및 이전 매칭\n\n11/11 passed');
 } finally {
   if (context) await context.close();
   // 임시 디렉터리의 절대 경로가 의도한 범위에 있는지 확인 후 정리한다.

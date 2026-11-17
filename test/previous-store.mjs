@@ -109,8 +109,9 @@ try {
       && !Object.hasOwn(snapshot, 'verification'));
     await snapshotStore.close();
 
-    const sender = { id: 'extension-test', tab: { id: 1 }, frameId: 0, url: fingerprint.pageKey };
-    const handler = createPreviousMessageHandler(store, sender.id);
+    const sender = { id: 'extension-test', tab: { id: 1 }, frameId: 0, url: fingerprint.pageKey, documentId: 'document-test' };
+    const navigation = { getFrame: async () => ({ url: fingerprint.pageKey, documentId: sender.documentId, documentLifecycle: 'active' }) };
+    const handler = createPreviousMessageHandler(store, sender.id, navigation);
     const message = { type: LOOKUP_PREVIOUS, pageKey: fingerprint.pageKey };
     const dispatch = (msg = message, from = sender, handle = handler) => new Promise((resolve) => handle(msg, from, resolve));
     check('정상 최상위 문서 조회 메시지 처리', (await dispatch()).ok);
@@ -119,7 +120,7 @@ try {
     check('다른 페이지 기록 요청 거부', !(await dispatch({ ...message, pageKey: 'https://example.com/other' })).ok);
     check('탭 없는 발신자 거부', !(await dispatch(message, { ...sender, tab: undefined })).ok);
     check('저장 메시지는 공개하지 않음', handler({ type: 'focusbridge:previous:save', ...input }, sender, () => {}) === false);
-    const broken = createPreviousMessageHandler({ lookupPage: async () => { throw new Error('db failure'); } }, sender.id);
+    const broken = createPreviousMessageHandler({ lookupPage: async () => { throw new Error('db failure'); } }, sender.id, navigation);
     check('DB 실패를 정해진 오류 응답으로 반환', (await dispatch(message, sender, broken)).error === 'storage-unavailable');
     await concurrent.close();
     await store.close();

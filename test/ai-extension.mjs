@@ -12,6 +12,7 @@ try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
   await mkdir(path.join(dir, 'src'));
   const manifest = JSON.parse(await readFile('manifest.json', 'utf8'));
+  assert.ok(manifest.permissions.includes('webNavigation'));
   assert.ok(manifest.host_permissions.includes('https://api.groq.com/*'));
   assert.ok(manifest.optional_host_permissions.includes('<all_urls>'));
   // Grant the optional host access to this test extension without a browser prompt.
@@ -131,8 +132,12 @@ try {
     document.documentElement.append(output);
     setInterval(() => {
       const result = window.__focusBridge;
-      output.textContent = JSON.stringify(result ? { report: result.report, aiStatus: result.aiStatus, scanId: result.scanId } : null);
+      output.textContent = JSON.stringify(result ? { report: result.report, aiStatus: result.aiStatus, scanId: result.scanId,
+        pageUrl: result.pageUrl, previousStatus: result.previousStatus } : null);
     }, 50);
+    document.addEventListener('test-spa-message', async () => {
+      output.dataset.reply = JSON.stringify(await chrome.runtime.sendMessage(JSON.parse(output.dataset.message)));
+    });
   `);
   browser = await chromium.launchPersistentContext(path.join(tmp, 'profile'), {
     channel: 'chromium', args: [`--disable-extensions-except=${dir}`, `--load-extension=${dir}`],
@@ -252,6 +257,75 @@ try {
       ?.report.some((item) => item.match.source === 'previous' && item.match.label === '회전 설정 열기'));
   }
   console.log('PASS 적용에 성공한 AI 이름만 IndexedDB에 저장');
+  await probe('ok');
+
+  await browser.route('https://example.com/spa-inference*', (route) => route.fulfill({
+    contentType: 'text/html; charset=utf-8',
+    body: '<!doctype html><html lang="ko"><header><button id="spa-control" data-action="quantumspin">'
+      + '<i style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i>'
+      + '</button></header></html>',
+  }));
+  await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
+  await page.bringToFront();
+  const beforeSpa = await worker.evaluate(() => requests.length);
+  await page.goto('https://example.com/spa-inference');
+  const readSpa = (source) => read((source) => {
+    const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+    return result?.pageUrl === location.href && result.previousStatus === 'ok'
+      && result.report.some((item) => item.selector === '#spa-control' && item.match.source === source);
+  }, source);
+  await readSpa('ai');
+  await waitForStorage('#spa-control', applyLabels ? 'saved' : 'not-applied');
+  const initialDocument = await worker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({ active: true });
+    return chrome.webNavigation.getFrame({ tabId: tab.id, frameId: 0 });
+  });
+  const spaUrls = [page.url()];
+  for (const [method, url] of [['hash', '#today'], ['pushState', '/spa-inference/next?panel=2#today'],
+    ['replaceState', '/spa-inference/next?panel=3#today']]) {
+    await page.evaluate(([method, url]) => {
+      if (method === 'hash') location.hash = url;
+      else history[method]({}, '', url);
+    }, [method, url]);
+    await readSpa('ai');
+    await waitForStorage('#spa-control', applyLabels ? 'saved' : 'not-applied');
+    spaUrls.push(page.url());
+  }
+  const spaRequests = await worker.evaluate((start) => requests.slice(start), beforeSpa);
+  assert.equal(spaRequests.length, 4);
+  assert.ok(spaRequests.every(({ images }) => images.length === 1));
+  for (const url of spaUrls) assert.equal((await stored(url)).length, applyLabels ? 1 : 0);
+  const currentDocument = await worker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({ active: true });
+    return chrome.webNavigation.getFrame({ tabId: tab.id, frameId: 0 });
+  });
+  assert.equal(currentDocument.documentId, initialDocument.documentId);
+  assert.equal(currentDocument.url, page.url());
+  console.log('PASS 새로고침 없는 해시·경로·쿼리 변경 후 이전 조회, 캡처, AI 추론 및 URL별 저장');
+
+  for (const type of ['focusbridge:previous:lookup', 'focusbridge:ai:infer', 'focusbridge:ai:save', 'focusbridge:ai:capture-icons']) {
+    await page.evaluate((message) => {
+      const output = document.querySelector('#ai-test-report');
+      delete output.dataset.reply;
+      output.dataset.message = JSON.stringify(message);
+      document.dispatchEvent(new Event('test-spa-message'));
+    }, { type, pageKey: spaUrls[0], items: [], ids: [] });
+    await read(() => document.querySelector('#ai-test-report')?.dataset.reply);
+    const reply = JSON.parse(await page.locator('#ai-test-report').getAttribute('data-reply'));
+    assert.equal(reply.error ?? reply.status, 'invalid-request');
+  }
+  assert.equal(await worker.evaluate(() => requests.length), beforeSpa + 4);
+  if (applyLabels) {
+    await page.evaluate((url) => history.replaceState({}, '', url), spaUrls[1]);
+    await readSpa('previous');
+    assert.equal(await worker.evaluate(() => requests.length), beforeSpa + 4);
+    await page.getByRole('button', { name: '회전 설정 열기', exact: true }).waitFor();
+  }
+  await worker.evaluate(async () => {
+    await chrome.storage.local.set({ iconCaptureEnabled: false });
+    captureCount = 0;
+  });
+  console.log('PASS 현재 URL과 다른 페이지를 사칭한 조회·추론·저장·캡처 거부 및 원래 URL 복귀 시 hit');
 
   await worker.evaluate(() => { globalThis.holdResponse = true; });
   await page.goto('https://example.com/stale');
@@ -556,23 +630,33 @@ try {
   });
   console.log('PASS 두 묶음에 걸쳐 추출한 이미지 10개 모두 첨부');
 
-  await browser.route('https://example.com/combined-icons', (route) => route.fulfill({
+  await browser.route('https://example.com/combined-icons?*', (route) => route.fulfill({
     contentType: 'text/html',
     body: '<!doctype html><style>body{display:flex;gap:12px}button{appearance:none;border:0}</style>'
-      + batchIcons.slice(0, 5).join(''),
+      + batchIcons.slice(0, 8).join(''),
   }));
-  const beforeCombined = await worker.evaluate(() => { globalThis.maxWorkingImages = 2; return requests.length; });
-  await page.goto('https://example.com/combined-icons');
-  await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
-    ?.report.filter((item) => item.aiStatus === 'label-ready').length === 5);
-  const combined = await worker.evaluate((start) => requests.slice(start), beforeCombined);
-  assert.equal(combined.length, 1);
-  assert.equal(combined[0].images.length, 1);
-  assert.deepEqual(combined[0].images[0].tiles, combined[0].inputs.map(({ requestId }, index) => ({ tile: index + 1, requestId })));
-  assert.deepEqual((await inspectIcons()).map(({ color }) => color),
-    Array.from({ length: 5 }, (_, index) => [index * 20, 40, 80, 255]));
-  await worker.evaluate(() => { delete globalThis.maxWorkingImages; });
-  console.log('PASS Gemini 아이콘 5개를 번호 및 요청 ID와 함께 PNG 한 장에 담아 한 번 호출');
+  for (const model of ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gpt-6-luna', 'gpt-6.1-terra', 'gpt-6.1-sol', 'qwen/qwen3.8-27b']) {
+    const beforeCombined = await worker.evaluate(async (model) => {
+      await chrome.storage.local.set({ aiModel: model, groqApiKey: 'local-groq-test-key' });
+      globalThis.maxWorkingImages = 2;
+      return requests.length;
+    }, model);
+    await page.goto('https://example.com/combined-icons?model=' + encodeURIComponent(model));
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')
+      ?.report.filter((item) => item.aiStatus === 'label-ready').length === 8);
+    const combined = await worker.evaluate((start) => requests.slice(start), beforeCombined);
+    assert.equal(combined.length, 1);
+    assert.equal(combined[0].authorized, true);
+    assert.equal(combined[0].images.length, 1);
+    assert.deepEqual(combined[0].images[0].tiles, combined[0].inputs.map(({ requestId }, index) => ({ tile: index + 1, requestId })));
+    assert.deepEqual((await inspectIcons()).map(({ color }) => color),
+      Array.from({ length: 8 }, (_, index) => [index * 20, 40, 80, 255]));
+  }
+  await worker.evaluate(async () => {
+    delete globalThis.maxWorkingImages;
+    await chrome.storage.local.set({ aiModel: 'gemini-3.8-flash' });
+  });
+  console.log('PASS 모든 모델이 아이콘 8개를 번호 및 요청 ID와 함께 PNG 한 장에 담아 한 번 호출');
 
   const retryPage = await browser.newPage();
   const retryTime = Date.now();

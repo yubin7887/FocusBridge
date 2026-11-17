@@ -85,8 +85,9 @@ npm run test:all
 - 저장·조회할 때 `expiresAt` 인덱스로 모든 페이지의 만료 기록(충돌 기록 포함)을 실제 삭제한다.
   별도 타이머는 없으며 확장 프로그램을 사용하지 않는 동안에는 다음 저장·조회까지 남아 있다.
   삭제 시점 이후에 만료된 기록도 조회 결과에서는 제외한다.
-- `background.js`는 조회 메시지만 처리한다. 최상위 탭 문서의 실제 발신 URL과 요청 URL을
-  비교한다. iframe·다른 페이지 조회·다른 확장 발신자는 거부한다.
+- 이전 방문 조회와 AI 메시지는 `webNavigation.getFrame()`으로 최상위 문서의 현재 URL과
+  `documentId`를 확인한다. 같은 문서의 SPA 경로·쿼리·해시 변경을 허용하며, 요청의 전체 URL은
+  현재 URL과 일치해야 한다. iframe·다른 페이지·다른 문서·다른 확장 발신자는 거부한다.
 - 메시지: `{type: 'focusbridge:previous:lookup', pageKey}`.
   응답: `{ok: true, records}` 또는 `{ok: false, error}`.
 - AI 응답을 받은 문서가 해당 요소에 이름을 적용한 뒤 요청 ID를 보내면 저장한다.

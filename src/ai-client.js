@@ -37,7 +37,12 @@ const accessibleNameSchema = {
   },
 };
 
-function iconParts(images, textPart, imagePart) {
+function iconParts(images, textPart, imagePart, iconSheet) {
+  if (iconSheet) return [
+    textPart('Match each numbered icon tile to its element using this mapping. '
+      + JSON.stringify([...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId })))),
+    imagePart(iconSheet),
+  ];
   return [...images].flatMap(([id, data]) => [textPart('Icon for requestId ' + id), imagePart(data)]);
 }
 
@@ -45,11 +50,7 @@ const providers = {
   google: {
     request(model, apiKey, elements, { thinkingLevel }, images, iconSheet) {
       const imagePart = (data) => ({ inlineData: { mimeType: 'image/png', data } });
-      const visualParts = iconSheet ? [
-        { text: 'Match each numbered icon tile to its element using this mapping. '
-          + JSON.stringify([...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId }))) },
-        imagePart(iconSheet),
-      ] : iconParts(images, (text) => ({ text }), imagePart);
+      const visualParts = iconParts(images, (text) => ({ text }), imagePart, iconSheet);
       const parts = [{ text: JSON.stringify(elements) }, ...visualParts];
       return {
         url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -73,11 +74,11 @@ const providers = {
     },
   },
   openai: {
-    request(model, apiKey, elements, { reasoningEffort, maxOutputTokens = 1024 }, images) {
+    request(model, apiKey, elements, { reasoningEffort, maxOutputTokens = 1024 }, images, iconSheet) {
       const text = JSON.stringify(elements);
       const textPart = (text) => ({ type: 'input_text', text });
       const content = images.size ? [textPart(text),
-        ...iconParts(images, textPart, (data) => ({ type: 'input_image', image_url: PNG_PREFIX + data, detail: 'low' }))] : null;
+        ...iconParts(images, textPart, (data) => ({ type: 'input_image', image_url: PNG_PREFIX + data, detail: 'low' }), iconSheet)] : null;
       return {
         url: 'https://api.openai.com/v1/responses',
         headers: { Authorization: `Bearer ${apiKey}` },
@@ -102,11 +103,11 @@ const providers = {
     },
   },
   groq: {
-    request(model, apiKey, elements, _config, images) {
+    request(model, apiKey, elements, _config, images, iconSheet) {
       const text = JSON.stringify(elements);
       const textPart = (value) => ({ type: 'text', text: value });
       const content = images.size ? [textPart(text),
-        ...iconParts(images, textPart, (data) => ({ type: 'image_url', image_url: { url: PNG_PREFIX + data } }))] : text;
+        ...iconParts(images, textPart, (data) => ({ type: 'image_url', image_url: { url: PNG_PREFIX + data } }), iconSheet)] : text;
       return {
         url: 'https://api.groq.com/openai/v1/chat/completions',
         headers: { Authorization: `Bearer ${apiKey}` },

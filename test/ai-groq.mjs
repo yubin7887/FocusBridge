@@ -39,14 +39,15 @@ function fixture({ rateLimitAt } = {}) {
     extensionId: sender.id,
     store: { saveAiResult: async (result) => { saved.push(result); return { status: 'saved' }; } },
     storageReady: Promise.resolve(storage),
+    getFrame: async () => ({ url: PAGE, documentId: sender.documentId, documentLifecycle: 'active' }),
     readSettings: () => readAiSettings(storage),
-    infer: (settings, payloads, _, images) => inferLabels(settings, payloads, fetchImpl, images),
+    infer: (settings, payloads, _, images, iconSheet) => inferLabels(settings, payloads, fetchImpl, images, iconSheet),
   });
   const send = (type, fields) => new Promise((resolve) => handler({ type, pageKey: PAGE, ...fields }, sender, resolve));
   return { state, requests, saved, send };
 }
 
-test('Groq sends all eight icons in batches of three, with the correct IDs and key', async () => {
+test('Groq falls back to batches of three if composing a sheet is unavailable', async () => {
   const { requests, saved, send } = fixture();
   const response = await send(INFER_NAMES, { items });
   assert.equal(response.status, 'ok');
@@ -81,6 +82,36 @@ test('Groq keeps eight elements with only two valid images in one request', asyn
   assert.equal(requests.length, 1);
   assert.equal(requests[0].request.messages[1].content.filter(({ type }) => type === 'image_url').length, 2);
 });
+
+for (const model of ['gemini-3.5-flash-lite', 'gpt-6-luna', MODEL]) {
+  test(`${model} sends the sheet with the exact tile-to-element mapping`, async () => {
+    const images = new Map(items.filter((_, index) => index % 2 === 0)
+      .map(({ payload, image }) => [payload.requestId, image]));
+    let calls = 0;
+    const response = await inferLabels({ model, apiKey: 'test-key' }, items.map(({ payload }) => payload),
+      async (_url, { body }) => {
+        calls++;
+        const request = JSON.parse(body);
+        const parts = request.contents?.[0].parts ?? request.input?.[0].content ?? request.messages[1].content;
+        const inputs = JSON.parse(parts[0].text);
+        assert.deepEqual(inputs, items.map(({ payload }) => payload));
+        const prefix = 'Match each numbered icon tile to its element using this mapping. ';
+        assert.deepEqual(JSON.parse(parts[1].text.slice(prefix.length)),
+          [...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId })));
+        assert.equal(parts.length, 3);
+        assert.equal(parts[2].inlineData?.data ?? parts[2].image_url?.url ?? parts[2].image_url,
+          model.startsWith('gemini-') ? PNG : 'data:image/png;base64,' + PNG);
+        const results = inputs.map(({ requestId }) => ({ requestId, label: '메뉴 열기' }));
+        if (model === MODEL) return Response.json({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ results }) } }] });
+        if (model.startsWith('gpt-')) return Response.json({ status: 'completed',
+          output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ results }) }] }] });
+        return Response.json({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(results) }] } }] });
+      }, images, PNG);
+    assert.equal(response.status, 'ok');
+    assert.equal(response.results.length, 8);
+    assert.equal(calls, 1);
+  });
+}
 
 test('Groq 429 stops later batches, retains earlier results, and leaves Gemini available', async () => {
   const { state, requests, send } = fixture({ rateLimitAt: 2 });
