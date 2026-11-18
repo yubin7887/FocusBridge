@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPreviousMessageHandler, LOOKUP_PREVIOUS } from '../src/previous-messages.js';
-import { createAiMessageHandler, INFER_NAMES, SAVE_NAMES, CAPTURE_ICONS } from '../src/ai-messages.js';
+import { createAiMessageHandler, INFER_NAMES, SAVE_NAMES, CAPTURE_ICONS, LOAD_IMAGES } from '../src/ai-messages.js';
 import { isCurrentMessagePage } from '../src/message-page.js';
 
 const PAGE = 'https://example.com/Home/Game';
@@ -70,7 +70,7 @@ test('forged pages, frames, and documents cannot reach the store, capture, or AI
   for (const [pageKey, from] of cases) {
     assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey }, from)).error, 'invalid-request');
     for (const message of [inferMessage(pageKey), { type: SAVE_NAMES, pageKey, ids: [requestId] },
-      { type: CAPTURE_ICONS, pageKey }]) {
+      { type: CAPTURE_ICONS, pageKey }, { type: LOAD_IMAGES, pageKey, items: [{ requestId, url: 'https://example.com/icon.png' }] }]) {
       assert.equal((await send(message, from)).status, 'invalid-request');
     }
   }
@@ -78,6 +78,17 @@ test('forged pages, frames, and documents cannot reach the store, capture, or AI
   assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey: frame.url })).error, 'invalid-request');
   assert.equal((await send(inferMessage(frame.url))).status, 'invalid-request');
   assert.equal(lookedUp.length + inferred.length + saved.length, 0);
+});
+
+test('image loading rejects malformed, duplicate, and non-HTTP source requests', async () => {
+  const { send } = fixture();
+  const item = { requestId, url: 'https://images.example/icon.png' };
+  for (const items of [null, [], [null], [{ ...item, requestId: 'invalid' }], [item, item],
+    Array.from({ length: 9 }, (_, i) => ({ ...item, requestId: i.toString().padStart(32, '0') })),
+    ...['file:///secret.png', 'data:image/png;base64,abc', 'https://user:secret@example.com/icon.png',
+      'javascript:alert(1)', 'invalid', 'https://images.example/' + 'a'.repeat(4096)].map((url) => [{ ...item, url }])]) {
+    assert.equal((await send({ type: LOAD_IMAGES, pageKey: PAGE, items })).status, 'invalid-request');
+  }
 });
 
 test('a response from an earlier URL cannot issue a save ticket after SPA navigation', async () => {

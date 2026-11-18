@@ -1,5 +1,5 @@
 import { buildAiEvidence } from './ai-payload.js';
-import { CAPTURE_ICONS, INFER_NAMES, SAVE_NAMES } from './ai-messages.js';
+import { CAPTURE_ICONS, INFER_NAMES, SAVE_NAMES, LOAD_IMAGES } from './ai-messages.js';
 import { collectAiIcons } from './ai-icon.js';
 import { AI_BATCH_SIZE } from './ai-client.js';
 import { collectTargets } from './collector.js';
@@ -75,6 +75,9 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         const captured = isCurrent() ? await collectAiIcons(fresh, async (viewport, rects) => {
           if (!isCurrent()) return { images: [], status: 'scan-changed' };
           return runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, viewport, rects });
+        }, async (items) => {
+          if (!isCurrent()) return { images: [] };
+          return runtime.sendMessage({ type: LOAD_IMAGES, pageKey, items });
         }).catch(() => null) : null;
         const current = fresh.filter(({ request }) => request.isCurrent());
         if (!current.length) return { status: 'stale' };

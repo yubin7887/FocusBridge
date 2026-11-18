@@ -1,5 +1,5 @@
 import { findIcon } from './ai-payload.js';
-import { drawIcon, ICON_SIZE, pngData } from './ai-images.js';
+import { drawIcon, imageSize, pngData } from './ai-images.js';
 import { cssIconSource } from './ai-css-icon.js';
 
 const svgTags = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
@@ -44,9 +44,9 @@ function simpleSvg(svg, width, height) {
     }
   }
   if (!copy.hasAttribute('viewBox')) copy.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  const scale = ICON_SIZE / Math.max(width, height);
-  copy.setAttribute('width', Math.max(1, Math.round(width * scale)));
-  copy.setAttribute('height', Math.max(1, Math.round(height * scale)));
+  const size = imageSize(width, height);
+  copy.setAttribute('width', size.width);
+  copy.setAttribute('height', size.height);
   copy.style.removeProperty('transform');
   copy.style.removeProperty('transform-origin');
   const xml = new XMLSerializer().serializeToString(copy);
@@ -60,9 +60,9 @@ function decodeBriefly(image) {
 function iconPng(image, requireVisible = false) {
   if (!image.complete || !image.naturalWidth || !image.naturalHeight) return null;
   const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = ICON_SIZE;
+  Object.assign(canvas, imageSize(image.naturalWidth, image.naturalHeight));
   drawIcon(canvas, image, 0, 0, image.naturalWidth, image.naturalHeight);
-  if (requireVisible && !canvas.getContext('2d').getImageData(0, 0, ICON_SIZE, ICON_SIZE).data
+  if (requireVisible && !canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data
     .some((value, index) => index % 4 === 3 && value > 0)) return null;
   return pngData(canvas.toDataURL('image/png'));
 }
@@ -140,7 +140,7 @@ function currentViewport() {
   return { width: innerWidth, height: innerHeight, scrollX, scrollY, pixelRatio: devicePixelRatio };
 }
 
-export async function collectAiIcons(work, capture) {
+export async function collectAiIcons(work, capture, loadImages) {
   const candidates = [];
   const usable = (node) => node.closest(sensitive) ? null : boxFor(node);
   for (const { element, request } of work) {
@@ -163,6 +163,22 @@ export async function collectAiIcons(work, capture) {
   for (const [i, candidate] of candidates.entries()) {
     if (direct[i]) results.set(candidate.requestId, () => candidate.icon.isConnected ? direct[i] : undefined);
     else fallback.push(candidate);
+  }
+  if (loadImages) {
+    const sources = fallback.filter(({ icon }) => icon.localName === 'img')
+      .map(({ icon, requestId }) => ({ requestId, url: icon.currentSrc || icon.src }));
+    const loaded = sources.length ? await loadImages(sources).catch(() => null) : null;
+    for (const { requestId, data } of loaded?.images ?? []) {
+      const candidate = fallback.find((item) => item.requestId === requestId);
+      if (!candidate || !data) continue;
+      const source = sources.find((item) => item.requestId === requestId)?.url;
+      if ((candidate.icon.currentSrc || candidate.icon.src) !== source) continue;
+      results.set(requestId, () => candidate.icon.isConnected && (candidate.icon.currentSrc || candidate.icon.src) === source
+        ? { data, source: 'img' } : undefined);
+    }
+    for (let index = fallback.length - 1; index >= 0; index--) {
+      if (results.has(fallback[index].requestId)) fallback.splice(index, 1);
+    }
   }
   if (!fallback.length) return { images: results, status: candidates.length === work.length ? 'direct' : 'no-visible-element' };
   if (document.visibilityState !== 'visible') return { images: results, status: 'page-hidden' };
