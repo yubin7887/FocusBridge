@@ -885,6 +885,18 @@ try {
       body: '<!doctype html><html lang="ko"><body>' + storeLinks + storeLinks + '</body></html>',
     }));
     const beforeLinks = await worker.evaluate(() => requests.length);
+    const summaryTables = [];
+    const detailTables = [];
+    const loggedTables = [];
+    let logGroup;
+    const collectConsole = (message) => {
+      if (message.type() === 'startGroupCollapsed') logGroup = message.text();
+      if (message.type() !== 'table') return;
+      const tables = logGroup === '[FocusBridge AI] 응답 결과' ? detailTables
+        : logGroup?.startsWith('[FocusBridge] TOP https://example.com/store-links ') ? summaryTables : null;
+      if (tables) loggedTables.push(message.args()[0].jsonValue().then((rows) => tables.push(rows)));
+    };
+    page.on('console', collectConsole);
     await page.goto('https://example.com/store-links');
     const readLinks = async (previousScanId) => {
       const snapshot = await read((scanId) => {
@@ -895,16 +907,25 @@ try {
       return snapshot.jsonValue();
     };
     let linkScan = await readLinks(0);
+    await Promise.all(loggedTables);
     assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
     assert.equal(linkScan.report.filter((item) => item.aiReused).length, 2);
+    assert.equal(summaryTables.length, 1);
+    assert.ok(summaryTables[0].every((row) => row.previousMatch === 'ineligible' && row.label === '회전 설정 열기'));
+    assert.equal(detailTables.length, 1);
+    assert.equal(detailTables[0].length, 2);
+    assert.ok(detailTables[0].every((row) => row.reused === false));
     for (let pass = 0; pass < 2; pass++) {
       // Replace both sets of anchors as a page framework would during a re-render.
       await page.evaluate((html) => {
         for (const section of document.querySelectorAll('section')) section.outerHTML = html;
       }, storeLinks);
       linkScan = await readLinks(linkScan.scanId);
+      await Promise.all(loggedTables);
       assert.ok(linkScan.report.every((item) => item.aiReused));
       assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 1);
+      assert.equal(summaryTables.length, 1);
+      assert.equal(detailTables.length, 1);
     }
     await page.locator('a[href$="appstore"]').evaluateAll((links) => {
       for (const link of links) link.href = '/page/mlink?store=appstore-changed';
@@ -915,7 +936,37 @@ try {
     assert.equal(newInputs.length, 1);
     assert.equal(newInputs[0].destination.href, '/page/mlink');
     assert.deepEqual(await stored(page.url()), []);
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 1);
+    assert.equal(detailTables.length, 2);
+    assert.equal(detailTables[1].length, 1);
+    assert.equal(detailTables[1][0].reused, false);
     console.log('PASS 같은 중복 링크는 재생성 뒤에도 AI 결과 재사용, 변경된 목적지만 새 요청');
+
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+      button.id = 'extra-control';
+      button.className = 'search';
+      document.body.append(button);
+    });
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 5 && report.find((row) => row.selector === '#extra-control')?.match.label === '검색'
+        && report.every((row) => row.labelApplied);
+    });
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 2);
+    assert.equal(summaryTables[1].length, 5);
+    await page.locator('#extra-control').evaluate((element) => { element.className = 'close'; });
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report
+      .find((row) => row.selector === '#extra-control')?.match.label === '닫기');
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 3);
+    assert.equal(summaryTables[2].find((row) => row.selector === '#extra-control').label, '닫기');
+    assert.equal(detailTables.length, 2);
+    assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 2);
+    page.off('console', collectConsole);
+    console.log('PASS ineligible 최종 라벨 출력, 재사용 상세 및 동일 전체표 생략, 탐지·매칭 변경 시 전체표 갱신');
 
     await browser.route('https://example.com/widget-reflow', (route) => route.fulfill({
       contentType: 'text/html',

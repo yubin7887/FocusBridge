@@ -114,7 +114,9 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
 
     const replies = await Promise.all(batch.map(({ request }) => request.promise));
     if (!isCurrent()) {
-      console.info('[FocusBridge AI] 새 검사가 시작되어 이전 검사에는 AI 응답을 반영하지 않았습니다.');
+      if (batch.some(({ reused }) => !reused)) {
+        console.info('[FocusBridge AI] 새 검사가 시작되어 이전 검사에는 AI 응답을 반영하지 않았습니다.');
+      }
       return;
     }
     const ready = batch.flatMap((item, i) => {
@@ -179,19 +181,22 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         }
       }
     }
-    console.groupCollapsed('[FocusBridge AI] 응답 결과');
-    console.table(batch.map(({ entry }) => ({
-      model: entry.aiModel,
-      status: entry.labelApplied && entry.aiStatus === 'label-ready' ? 'applied' : entry.aiStatus,
-      requests: entry.aiReused ? undefined : entry.aiRequestCount,
-      reused: entry.aiReused,
-      http: entry.aiHttpStatus,
-      imageSource: entry.aiImageSource,
-      label: entry.match.source === 'ai' ? entry.match.label : null,
-      storage: entry.aiStorage,
-      selector: entry.selector,
-    })));
-    console.groupEnd();
+    const freshResults = batch.filter(({ entry }) => !entry.aiReused);
+    if (freshResults.length) {
+      console.groupCollapsed('[FocusBridge AI] 응답 결과');
+      console.table(freshResults.map(({ entry }) => ({
+        model: entry.aiModel,
+        status: entry.labelApplied && entry.aiStatus === 'label-ready' ? 'applied' : entry.aiStatus,
+        requests: entry.aiRequestCount,
+        reused: entry.aiReused,
+        http: entry.aiHttpStatus,
+        imageSource: entry.aiImageSource,
+        label: entry.match.source === 'ai' ? entry.match.label : null,
+        storage: entry.aiStorage,
+        selector: entry.selector,
+      })));
+      console.groupEnd();
+    }
     const failure = replies.find(({ status }) => status !== 'ok');
     if (failure) return failure.status === 'service-unavailable' ? failure.retryAt : undefined;
   }
