@@ -3,6 +3,7 @@
 // DOM을 읽지 않는 순수 함수라서 브라우저 없이 Node에서도 테스트할 수 있다.
 //
 // 판별 순서 (위에서부터, 걸리면 멈춤)
+//   [A] 광고 (0.6.0)       링크 자신의 주소·data- 속성에 광고 표시가 있으면 "광고 1", "광고 2"… (AI 없이 확정)
 //   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
 //   [1] F1 다른 사이트     도메인 목록에 있으면 확정
 //   [2] F2 홈              지금 사이트와 같은 곳의 첫 화면이면 확정
@@ -114,6 +115,36 @@ function dataTokens(dataAttrs) {
   return dataValuesOf(dataAttrs).flatMap((v) => tokenize(v));
 }
 
+// 광고 표시 (0.6.0): 사이트가 직접 붙인 표시만 믿는다. 부모 영역의 banner·promotion 같은 단어는 쓰지 않는다
+//   (쿠팡 자체 기획전도 promotion-banner 안에 있어서 광고와 구별되지 않음).
+//   - 주소의 광고 파라미터 이름: ?adType=DA (쿠팡 디스플레이 광고)
+//   - 주소 파라미터 값 속 광고 단어: source=brandstore_display_ads
+//   - 광고 data- 속성: data-adsplatform(쿠팡), data-ad-slot(구글 애드센스)
+const AD = DICT.ads;
+const AD_KEYS = new Set(AD.paramKeys);
+const AD_WORD_RE = new RegExp(`(?:^|[_\\-.])(?:${AD.valueWords.join('|')})(?:[_\\-.]|$)`, 'i');
+function isAd(url, dataAttrs) {
+  if (url) {
+    for (const [key, value] of url.searchParams) {
+      if (AD_KEYS.has(key.toLowerCase()) && value.trim() !== '') return true;
+      if (AD_WORD_RE.test(value)) return true;
+    }
+  }
+  return Object.keys(dataAttrs || {}).some((name) => AD.dataAttrPrefixes.some((p) => name.toLowerCase().startsWith(p)));
+}
+
+/**
+ * 광고 번호 붙이기: [A]로 확정된 항목에 페이지 순서대로 "광고 1", "광고 2"…를 붙인다.
+ * 광고는 자주 바뀌므로 내용 대신 "광고라는 사실"과 자리만 알려 준다 (사용자가 건너뛸 수 있게).
+ */
+export function numberAds(report) {
+  let n = 0;
+  for (const item of report) {
+    if (item.match?.pattern === 'AD') item.match.label = `${AD.label} ${++n}`;
+  }
+  return report;
+}
+
 const NO_COMMON = { cls: new Set(), data: new Set() };
 
 /**
@@ -131,6 +162,9 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const realUrl = href !== '' && !href.startsWith('#') && !href.toLowerCase().startsWith('javascript:');
   const url = realUrl ? parseUrl(href, pageUrl) : null;
   const pageHost = parseUrl(pageUrl)?.hostname || '';
+
+  // [A] 광고 (0.6.0): 실제 주소가 있는 링크만. 광고 영역 안의 닫기·이전·다음 버튼은 해당하지 않는다.
+  if (role === 'link' && realUrl && isAd(url, c.dataAttrs)) return result('confirm', 'AD', AD.label, 100);
 
   // [0] 콘텐츠형 가려내기 (#17): 주소에 5자리 이상 숫자가 있으면 콘텐츠형 후보.
   //   다만 요소 자신(class·id·아이콘·data-)이 기능을 분명히 가리키면 그 기능으로 확정한다.
@@ -203,5 +237,5 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
 export function matchAll(report, pageUrl) {
   const common = pageCommon(report);
   for (const item of report) item.match = matchItem(item, pageUrl, common);
-  return report;
+  return numberAds(report);
 }

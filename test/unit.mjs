@@ -1,7 +1,7 @@
 // ③ 기능 사전 매칭 단위 테스트 (브라우저 없이 Node로 실행)
 import assert from 'node:assert/strict';
 import { tokenize, fileStem } from '../src/tokenizer.js';
-import { matchItem, matchAll, pageCommon } from '../src/matcher.js';
+import { matchItem, matchAll, pageCommon, numberAds } from '../src/matcher.js';
 
 let pass = 0, fail = 0;
 function check(title, fn) {
@@ -164,6 +164,35 @@ check('상태 속성과 함께 있는 기능 단서는 그대로 쓴다 (data-st
 check('진짜 닫기 단서는 그대로 닫기 (data-testid="close-button", class="modal-close")', () => {
   assert.equal(matchItem(item({ dataAttrs: { 'data-testid': 'close-button' } }), PAGE).label, '닫기');
   assert.equal(matchItem(item({ className: 'modal-close' }), PAGE).label, '닫기');
+});
+
+// ── 광고 (0.6.0, #16): 링크 자신에 광고 표시가 있으면 "광고 N" (AI 없이) ──
+const CP = 'https://www.coupang.com/';
+const adLink = (href, extra = {}) => item({ href, ...extra }, { role: 'link' });
+check('광고: 주소의 adType=DA → 광고', () =>
+  assert.equal(matchItem(adLink('/np/campaigns/82?adType=DA&eventId=6FcSyADwoVn7xuT5'), CP).pattern, 'AD'));
+check('광고: 주소 값의 display_ads → 광고 (숫자 주소라도 콘텐츠형보다 우선)', () =>
+  assert.equal(matchItem(adLink('https://shop.coupang.com/ottogi/294249?source=brandstore_display_ads'), CP).label, '광고'));
+check('광고: data-adsplatform 속성 → 광고', () =>
+  assert.equal(matchItem(adLink('/x', { dataAttrs: { 'data-adsplatform': '{}' } }), CP).pattern, 'AD'));
+check('광고 아님: 광고 표시 없는 자체 기획전 (promotion-banner 안)', () =>
+  assert.notEqual(matchItem(adLink('https://www.coupang.com/np/campaigns/1440', { parentClass: 'promotion-banner' }), CP).pattern, 'AD'));
+check('광고 아님: utm_medium=non_paid, from=home_ad_banner, data-add-to-cart', () => {
+  assert.notEqual(matchItem(adLink('https://wing.coupang.com/signup?utm_medium=non_paid'), CP).pattern, 'AD');
+  assert.notEqual(matchItem(adLink('/p?from=home_ad_banner'), CP).pattern, 'AD');
+  assert.notEqual(matchItem(adLink('/x', { dataAttrs: { 'data-add-to-cart': '1' } }), CP).pattern, 'AD');
+});
+check('광고 아님: 버튼은 광고 표시가 있어도 대상 아님 (광고 닫기·이전·다음 버튼 보호)', () =>
+  assert.notEqual(matchItem(item({ className: 'close', dataAttrs: { 'data-ad-slot': '1' } }), CP).pattern, 'AD'));
+check('광고 번호: 광고만 페이지 순서대로 광고 1, 광고 2', () => {
+  const report = [adLink('/a?adType=DA'), adLink('//cart.coupang.com/cartView.pang'), adLink('/b?adType=DA')];
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '장바구니', '광고 2']);
+});
+check('광고 번호: numberAds를 다시 불러도 1부터 다시 센다', () => {
+  const report = [adLink('/a?adType=DA'), adLink('/b?adType=DA')];
+  matchAll(report, CP); numberAds(report);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '광고 2']);
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

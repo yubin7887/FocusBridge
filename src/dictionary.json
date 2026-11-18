@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -94,6 +94,12 @@
     "highlighted",
     "focused"
   ],
+  "ads": {
+    "label": "광고",
+    "paramKeys": ["adtype", "ad_type", "adid", "ad_id"],
+    "valueWords": ["ads", "advert", "advertisement", "sponsored"],
+    "dataAttrPrefixes": ["data-ad-", "data-ads", "data-advert"]
+  },
   "ignoredDataAttrs": [
     "data-state",
     "data-disabled",

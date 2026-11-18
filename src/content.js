@@ -4,7 +4,7 @@ import { collectRoots, collectTargets } from './collector.js';
 import { findIcon } from './ai-payload.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
-import { pageCommon, matchItem } from './matcher.js';
+import { pageCommon, matchItem, numberAds } from './matcher.js';
 import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
 import { createLabelController } from './apply-labels.js';
@@ -115,6 +115,7 @@ export async function scan(root = document) {
     report[i].match = matchPrevious(fingerprints[i], previous.records)
       || matchItem(report[i], pageUrl, common);
   }
+  numberAds(report); // 광고 링크에 페이지 순서대로 "광고 1", "광고 2"…
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
