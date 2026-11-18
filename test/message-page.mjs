@@ -66,8 +66,6 @@ test('forged pages, frames, and documents cannot reach the store, capture, or AI
     [frame.url, { ...sender, tab: undefined }],
     [frame.url, { ...sender, documentId: undefined }],
     [frame.url, { ...sender, documentId: 'different-document' }],
-    [frame.url, { ...sender, documentLifecycle: 'cached' }],
-    [frame.url, { ...sender, url: 'https://other.example/' }],
   ];
   for (const [pageKey, from] of cases) {
     assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey }, from)).error, 'invalid-request');
@@ -130,4 +128,39 @@ test('a queued request is discarded if its document navigates before inference s
 test('unavailable browser frame information rejects the request', async () => {
   assert.equal(await isCurrentMessagePage(PAGE, sender, sender.id, async () => undefined), false);
   assert.equal(await isCurrentMessagePage(PAGE, sender, sender.id, async () => { throw new Error('closed tab'); }), false);
+});
+
+test('current document identity accepts stale sender metadata and a prior navigation error', async () => {
+  const { frame, send, inferMessage, saved } = fixture();
+  frame.url = 'https://app.notion.com/p/' + 'a'.repeat(32);
+  frame.errorOccurred = true;
+  for (const original of [
+    { ...sender, url: 'https://www.notion.so/', documentLifecycle: 'prerender' },
+    { ...sender, url: 'about:blank', documentLifecycle: 'cached' },
+    { ...sender, url: undefined },
+  ]) {
+    assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey: frame.url }, original)).ok, true);
+    assert.equal((await send(inferMessage(frame.url), original)).status, 'ok');
+    assert.equal((await send({ type: SAVE_NAMES, pageKey: frame.url, ids: [requestId] }, original)).results[0].status, 'saved');
+  }
+  assert.equal(saved.length, 3);
+
+  frame.documentId = 'replacement-document';
+  assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey: frame.url })).error, 'invalid-request');
+  assert.equal((await send(inferMessage(frame.url))).status, 'invalid-request');
+});
+
+test('stale sender metadata never authorizes a URL that the current document does not own', async () => {
+  const { frame, send, inferMessage, lookedUp, inferred } = fixture();
+  const original = { ...sender, url: 'https://app.notion.com/p/old', documentLifecycle: 'cached' };
+  frame.url = 'https://app.notion.com/p/current';
+  for (const pageKey of ['https://app.notion.com/p/old', 'https://app.notion.com/p/other',
+    'https://www.notion.so/p/current', 'https://other.example/']) {
+    assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey }, original)).error, 'invalid-request');
+    assert.equal((await send(inferMessage(pageKey), original)).status, 'invalid-request');
+  }
+  frame.documentLifecycle = 'prerender';
+  assert.equal((await send({ type: LOOKUP_PREVIOUS, pageKey: frame.url }, original)).error, 'invalid-request');
+  assert.equal((await send(inferMessage(frame.url), original)).status, 'invalid-request');
+  assert.equal(lookedUp.length + inferred.length, 0);
 });

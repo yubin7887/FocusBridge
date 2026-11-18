@@ -7,7 +7,7 @@ const CAPTURE_INTERVAL_MS = 550;
 let nextCaptureAt = 0;
 const skipped = (status) => ({ status, images: [] });
 
-export async function captureIconCrops(sender, pageKey, viewport, rects, storage) {
+export async function captureIconCrops(sender, pageKey, viewport, rects, storage, isCurrent) {
   const { width, height, pixelRatio } = viewport ?? {};
   if (![width, height, pixelRatio].every((value) => Number.isFinite(value) && value > 0)
     || !Array.isArray(rects) || !rects.length || rects.length > AI_BATCH_SIZE) return skipped('invalid-viewport');
@@ -15,12 +15,12 @@ export async function captureIconCrops(sender, pageKey, viewport, rects, storage
     || r.x < 0 || r.y < 0 || r.width < 2 || r.height < 2
     || r.x + r.width > width || r.y + r.height > height)) return skipped('invalid-crop');
   const { id, windowId } = sender.tab;
-  if (!Number.isInteger(windowId) || (sender.documentLifecycle && sender.documentLifecycle !== 'active')) return skipped('inactive-tab');
+  if (!Number.isInteger(windowId)) return skipped('inactive-tab');
   if (!(await storage?.get(ICON_CAPTURE_KEY))?.[ICON_CAPTURE_KEY]) return skipped('capture-disabled');
   if (!await chrome.permissions.contains({ origins: ['<all_urls>'] })) return skipped('capture-permission-missing');
   const isSourceTab = async () => {
     const [active] = await chrome.tabs.query({ active: true, windowId });
-    return active?.id === id && active.url === pageKey && !active.pendingUrl;
+    return active?.id === id && active.url === pageKey && !active.pendingUrl && await isCurrent();
   };
   let invalidated = false;
   const onActivate = (info) => { if (info.windowId === windowId) invalidated = true; };

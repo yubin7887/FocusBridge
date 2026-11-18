@@ -74,7 +74,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     if (message.type === CAPTURE_ICONS) {
       const settings = await readSettings();
       if (!settings?.apiKey) return { images: [], status: 'not-configured' };
-      return captureIconCrops(sender, pageKey, message.viewport, message.rects, await storageReady)
+      return captureIconCrops(sender, pageKey, message.viewport, message.rects, await storageReady, isCurrent)
         .catch(() => ({ images: [], status: 'capture-error' }));
     }
     const prefix = `${sender.tab.id}:${sender.documentId}:`;

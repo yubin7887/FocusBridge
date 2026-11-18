@@ -88,6 +88,8 @@ npm run test:all
 - 이전 방문 조회와 AI 메시지는 `webNavigation.getFrame()`으로 최상위 문서의 현재 URL과
   `documentId`를 확인한다. 같은 문서의 SPA 경로·쿼리·해시 변경을 허용하며, 요청의 전체 URL은
   현재 URL과 일치해야 한다. iframe·다른 페이지·다른 문서·다른 확장 발신자는 거부한다.
+  발신 시점의 URL·문서 상태나 이전 탐색 오류 기록만으로 현재 활성 문서의 요청을 거절하지 않는다.
+  화면 캡처도 실제 촬영 전후에 같은 현재 문서 검증을 수행한다.
 - 메시지: `{type: 'focusbridge:previous:lookup', pageKey}`.
   응답: `{ok: true, records}` 또는 `{ok: false, error}`.
 - AI 응답을 받은 문서가 해당 요소에 이름을 적용한 뒤 요청 ID를 보내면 저장한다.

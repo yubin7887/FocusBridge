@@ -42,6 +42,13 @@ try {
     globalThis.requests = [];
     globalThis.captureCount = 0;
     globalThis.imageStatusLog = [];
+    const addMessageListener = chrome.runtime.onMessage.addListener.bind(chrome.runtime.onMessage);
+    chrome.runtime.onMessage.addListener = (listener) => addMessageListener((message, sender, respond) => {
+      if (globalThis.simulateStaleNotionSender && sender.url?.startsWith('https://app.notion.com/')) {
+        sender = { ...sender, url: 'https://www.notion.so/', documentLifecycle: 'cached' };
+      }
+      return listener(message, sender, respond);
+    });
     const info = console.info.bind(console);
     console.info = (...args) => {
       if (args[0] === '[FocusBridge AI] API 요청') imageStatusLog.push(args[1].imageStatus);
@@ -259,7 +266,7 @@ try {
   console.log('PASS 적용에 성공한 AI 이름만 IndexedDB에 저장');
   await probe('ok');
 
-  await browser.route('https://example.com/spa-inference*', (route) => route.fulfill({
+  await browser.route('https://www.nexon.com/Home/Game*', (route) => route.fulfill({
     contentType: 'text/html; charset=utf-8',
     body: '<!doctype html><html lang="ko"><header><button id="spa-control" data-action="quantumspin">'
       + '<i style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i>'
@@ -268,7 +275,7 @@ try {
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
   await page.bringToFront();
   const beforeSpa = await worker.evaluate(() => requests.length);
-  await page.goto('https://example.com/spa-inference');
+  await page.goto('https://www.nexon.com/Home/Game');
   const readSpa = (source) => read((source) => {
     const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
     return result?.pageUrl === location.href && result.previousStatus === 'ok'
@@ -281,8 +288,8 @@ try {
     return chrome.webNavigation.getFrame({ tabId: tab.id, frameId: 0 });
   });
   const spaUrls = [page.url()];
-  for (const [method, url] of [['hash', '#today'], ['pushState', '/spa-inference/next?panel=2#today'],
-    ['replaceState', '/spa-inference/next?panel=3#today']]) {
+  for (const [method, url] of [['hash', '#today'], ['pushState', '/Home/Game/next?panel=2#today'],
+    ['replaceState', '/Home/Game/next?panel=3#today']]) {
     await page.evaluate(([method, url]) => {
       if (method === 'hash') location.hash = url;
       else history[method]({}, '', url);
@@ -301,7 +308,7 @@ try {
   });
   assert.equal(currentDocument.documentId, initialDocument.documentId);
   assert.equal(currentDocument.url, page.url());
-  console.log('PASS 새로고침 없는 해시·경로·쿼리 변경 후 이전 조회, 캡처, AI 추론 및 URL별 저장');
+  console.log('PASS 넥슨 형식 URL의 해시·경로·쿼리 변경 후 이전 조회, 캡처, AI 추론 및 URL별 저장');
 
   for (const type of ['focusbridge:previous:lookup', 'focusbridge:ai:infer', 'focusbridge:ai:save', 'focusbridge:ai:capture-icons']) {
     await page.evaluate((message) => {
@@ -326,6 +333,55 @@ try {
     captureCount = 0;
   });
   console.log('PASS 현재 URL과 다른 페이지를 사칭한 조회·추론·저장·캡처 거부 및 원래 URL 복귀 시 hit');
+
+  await browser.route('https://app.notion.com/**', (route) => route.fulfill({
+    contentType: 'text/html; charset=utf-8',
+    body: '<!doctype html><html lang="ko"><main><div id="notion-toolbar">'
+      + Array.from({ length: 3 }, (_, index) => '<div role="button" tabindex="0" id="notion-control-' + index
+        + '" data-action="quantumspin" style="display:inline-block;margin:8px;width:32px;height:32px">'
+        + '<i style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i></div>').join('')
+      + '</div></main></html>',
+  }));
+  await worker.evaluate(async () => {
+    globalThis.simulateStaleNotionSender = true;
+    await chrome.storage.local.set({ iconCaptureEnabled: true });
+  });
+  const beforeNotion = await worker.evaluate(() => requests.length);
+  const notionUrls = [
+    'https://app.notion.com/p/' + 'a'.repeat(32),
+    'https://app.notion.com/p/' + 'b'.repeat(32) + '?view=board',
+    'https://app.notion.com/p/' + 'c'.repeat(32) + '?view=list#toolbar',
+  ];
+  await page.goto(notionUrls[0]);
+  await page.bringToFront();
+  const readNotion = async (source) => {
+    await read((source) => {
+      const result = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null');
+      return result?.pageUrl === location.href && result.previousStatus === 'ok' && result.report.length === 3
+        && result.report.every((item) => item.match.source === source
+          && (source !== 'ai' || item.aiStorage === (item.labelApplied ? 'saved' : 'not-applied')));
+    }, source);
+  };
+  await readNotion('ai');
+  await page.evaluate((url) => history.pushState({}, '', url), notionUrls[1]);
+  await readNotion('ai');
+  await page.evaluate((url) => history.replaceState({}, '', url), notionUrls[2]);
+  await readNotion('ai');
+  const notionRequests = await worker.evaluate((start) => requests.slice(start), beforeNotion);
+  assert.equal(notionRequests.length, 3);
+  assert.ok(notionRequests.every(({ inputs, images }) => inputs.length === 3 && images.length === 1));
+  for (const url of notionUrls) assert.equal((await stored(url)).length, applyLabels ? 3 : 0);
+  if (applyLabels) {
+    await page.evaluate((url) => history.replaceState({}, '', url), notionUrls[0]);
+    await readNotion('previous');
+    assert.equal(await worker.evaluate(() => requests.length), beforeNotion + 3);
+  }
+  await worker.evaluate(async () => {
+    globalThis.simulateStaleNotionSender = false;
+    await chrome.storage.local.set({ iconCaptureEnabled: false });
+    captureCount = 0;
+  });
+  console.log('PASS Notion 형식 URL에서 오래된 발신 메타데이터에도 조회·캡처·추론·저장 및 재방문 hit');
 
   await worker.evaluate(() => { globalThis.holdResponse = true; });
   await page.goto('https://example.com/stale');
