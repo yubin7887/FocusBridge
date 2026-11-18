@@ -2,6 +2,7 @@ import { blobBase64, drawIcon, iconImageData, imageSize } from './ai-images.js';
 
 const RASTER_TYPE = /^image\/(?:png|jpeg|gif|webp|avif)$/i;
 const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
+export const SOURCE_IMAGE_TIMEOUT_MS = 1000;
 
 export function imageSourceUrl(value) {
   if (typeof value !== 'string' || value.length > 4096) return null;
@@ -43,7 +44,7 @@ export async function loadSourceImages(items, isCurrent, {
       try {
         if (!await permissions?.contains({ origins: [url.origin + '/*'] })) return null;
         const response = await fetchImpl(url.href, {
-          credentials: 'omit', redirect: 'error', cache: 'force-cache', signal: AbortSignal.timeout(5000),
+          credentials: 'omit', redirect: 'error', cache: 'force-cache', signal: AbortSignal.timeout(SOURCE_IMAGE_TIMEOUT_MS),
         });
         const blob = await readImage(response);
         if (!blob) return null;

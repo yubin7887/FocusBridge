@@ -55,3 +55,19 @@ test('oversized and failed image downloads never return data', async () => {
     assert.deepEqual(await loadSourceImages([item], async () => true, { permissions, fetchImpl }), { images: [] });
   }
 });
+
+test('stalled images share a one-second budget instead of blocking for five seconds each', async () => {
+  let calls = 0;
+  const started = performance.now();
+  const response = await loadSourceImages([item, { ...item, url: 'https://images.example/other.png' }], async () => true, {
+    permissions,
+    fetchImpl: (_url, { signal }) => new Promise((_, reject) => {
+      calls++;
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    }),
+  });
+  const elapsed = performance.now() - started;
+  assert.equal(calls, 2);
+  assert.deepEqual(response, { images: [] });
+  assert.ok(elapsed < 2500, `downloads blocked for ${elapsed.toFixed(0)}ms`);
+});
