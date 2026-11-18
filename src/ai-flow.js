@@ -7,6 +7,7 @@ import { checkName } from './detector.js';
 import { createFingerprint, createPageKey, exactFingerprintMatch } from './previous-fingerprint.js';
 
 const memo = new WeakMap();
+const loggedResponses = new WeakSet();
 const duplicateLinks = new Map();
 const MAX_DUPLICATE_LINKS = 128;
 const MAX_LINK_MARKUP_LENGTH = 16000;
@@ -181,10 +182,17 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         }
       }
     }
-    const freshResults = batch.filter(({ entry }) => !entry.aiReused);
-    if (freshResults.length) {
+    // A reused response may never have been logged if its original scan became stale.
+    const firstResults = [];
+    const seen = new Set();
+    for (const item of batch) {
+      if (loggedResponses.has(item.request) || seen.has(item.request)) continue;
+      seen.add(item.request);
+      firstResults.push(item);
+    }
+    if (firstResults.length) {
       console.groupCollapsed('[FocusBridge AI] 응답 결과');
-      console.table(freshResults.map(({ entry }) => ({
+      console.table(firstResults.map(({ entry }) => ({
         model: entry.aiModel,
         status: entry.labelApplied && entry.aiStatus === 'label-ready' ? 'applied' : entry.aiStatus,
         requests: entry.aiRequestCount,
@@ -196,6 +204,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         selector: entry.selector,
       })));
       console.groupEnd();
+      for (const { request } of firstResults) loggedResponses.add(request);
     }
     const failure = replies.find(({ status }) => status !== 'ok');
     if (failure) return failure.status === 'service-unavailable' ? failure.retryAt : undefined;
