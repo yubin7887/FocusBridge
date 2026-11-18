@@ -8,6 +8,7 @@ import { pageCommon, matchItem } from './matcher.js';
 import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
 import { createLabelController } from './apply-labels.js';
+import { createReportLogger } from './report-log.js';
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
@@ -56,6 +57,7 @@ function cssPath(el) {
 
 const lookupPrevious = createPreviousLookup();
 const labels = createLabelController();
+const logReport = createReportLogger();
 let generation = 0;
 let timer = null;
 let observedUrl = location.href;
@@ -117,23 +119,6 @@ export async function scan(root = document) {
   const elapsed = performance.now() - t0;
 
   const frame = window === window.top ? 'TOP' : 'iframe';
-  console.groupCollapsed(
-    `[FocusBridge] ${frame} ${location.href.slice(0, 80)} 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
-    //`[FocusBridge] 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
-  );
-  console.table(report.map((r, i) => ({
-    no: i + 1, status: r.status, role: r.role, name: r.currentName,
-    previousMatch: previous.status === 'skipped' ? 'skipped'
-      : !fingerprints[i]?.eligible ? 'ineligible'
-      : previous.status !== 'ok' ? previous.status
-      : r.match.source === 'previous' ? 'hit' : 'miss',
-    previousReason: fingerprints[i]?.reason,
-    match: r.match.decision, label: r.match.label, // ③ 결과: confirm(확정)/ai/content
-    selector: r.selector,
-  })));
-  missing.forEach((m, i) => console.log(`#${i + 1}`, m.status, m.element));
-  console.groupEnd();
-
   showOverlay(missing);
   const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status,
     withOriginalLabels: labels.withOriginalLabels };
@@ -141,7 +126,8 @@ export async function scan(root = document) {
   const isCurrent = () => scanId === generation && location.href === pageUrl;
   void resolveAiResults(result, fingerprints, isCurrent)
     .then((retryAt) => { if (isCurrent()) scheduleAiRetry(retryAt, pageUrl); })
-    .catch(() => { result.aiStatus = 'unavailable'; });
+    .catch(() => { result.aiStatus = 'unavailable'; })
+    .finally(() => { if (isCurrent()) logReport(result, fingerprints, elapsed, frame); });
   return result;
 }
 

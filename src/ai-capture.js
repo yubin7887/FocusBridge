@@ -1,5 +1,5 @@
 import { AI_BATCH_SIZE } from './ai-client.js';
-import { drawIcon, iconImageData, ICON_SIZE, PNG_PREFIX } from './ai-images.js';
+import { blobBase64, drawIcon, iconImageData, imageSize, PNG_PREFIX } from './ai-images.js';
 import { ICON_CAPTURE_KEY } from './ai-settings.js';
 
 // Chrome allows up to two calls per second, shared across tabs.
@@ -54,12 +54,11 @@ export async function captureIconCrops(sender, pageKey, viewport, rects, storage
       const w = Math.floor((rect.x + rect.width) * scaleX) - x;
       const h = Math.floor((rect.y + rect.height) * scaleY) - y;
       if (w < 1 || h < 1) return null;
-      const canvas = new OffscreenCanvas(ICON_SIZE, ICON_SIZE);
+      const { width, height } = imageSize(w, h);
+      const canvas = new OffscreenCanvas(width, height);
       drawIcon(canvas, bitmap, x, y, w, h);
       const blob = await canvas.convertToBlob({ type: 'image/png' });
-      const bytes = new Uint8Array(await blob.arrayBuffer());
-      if (bytes.length > ICON_SIZE * ICON_SIZE * 4 + 1024) return null;
-      const data = btoa(String.fromCharCode(...bytes));
+      const data = await blobBase64(blob);
       return iconImageData(data) ? data : null;
     }));
     return { status: images.every(Boolean) ? 'captured' : 'invalid-crop', images };

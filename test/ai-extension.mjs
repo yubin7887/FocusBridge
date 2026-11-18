@@ -3,11 +3,13 @@ import { chromium } from 'playwright';
 import { mkdtemp, mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createServer } from 'node:http';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'focusbridge-ai-'));
 const dir = path.join(tmp, 'extension');
 const applyLabels = process.env.FOCUSBRIDGE_TEST_APPLY_LABELS === '1';
 let browser;
+let imageServer;
 try {
   await mkdir(path.join(dir, 'dist'), { recursive: true });
   await mkdir(path.join(dir, 'src'));
@@ -66,7 +68,9 @@ try {
       globalThis.requestTimeoutMs = ms;
       return originalTimeout(globalThis.simulateTimeout ? 1000 : ms);
     };
+    const nativeFetch = globalThis.fetch.bind(globalThis);
     globalThis.fetch = async (url, request) => {
+      if (!request?.body) return nativeFetch(url, request);
       const raw = JSON.parse(request.body);
       const openai = url === 'https://api.openai.com/v1/responses';
       const groq = url === 'https://api.groq.com/openai/v1/chat/completions';
@@ -87,7 +91,8 @@ try {
       const authorized = groq ? request.headers.Authorization === 'Bearer local-groq-test-key' && !request.headers['x-goog-api-key'] : openai
         ? request.headers.Authorization === 'Bearer openai-test-key' && !request.headers['x-goog-api-key']
         : request.headers['x-goog-api-key'] === 'local-test-key' && !request.headers.Authorization;
-      requests.push({ url, inputs, images, authorized, model: raw.model, reasoning: raw.reasoning?.effort,
+      requests.push({ url, inputs, images, authorized, imageDetails: parts.flatMap((part) => part.detail ? [part.detail] : []),
+        model: raw.model, reasoning: raw.reasoning?.effort,
         store: raw.store, format: raw.text?.format?.type, thinkingLevel: raw.generationConfig?.thinkingConfig?.thinkingLevel });
       if (globalThis.holdResponse) await new Promise((resolve) => { globalThis.releaseResponse = resolve; });
       if (globalThis.rejectRequest) return Response.json({
@@ -310,7 +315,7 @@ try {
   assert.equal(currentDocument.url, page.url());
   console.log('PASS 넥슨 형식 URL의 해시·경로·쿼리 변경 후 이전 조회, 캡처, AI 추론 및 URL별 저장');
 
-  for (const type of ['focusbridge:previous:lookup', 'focusbridge:ai:infer', 'focusbridge:ai:save', 'focusbridge:ai:capture-icons']) {
+  for (const type of ['focusbridge:previous:lookup', 'focusbridge:ai:infer', 'focusbridge:ai:save', 'focusbridge:ai:capture-icons', 'focusbridge:ai:load-images']) {
     await page.evaluate((message) => {
       const output = document.querySelector('#ai-test-report');
       delete output.dataset.reply;
@@ -575,22 +580,15 @@ try {
     const decoded = await Promise.all(images.map(async ({ requestId, data, tiles }) => {
       const bytes = Uint8Array.from(atob(data), (char) => char.charCodeAt(0));
       const image = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
-      const canvas = new OffscreenCanvas(64, 64);
-      const context = canvas.getContext('2d');
       const { width, height } = image;
       try {
-        if (tiles && (width !== 176 || height !== Math.ceil(tiles.length / 2) * 88)) {
-          throw new Error('Unexpected size for numbered icon sheet');
-        }
-        return (tiles ?? [{ requestId }]).map(({ requestId: id, tile }) => {
-          const x = tile ? ((tile - 1) % 2) * 88 + 12 : 0;
-          const y = tile ? Math.floor((tile - 1) / 2) * 88 + 20 : 0;
-          const w = tile ? 64 : width;
-          const h = tile ? 64 : height;
-          context.clearRect(0, 0, 64, 64);
+        return (tiles ?? [{ requestId, x: 0, y: 0, width, height }]).map(({ requestId: id, x, y, width: w, height: h }) => {
+          if (x < 0 || y < 0 || x + w > width || y + h > height) throw new Error('Invalid tile bounds');
+          const canvas = new OffscreenCanvas(w, h);
+          const context = canvas.getContext('2d');
           context.drawImage(image, x, y, w, h, 0, 0, w, h);
           return { id: inputs.find((row) => row.requestId === id)?.attributes.id, width: w, height: h,
-            color: [...context.getImageData(32, 32, 1, 1).data] };
+            color: [...context.getImageData(Math.floor(w / 2), Math.floor(h / 2), 1, 1).data] };
         });
       } finally {
         image.close();
@@ -666,6 +664,70 @@ try {
   assert.equal(await worker.evaluate(() => imageStatusLog.at(-1)), 'attached');
   console.log('PASS 큰 이미지, CDN 이미지, 화면에 일부 보이는 텍스트 링크의 PNG 첨부');
 
+  const banner = await worker.evaluate(async () => {
+    const canvas = new OffscreenCanvas(496, 37);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#e0f5ff';
+    ctx.fillRect(0, 0, 496, 37);
+    ctx.fillStyle = '#123456';
+    ctx.font = '15px sans-serif';
+    ctx.fillText('Campus portal - original image', 100, 24);
+    // Single-pixel stripes make any resampling detectable.
+    for (let x = 0; x < 80; x += 2) ctx.fillRect(x, 0, 1, 37);
+    const bytes = new Uint8Array(await (await canvas.convertToBlob({ type: 'image/png' })).arrayBuffer());
+    return btoa(String.fromCharCode(...bytes));
+  });
+  let sourceReads = 0;
+  imageServer = createServer((_req, res) => {
+    sourceReads++;
+    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' });
+    res.end(Buffer.from(banner, 'base64'));
+  });
+  await new Promise((resolve) => imageServer.listen(0, '127.0.0.1', resolve));
+  const imageUrl = `http://127.0.0.1:${imageServer.address().port}/banner.png`;
+  await browser.route('http://example.com/original-buttons?*', (route) => route.fulfill({
+    contentType: 'text/html; charset=utf-8',
+    body: '<!doctype html><style>a{display:block;margin-top:1500px;width:496px}img{display:block}</style>'
+      + ['a', 'b', 'c'].map((id) => `<a id="original-${id}" href="/portal/${id}"><img src="${imageUrl}" width="496" height="37" alt=""></a>`).join(''),
+  }));
+  for (const model of ['gemini-3.5-flash-lite', 'gpt-6-luna', 'qwen/qwen3.8-27b']) {
+    const before = await worker.evaluate(async (model) => {
+      await chrome.storage.local.set({ aiModel: model, groqApiKey: 'local-groq-test-key' });
+      return { calls: requests.length, captures: captureCount };
+    }, model);
+    await page.goto('http://example.com/original-buttons?model=' + encodeURIComponent(model));
+    await probe('ok');
+    const outbound = await worker.evaluate((start) => requests.slice(start), before.calls);
+    assert.equal(outbound.length, 1);
+    assert.equal(outbound[0].inputs.length, 3);
+    assert.equal(outbound[0].images.length, 1);
+    if (model.startsWith('gpt-')) assert.deepEqual(outbound[0].imageDetails, ['high']);
+    assert.deepEqual((await inspectIcons()).map(({ width, height }) => [width, height]), [[496, 37], [496, 37], [496, 37]]);
+    assert.equal(await worker.evaluate(() => captureCount), before.captures);
+    const report = JSON.parse(await page.locator('#ai-test-report').textContent()).report;
+    assert.ok(report.every(({ aiImageSource }) => aiImageSource === 'img'));
+    const unchangedPixels = await worker.evaluate(async ({ original, sheet }) => {
+      const decode = (data) => createImageBitmap(new Blob([Uint8Array.from(atob(data), (ch) => ch.charCodeAt(0))], { type: 'image/png' }));
+      const source = await decode(original);
+      const atlas = await decode(sheet.data);
+      try {
+        const canvas = new OffscreenCanvas(496, 37);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(source, 0, 0);
+        const expected = ctx.getImageData(0, 0, 496, 37).data;
+        return sheet.tiles.every(({ x, y, width, height }) => {
+          ctx.clearRect(0, 0, 496, 37);
+          ctx.drawImage(atlas, x, y, width, height, 0, 0, width, height);
+          return ctx.getImageData(0, 0, 496, 37).data.every((value, index) => value === expected[index]);
+        });
+      } finally { source.close(); atlas.close(); }
+    }, { original: banner, sheet: outbound[0].images[0] });
+    assert.equal(unchangedPixels, true);
+  }
+  assert.ok(sourceReads > 0);
+  await worker.evaluate(() => chrome.storage.local.set({ aiModel: 'gemini-3.8-flash' }));
+  console.log('PASS CORS 미허용·화면 밖 원본 이미지 496×37을 모든 제공자에 픽셀 손실 없이 한 장으로 전송');
+
   const batchIcons = Array.from({ length: 10 }, (_, index) =>
     `<button id="tile-${index}" style="width:32px;height:32px;background-color:rgb(${index * 20}, 40, 80)"></button>`);
   await browser.route('https://example.com/batch-images', (route) => route.fulfill({
@@ -704,7 +766,8 @@ try {
     assert.equal(combined.length, 1);
     assert.equal(combined[0].authorized, true);
     assert.equal(combined[0].images.length, 1);
-    assert.deepEqual(combined[0].images[0].tiles, combined[0].inputs.map(({ requestId }, index) => ({ tile: index + 1, requestId })));
+    assert.deepEqual(combined[0].images[0].tiles.map(({ tile, requestId }) => ({ tile, requestId })),
+      combined[0].inputs.map(({ requestId }, index) => ({ tile: index + 1, requestId })));
     assert.deepEqual((await inspectIcons()).map(({ color }) => color),
       Array.from({ length: 8 }, (_, index) => [index * 20, 40, 80, 255]));
   }
@@ -822,6 +885,18 @@ try {
       body: '<!doctype html><html lang="ko"><body>' + storeLinks + storeLinks + '</body></html>',
     }));
     const beforeLinks = await worker.evaluate(() => requests.length);
+    const summaryTables = [];
+    const detailTables = [];
+    const loggedTables = [];
+    let logGroup;
+    const collectConsole = (message) => {
+      if (message.type() === 'startGroupCollapsed') logGroup = message.text();
+      if (message.type() !== 'table') return;
+      const tables = logGroup === '[FocusBridge AI] 응답 결과' ? detailTables
+        : logGroup?.startsWith('[FocusBridge] TOP https://example.com/store-links ') ? summaryTables : null;
+      if (tables) loggedTables.push(message.args()[0].jsonValue().then((rows) => tables.push(rows)));
+    };
+    page.on('console', collectConsole);
     await page.goto('https://example.com/store-links');
     const readLinks = async (previousScanId) => {
       const snapshot = await read((scanId) => {
@@ -832,16 +907,28 @@ try {
       return snapshot.jsonValue();
     };
     let linkScan = await readLinks(0);
+    await Promise.all(loggedTables);
     assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
     assert.equal(linkScan.report.filter((item) => item.aiReused).length, 2);
+    assert.equal(summaryTables.length, 1);
+    assert.ok(summaryTables[0].every((row) => row.previousMatch === 'ineligible'
+      && row.match === 'ai' && row.label === '회전 설정 열기'));
+    assert.deepEqual(summaryTables[0].map((row) => row.reused), [false, false, true, true]);
+    assert.equal(detailTables.length, 1);
+    assert.equal(detailTables[0].length, 2);
+    assert.ok(detailTables[0].every((row) => row.reused === false));
     for (let pass = 0; pass < 2; pass++) {
       // Replace both sets of anchors as a page framework would during a re-render.
       await page.evaluate((html) => {
         for (const section of document.querySelectorAll('section')) section.outerHTML = html;
       }, storeLinks);
       linkScan = await readLinks(linkScan.scanId);
+      await Promise.all(loggedTables);
       assert.ok(linkScan.report.every((item) => item.aiReused));
       assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 1);
+      assert.equal(summaryTables.length, 2);
+      assert.ok(summaryTables[1].every((row) => row.reused === true));
+      assert.equal(detailTables.length, 1);
     }
     await page.locator('a[href$="appstore"]').evaluateAll((links) => {
       for (const link of links) link.href = '/page/mlink?store=appstore-changed';
@@ -852,7 +939,40 @@ try {
     assert.equal(newInputs.length, 1);
     assert.equal(newInputs[0].destination.href, '/page/mlink');
     assert.deepEqual(await stored(page.url()), []);
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 3);
+    assert.equal(summaryTables[2].filter((row) => row.reused === false).length, 1);
+    assert.equal(detailTables.length, 2);
+    assert.equal(detailTables[1].length, 1);
+    assert.equal(detailTables[1][0].reused, false);
     console.log('PASS 같은 중복 링크는 재생성 뒤에도 AI 결과 재사용, 변경된 목적지만 새 요청');
+
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+      button.id = 'extra-control';
+      button.className = 'search';
+      document.body.append(button);
+    });
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 5 && report.find((row) => row.selector === '#extra-control')?.match.label === '검색'
+        && report.every((row) => row.labelApplied);
+    });
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 4);
+    assert.equal(summaryTables[3].length, 5);
+    assert.equal(summaryTables[3].find((row) => row.selector === '#extra-control').match, 'rule');
+    assert.equal(summaryTables[3].find((row) => row.selector === '#extra-control').reused, '-');
+    await page.locator('#extra-control').evaluate((element) => { element.className = 'close'; });
+    await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report
+      .find((row) => row.selector === '#extra-control')?.match.label === '닫기');
+    await Promise.all(loggedTables);
+    assert.equal(summaryTables.length, 5);
+    assert.equal(summaryTables[4].find((row) => row.selector === '#extra-control').label, '닫기');
+    assert.equal(detailTables.length, 2);
+    assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 2);
+    page.off('console', collectConsole);
+    console.log('PASS ineligible 최종 라벨 출력, 재사용 상세 및 동일 전체표 생략, 탐지·매칭 변경 시 전체표 갱신');
 
     await browser.route('https://example.com/widget-reflow', (route) => route.fulfill({
       contentType: 'text/html',
@@ -952,6 +1072,8 @@ try {
 } finally {
   try { await browser?.close(); }
   finally {
+    imageServer?.closeAllConnections();
+    if (imageServer) await new Promise((resolve) => imageServer.close(resolve));
     if (path.dirname(path.resolve(tmp)) === path.resolve(os.tmpdir()) && path.basename(tmp).startsWith('focusbridge-ai-')) {
       await rm(tmp, { recursive: true, force: true });
     }

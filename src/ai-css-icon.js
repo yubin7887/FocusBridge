@@ -1,4 +1,4 @@
-import { ICON_SIZE } from './ai-images.js';
+import { imageSize } from './ai-images.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const HTML_NS = 'http://www.w3.org/1999/xhtml';
@@ -82,9 +82,9 @@ export async function cssIconSource(icon, { width, height }, assets) {
   root.append(...children);
 
   const svg = doc.createElementNS(SVG_NS, 'svg');
-  const scale = ICON_SIZE / Math.max(width, height);
-  svg.setAttribute('width', Math.max(1, Math.round(width * scale)));
-  svg.setAttribute('height', Math.max(1, Math.round(height * scale)));
+  const size = imageSize(width, height);
+  svg.setAttribute('width', size.width);
+  svg.setAttribute('height', size.height);
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   const foreign = doc.createElementNS(SVG_NS, 'foreignObject');
   foreign.setAttribute('width', width);

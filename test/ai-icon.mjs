@@ -41,3 +41,43 @@ test('a visible PNG still loading during the scan is attached after decoding', a
     await browser.close();
   }
 });
+
+for (const workerLoaded of [true, false]) {
+  test(workerLoaded ? 'a worker image skips the redundant anonymous-CORS request'
+    : 'anonymous-CORS image extraction still works when worker host access is unavailable', async () => {
+    const bundle = await build({
+      stdin: { contents: "export { collectAiIcons } from './src/ai-icon.js';", resolveDir: process.cwd() },
+      bundle: true, format: 'iife', globalName: 'icons', write: false,
+    });
+    const browser = await chromium.launch(process.env.CHROME
+      ? { executablePath: process.env.CHROME } : { channel: 'chromium' });
+    try {
+      const page = await browser.newPage();
+      const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=';
+      let corsRequests = 0;
+      await page.route('https://images.example.test/icon.png', (route) => {
+        if (route.request().headers().origin) corsRequests++;
+        return route.fulfill({ contentType: 'image/png', body: Buffer.from(png, 'base64'),
+          headers: { 'access-control-allow-origin': workerLoaded ? 'https://elsewhere.test' : '*' } });
+      });
+      await page.route('https://example.test/demo', (route) => route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><button><img src="https://images.example.test/icon.png" width="20" height="20" alt=""></button>',
+      }));
+      await page.goto('https://example.test/demo');
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      const result = await page.evaluate(async ({ workerLoaded, png }) => {
+        let loads = 0;
+        const { images } = await icons.collectAiIcons([{ element: document.querySelector('button'),
+          request: { payload: { requestId: 'external' } } }], undefined, async (sources) => {
+          loads++;
+          return { images: workerLoaded ? [{ requestId: sources[0].requestId, data: png }] : [] };
+        });
+        return { loads, icon: images.get('external')?.() };
+      }, { workerLoaded, png });
+      assert.equal(result.loads, 1);
+      assert.equal(result.icon.source, 'img');
+      assert.equal(corsRequests, workerLoaded ? 0 : 1);
+    } finally { await browser.close(); }
+  });
+}
