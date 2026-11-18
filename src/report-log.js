@@ -10,10 +10,12 @@ export function createReportLogger(output = console) {
         : entry.match.source === 'previous' ? 'hit' : 'miss',
       previousReason: fingerprints[index]?.reason,
       match: entry.match.source ?? (entry.match.decision === 'confirm' ? 'rule' : entry.match.decision),
+      reused: (entry.match.source === 'ai' || entry.match.decision === 'ai') && typeof entry.aiReused === 'boolean'
+        ? entry.aiReused : '-',
       label: entry.match.label,
       selector: entry.selector,
     }));
-    // Compare results, not timing, scan IDs, DOM identities, or AI cache bookkeeping.
+    // Compare visible results, not timing, scan IDs, DOM identities, or other request metadata.
     const snapshot = JSON.stringify({ pageUrl, frame, targets: targets.length, rows });
     if (snapshot === lastSnapshot) return false;
     lastSnapshot = snapshot;

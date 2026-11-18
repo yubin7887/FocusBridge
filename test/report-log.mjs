@@ -7,7 +7,7 @@ function fixture() {
   const log = createReportLogger({ groupCollapsed() {}, groupEnd() {}, log() {}, table: (rows) => tables.push(rows) });
   const result = { targets: [{}], missing: [{ status: 'empty', element: {} }], pageUrl: 'https://example.com/page',
     previousStatus: 'ok', report: [{ status: 'empty', role: 'button', currentName: '', selector: '#control',
-      labelApplied: true, match: { decision: 'confirm', source: 'ai', label: '좋아요 수' } }] };
+      labelApplied: true, aiReused: false, match: { decision: 'confirm', source: 'ai', label: '좋아요 수' } }] };
   const fingerprints = [{ eligible: false, reason: 'insufficient-evidence' }];
   return { tables, log, result, fingerprints };
 }
@@ -18,6 +18,7 @@ test('the summary shows the final AI label even when previous matching is inelig
   assert.equal(tables[0][0].previousMatch, 'ineligible');
   assert.equal(tables[0][0].label, '좋아요 수');
   assert.equal(tables[0][0].match, 'ai');
+  assert.equal(tables[0][0].reused, false);
   assert.equal(result.report[0].match.decision, 'confirm');
 });
 
@@ -26,11 +27,13 @@ test('dictionary confirmations display rule, while previous matches display prev
   delete result.report[0].match.source;
   log(result, fingerprints, 10, 'TOP');
   assert.equal(tables[0][0].match, 'rule');
+  assert.equal(tables[0][0].reused, '-');
   result.report[0].match.source = 'previous';
   fingerprints[0] = { eligible: true };
   log(result, fingerprints, 20, 'TOP');
   assert.equal(tables[1][0].match, 'previous');
   assert.equal(tables[1][0].previousMatch, 'hit');
+  assert.equal(tables[1][0].reused, '-');
   assert.equal(result.report[0].match.decision, 'confirm');
 });
 
@@ -39,10 +42,18 @@ test('identical results are suppressed despite new DOM objects, timing, geometry
   log(result, fingerprints, 10, 'TOP');
   const repeated = structuredClone(result);
   Object.assign(repeated, { scanId: 25, aiStatus: 'ok' });
-  Object.assign(repeated.report[0], { aiReused: true, aiRequestCount: 20, aiStorage: 'already-saved',
+  Object.assign(repeated.report[0], { aiRequestCount: 20, aiStorage: 'already-saved',
     context: { rect: { x: 300, y: 400 } } });
   assert.equal(log(repeated, fingerprints, 200, 'TOP'), false);
   assert.equal(tables.length, 1);
+});
+
+test('an AI item without a request result does not claim a fresh or reused response', () => {
+  const { tables, log, result, fingerprints } = fixture();
+  result.report[0].match = { decision: 'ai', label: null };
+  delete result.report[0].aiReused;
+  log(result, fingerprints, 10, 'TOP');
+  assert.equal(tables[0][0].reused, '-');
 });
 
 for (const [name, change] of [
@@ -52,6 +63,7 @@ for (const [name, change] of [
   ['role', (result) => { result.report[0].role = 'link'; }],
   ['decision', (result) => { result.report[0].match = { decision: 'content', label: null }; }],
   ['match source', (result) => { delete result.report[0].match.source; }],
+  ['AI reuse state', (result) => { result.report[0].aiReused = true; }],
   ['selector', (result) => { result.report[0].selector = '#other'; }],
   ['target count', (result) => { result.targets.push({}); }],
   ['missing element removed', (result) => { result.missing = []; result.report = []; }],

@@ -913,6 +913,7 @@ try {
     assert.equal(summaryTables.length, 1);
     assert.ok(summaryTables[0].every((row) => row.previousMatch === 'ineligible'
       && row.match === 'ai' && row.label === '회전 설정 열기'));
+    assert.deepEqual(summaryTables[0].map((row) => row.reused), [false, false, true, true]);
     assert.equal(detailTables.length, 1);
     assert.equal(detailTables[0].length, 2);
     assert.ok(detailTables[0].every((row) => row.reused === false));
@@ -925,7 +926,8 @@ try {
       await Promise.all(loggedTables);
       assert.ok(linkScan.report.every((item) => item.aiReused));
       assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 1);
-      assert.equal(summaryTables.length, 1);
+      assert.equal(summaryTables.length, 2);
+      assert.ok(summaryTables[1].every((row) => row.reused === true));
       assert.equal(detailTables.length, 1);
     }
     await page.locator('a[href$="appstore"]').evaluateAll((links) => {
@@ -938,7 +940,8 @@ try {
     assert.equal(newInputs[0].destination.href, '/page/mlink');
     assert.deepEqual(await stored(page.url()), []);
     await Promise.all(loggedTables);
-    assert.equal(summaryTables.length, 1);
+    assert.equal(summaryTables.length, 3);
+    assert.equal(summaryTables[2].filter((row) => row.reused === false).length, 1);
     assert.equal(detailTables.length, 2);
     assert.equal(detailTables[1].length, 1);
     assert.equal(detailTables[1][0].reused, false);
@@ -956,15 +959,16 @@ try {
         && report.every((row) => row.labelApplied);
     });
     await Promise.all(loggedTables);
-    assert.equal(summaryTables.length, 2);
-    assert.equal(summaryTables[1].length, 5);
-    assert.equal(summaryTables[1].find((row) => row.selector === '#extra-control').match, 'rule');
+    assert.equal(summaryTables.length, 4);
+    assert.equal(summaryTables[3].length, 5);
+    assert.equal(summaryTables[3].find((row) => row.selector === '#extra-control').match, 'rule');
+    assert.equal(summaryTables[3].find((row) => row.selector === '#extra-control').reused, '-');
     await page.locator('#extra-control').evaluate((element) => { element.className = 'close'; });
     await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report
       .find((row) => row.selector === '#extra-control')?.match.label === '닫기');
     await Promise.all(loggedTables);
-    assert.equal(summaryTables.length, 3);
-    assert.equal(summaryTables[2].find((row) => row.selector === '#extra-control').label, '닫기');
+    assert.equal(summaryTables.length, 5);
+    assert.equal(summaryTables[4].find((row) => row.selector === '#extra-control').label, '닫기');
     assert.equal(detailTables.length, 2);
     assert.equal(await worker.evaluate(() => requests.length), beforeLinks + 2);
     page.off('console', collectConsole);
