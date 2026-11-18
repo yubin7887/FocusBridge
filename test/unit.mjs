@@ -48,6 +48,22 @@ check('[0] #17 숫자 주소 링크에도 거름망 유지 (close class라도 �
 check('[0] #17 숫자 주소 링크에서 두 기능이 동점이면 콘텐츠형', () =>
   assert.equal(matchItem(item({ href: '/v/123456', className: 'cart more' }, { role: 'link' }), PAGE).decision, 'content'));
 
+// 0.6.0: 큰 요소(배너·카드)는 주소를 단서로 쓰지 않는다 (카피킬러 인용 검증 배너가 "로그인"으로 붙던 문제)
+const BIG = { x: 12, y: 300, w: 780, h: 320 };
+check('[0] 큰 배너의 주소 /login은 단서로 쓰지 않음 → AI로', () =>
+  assert.equal(matchItem(item({ href: '/login?success_return_url=/citation-verify', className: 'mhItem-banner', rect: BIG }, { role: 'link' }),
+    'https://dongguk.copykiller.com/').decision, 'ai'));
+check('[0] 작은 /login 링크는 그대로 로그인', () =>
+  assert.equal(matchItem(item({ href: '/login', rect: { x: 0, y: 0, w: 60, h: 24 } }, { role: 'link' }), PAGE).label, '로그인'));
+check('[0] 큰 배너가 다른 사이트(인스타그램)로 가도 인스타그램으로 확정하지 않음', () =>
+  assert.equal(matchItem(item({ href: 'https://www.instagram.com/x', rect: BIG }, { role: 'link' }), PAGE).decision, 'ai'));
+check('[0] 큰 요소라도 요소 자신의 단서가 분명하면 확정', () =>
+  assert.equal(matchItem(item({ href: '/notice', className: 'btn-more', rect: BIG }, { role: 'link' }), PAGE).label, '더보기'));
+check('[0] 큰 요소의 숫자 주소는 계속 콘텐츠형', () =>
+  assert.equal(matchItem(item({ href: '/product/7481213', rect: BIG }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] 넓은 검색창(712×36)은 큰 요소가 아님', () =>
+  assert.equal(matchItem(item({ className: 'search-bar', rect: { x: 0, y: 0, w: 712, h: 36 } }), PAGE).label, '검색'));
+
 check('[1] 다른 사이트: 인스타그램', () =>
   assert.equal(matchItem(item({ href: 'https://www.instagram.com/x' }, { role: 'link' }), PAGE).label, '인스타그램'));
 check('[1] 기호 x보다 주소(X 트위터)가 우선', () =>

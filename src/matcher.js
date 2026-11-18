@@ -4,6 +4,7 @@
 //
 // 판별 순서 (위에서부터, 걸리면 멈춤)
 //   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
+//       큰 요소(배너·카드, 0.6.0)        주소는 단서로 쓰지 않음 → 자기 단서로 확정이 안 되면 AI로
 //   [1] F1 다른 사이트     도메인 목록에 있으면 확정
 //   [2] F2 홈              지금 사이트와 같은 곳의 첫 화면이면 확정
 //   [3] F3 사전 점수       직접 단서가 있고 35점 이상, 2등과 15점 이상 차이 → 확정
@@ -137,8 +138,15 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   //   (예: e-class 게시판 "+" 링크 view.php?id=147981 + class btn-more → 더보기)
   //   주소 단어는 쓰지 않는다: '/login?trcid=812431326273' 같은 배너는 계속 콘텐츠형.
   const contentLike = realUrl && CONTENT_RE.test(href);
+  // 큰 요소 (0.6.0): 배너·카드는 주소가 "어디로 가는지"만 말하고 "무엇인지"는 말해 주지 않는다.
+  //   (예: 카피킬러 인용 검증 배너 href="/login?success_return_url=/citation-verify" → "로그인"이 아님)
+  //   그래서 주소(F1·F2·경로 단어)는 쓰지 않고 요소 자신의 단서로만 판단하며, 확정이 안 되면 AI로 넘긴다.
+  //   기능 버튼은 작다: 수집 데이터 161개 중 사전으로 확정된 요소는 높이가 모두 60px 이하였다.
+  const r = c.rect;
+  const large = Boolean(r) && r.w >= T.largeMinWidth && r.h >= T.largeMinHeight;
+  const urlUnusable = contentLike || large;
 
-  if (!contentLike && url && (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname) {
+  if (!urlUnusable && url && (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname) {
     const host = url.hostname.toLowerCase();
     if (registrable(host) !== registrable(pageHost)) {
       // [1] F1 다른 사이트 링크
@@ -156,7 +164,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const sameSite = url && registrable(url.hostname || pageHost) === registrable(pageHost);
   const notCommon = (t) => !common.cls.has(t);   // 페이지 공통 단어 빼기 (class 쪽)
   const src = {
-    path: sameSite && !contentLike ? tokenize(url.pathname) : [],
+    path: sameSite && !urlUnusable ? tokenize(url.pathname) : [],
     self: [...tokenize(c.id), ...classTokens(c.className)].filter(notCommon),
     icon: [...classTokens(c.iconClass).filter(notCommon), ...tokenize(fileStem(c.iconSrc))],
     data: dataTokens(c.dataAttrs).filter((t) => !common.data.has(t)),   // data- 속성 쪽은 따로
