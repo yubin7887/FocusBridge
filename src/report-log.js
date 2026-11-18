@@ -9,7 +9,7 @@ export function createReportLogger(output = console) {
         : previousStatus !== 'ok' ? previousStatus
         : entry.match.source === 'previous' ? 'hit' : 'miss',
       previousReason: fingerprints[index]?.reason,
-      match: entry.match.decision, label: entry.match.label,
+      match: entry.match.source ?? entry.match.decision, label: entry.match.label,
       selector: entry.selector,
     }));
     // Compare results, not timing, scan IDs, DOM identities, or AI cache bookkeeping.

@@ -911,7 +911,8 @@ try {
     assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
     assert.equal(linkScan.report.filter((item) => item.aiReused).length, 2);
     assert.equal(summaryTables.length, 1);
-    assert.ok(summaryTables[0].every((row) => row.previousMatch === 'ineligible' && row.label === '회전 설정 열기'));
+    assert.ok(summaryTables[0].every((row) => row.previousMatch === 'ineligible'
+      && row.match === 'ai' && row.label === '회전 설정 열기'));
     assert.equal(detailTables.length, 1);
     assert.equal(detailTables[0].length, 2);
     assert.ok(detailTables[0].every((row) => row.reused === false));
@@ -957,6 +958,7 @@ try {
     await Promise.all(loggedTables);
     assert.equal(summaryTables.length, 2);
     assert.equal(summaryTables[1].length, 5);
+    assert.equal(summaryTables[1].find((row) => row.selector === '#extra-control').match, 'confirm');
     await page.locator('#extra-control').evaluate((element) => { element.className = 'close'; });
     await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report
       .find((row) => row.selector === '#extra-control')?.match.label === '닫기');

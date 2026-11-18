@@ -17,7 +17,21 @@ test('the summary shows the final AI label even when previous matching is inelig
   assert.equal(log(result, fingerprints, 10, 'TOP'), true);
   assert.equal(tables[0][0].previousMatch, 'ineligible');
   assert.equal(tables[0][0].label, '좋아요 수');
+  assert.equal(tables[0][0].match, 'ai');
+  assert.equal(result.report[0].match.decision, 'confirm');
+});
+
+test('only dictionary confirmations display confirm, while previous matches display previous', () => {
+  const { tables, log, result, fingerprints } = fixture();
+  delete result.report[0].match.source;
+  log(result, fingerprints, 10, 'TOP');
   assert.equal(tables[0][0].match, 'confirm');
+  result.report[0].match.source = 'previous';
+  fingerprints[0] = { eligible: true };
+  log(result, fingerprints, 20, 'TOP');
+  assert.equal(tables[1][0].match, 'previous');
+  assert.equal(tables[1][0].previousMatch, 'hit');
+  assert.equal(result.report[0].match.decision, 'confirm');
 });
 
 test('identical results are suppressed despite new DOM objects, timing, geometry, and cache metadata', () => {
@@ -36,7 +50,8 @@ for (const [name, change] of [
   ['detected name', (result) => { result.report[0].currentName = '12'; }],
   ['status', (result) => { result.report[0].status = 'meaningless'; }],
   ['role', (result) => { result.report[0].role = 'link'; }],
-  ['decision', (result) => { result.report[0].match.decision = 'ai'; }],
+  ['decision', (result) => { result.report[0].match = { decision: 'content', label: null }; }],
+  ['match source', (result) => { delete result.report[0].match.source; }],
   ['selector', (result) => { result.report[0].selector = '#other'; }],
   ['target count', (result) => { result.targets.push({}); }],
   ['missing element removed', (result) => { result.missing = []; result.report = []; }],
