@@ -21,11 +21,11 @@ test('the summary shows the final AI label even when previous matching is inelig
   assert.equal(result.report[0].match.decision, 'confirm');
 });
 
-test('only dictionary confirmations display confirm, while previous matches display previous', () => {
+test('dictionary confirmations display rule, while previous matches display previous', () => {
   const { tables, log, result, fingerprints } = fixture();
   delete result.report[0].match.source;
   log(result, fingerprints, 10, 'TOP');
-  assert.equal(tables[0][0].match, 'confirm');
+  assert.equal(tables[0][0].match, 'rule');
   result.report[0].match.source = 'previous';
   fingerprints[0] = { eligible: true };
   log(result, fingerprints, 20, 'TOP');

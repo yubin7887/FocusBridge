@@ -958,7 +958,7 @@ try {
     await Promise.all(loggedTables);
     assert.equal(summaryTables.length, 2);
     assert.equal(summaryTables[1].length, 5);
-    assert.equal(summaryTables[1].find((row) => row.selector === '#extra-control').match, 'confirm');
+    assert.equal(summaryTables[1].find((row) => row.selector === '#extra-control').match, 'rule');
     await page.locator('#extra-control').evaluate((element) => { element.className = 'close'; });
     await read(() => JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report
       .find((row) => row.selector === '#extra-control')?.match.label === '닫기');
