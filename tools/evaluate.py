@@ -30,6 +30,8 @@ def is_ad(url, data_attrs):
         for k, v in parse_qsl(url.query, keep_blank_values=True):
             if (k.lower() in AD_KEYS and v.strip()) or AD_WORD_RE.search(v): return True
     return any(n.lower().startswith(p) for n in (data_attrs or {}) for p in _AD['dataAttrPrefixes'])
+_DOTS = _CFG['slideDots']   # 슬라이드 점 (matcher.js와 같음)
+DOT_WORDS = set(_DOTS['classWords'])
 IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)
 
 def file_stem(src):
@@ -130,6 +132,10 @@ def judge(item, page_url, common=NO_COMMON):
     # [A] 광고 (0.6.0): 실제 주소가 있는 링크 자신에 광고 표시가 있으면 "광고"로 확정
     if role == 'link' and real_url and is_ad(url, c.get('dataAttrs')):
         return ('AD', _AD['label'], {})
+    # [D] 슬라이드 점 (0.6.0): 주소 없는 숫자 이름 + 점 묶음 class
+    if not real_url and re.fullmatch(r'\d{1,2}', (item.get('currentName') or '').strip()) \
+       and any(t in DOT_WORDS for cls in (c.get('className'), c.get('parentClass'), c.get('ancestorClass')) for t in class_tokens(cls)):
+        return ('DOT', _DOTS['label'], {})
     # [0] 콘텐츠형 가려내기 (#17): 주소에 숫자가 길면 콘텐츠형 후보.
     #     요소 자신(class·id·아이콘·data-)의 단서로 [3]이 확정되면 그 기능, 아니면 콘텐츠형. 주소 단어는 쓰지 않음.
     content_like = bool(real_url and re.search(r'\d{%d,}' % CONTENT_DIGITS, href))

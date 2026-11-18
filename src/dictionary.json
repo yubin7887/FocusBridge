@@ -100,6 +100,10 @@
     "valueWords": ["ads", "advert", "advertisement", "sponsored"],
     "dataAttrPrefixes": ["data-ad-", "data-ads", "data-advert"]
   },
+  "slideDots": {
+    "label": "슬라이드",
+    "classWords": ["dot", "dots", "bullet", "bullets", "indicator", "indicators"]
+  },
   "ignoredDataAttrs": [
     "data-state",
     "data-disabled",

@@ -1,7 +1,7 @@
 // ③ 기능 사전 매칭 단위 테스트 (브라우저 없이 Node로 실행)
 import assert from 'node:assert/strict';
 import { tokenize, fileStem } from '../src/tokenizer.js';
-import { matchItem, matchAll, pageCommon, numberAds } from '../src/matcher.js';
+import { matchItem, matchAll, pageCommon, numberAds, numberLabels } from '../src/matcher.js';
 
 let pass = 0, fail = 0;
 function check(title, fn) {
@@ -193,6 +193,32 @@ check('광고 번호: numberAds를 다시 불러도 1부터 다시 센다', () =
   const report = [adLink('/a?adType=DA'), adLink('/b?adType=DA')];
   matchAll(report, CP); numberAds(report);
   assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '광고 2']);
+});
+
+// ── 슬라이드 점 (0.6.0, #16 쿠팡 AI 요청 횟수): 숫자 이름 + 점 묶음 class → "슬라이드 N" ──
+const dot = (n, extra = {}) => item({ href: '#', ancestorClass: 'dot-navi best-product-list', ...extra },
+  { role: 'link', status: 'meaningless', currentName: String(n) });
+check('슬라이드 점: 쿠팡 dot-navi의 0~7 → 슬라이드 1~8, 묶음이 바뀌면 다시 1부터', () => {
+  const report = [...[0, 1, 2, 3, 4, 5, 6, 7].map((n) => dot(n)), ...[0, 1, 2].map((n) => dot(n))];
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label),
+    ['슬라이드 1', '슬라이드 2', '슬라이드 3', '슬라이드 4', '슬라이드 5', '슬라이드 6', '슬라이드 7', '슬라이드 8', '슬라이드 1', '슬라이드 2', '슬라이드 3']);
+});
+check('슬라이드 점: 1부터 시작하는 묶음은 그대로 (slick-dots 1, 2, 3)', () => {
+  const report = [1, 2, 3].map((n) => item({ parentClass: 'slick-dots' }, { status: 'meaningless', currentName: String(n) }));
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label), ['슬라이드 1', '슬라이드 2', '슬라이드 3']);
+});
+check('슬라이드 점 아님: 쪽 번호(pagination)와 실제 주소가 있는 숫자 링크', () => {
+  assert.notEqual(matchItem(item({ href: '#', ancestorClass: 'pagination' }, { role: 'link', status: 'meaningless', currentName: '2' }), CP).pattern, 'DOT');
+  assert.notEqual(matchItem(dot(2, { href: '/list?page=2' }), CP).pattern, 'DOT');
+});
+check('슬라이드 점 아님: 점 묶음 안이라도 이름이 숫자가 아니면 (빈 이름)', () =>
+  assert.notEqual(matchItem(item({ href: '#', ancestorClass: 'dot-navi' }, { role: 'link' }), CP).pattern, 'DOT'));
+check('numberLabels는 광고와 슬라이드 점 번호를 함께 붙인다', () => {
+  const report = [adLink('/a?adType=DA'), dot(0), dot(1), adLink('/b?adType=DA')];
+  matchAll(report, CP); numberLabels(report);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '슬라이드 1', '슬라이드 2', '광고 2']);
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);
