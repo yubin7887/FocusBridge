@@ -11,7 +11,7 @@
     "test:all": "npm test && npm run test:match && npm run test:previous",
     "test:previous": "node test/previous-fingerprint.mjs && node test/previous-store.mjs && node test/previous-flow.mjs",
     "test:extension": "npm run build && node test/previous-extension.mjs",
-    "test:ai": "node --test test/message-page.mjs test/ai-groq.mjs test/ai-icon.mjs test/ai-image-source.mjs test/report-log.mjs && npm run build && node test/ai-extension.mjs"
+    "test:ai": "node --test test/message-page.mjs test/ai-groq.mjs test/ai-icon.mjs test/ai-image-source.mjs test/ai-flow-log.mjs test/report-log.mjs && npm run build && node test/ai-extension.mjs"
   },
   "dependencies": {
     "dom-accessibility-api": "^0.7.0"
