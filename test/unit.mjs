@@ -1,7 +1,7 @@
 // ③ 기능 사전 매칭 단위 테스트 (브라우저 없이 Node로 실행)
 import assert from 'node:assert/strict';
 import { tokenize, fileStem } from '../src/tokenizer.js';
-import { matchItem, matchAll, pageCommon } from '../src/matcher.js';
+import { matchItem, matchAll, pageCommon, numberAds, numberLabels } from '../src/matcher.js';
 
 let pass = 0, fail = 0;
 function check(title, fn) {
@@ -180,6 +180,61 @@ check('상태 속성과 함께 있는 기능 단서는 그대로 쓴다 (data-st
 check('진짜 닫기 단서는 그대로 닫기 (data-testid="close-button", class="modal-close")', () => {
   assert.equal(matchItem(item({ dataAttrs: { 'data-testid': 'close-button' } }), PAGE).label, '닫기');
   assert.equal(matchItem(item({ className: 'modal-close' }), PAGE).label, '닫기');
+});
+
+// ── 광고 (0.6.0, #16): 링크 자신에 광고 표시가 있으면 "광고 N" (AI 없이) ──
+const CP = 'https://www.coupang.com/';
+const adLink = (href, extra = {}) => item({ href, ...extra }, { role: 'link' });
+check('광고: 주소의 adType=DA → 광고', () =>
+  assert.equal(matchItem(adLink('/np/campaigns/82?adType=DA&eventId=6FcSyADwoVn7xuT5'), CP).pattern, 'AD'));
+check('광고: 주소 값의 display_ads → 광고 (숫자 주소라도 콘텐츠형보다 우선)', () =>
+  assert.equal(matchItem(adLink('https://shop.coupang.com/ottogi/294249?source=brandstore_display_ads'), CP).label, '광고'));
+check('광고: data-adsplatform 속성 → 광고', () =>
+  assert.equal(matchItem(adLink('/x', { dataAttrs: { 'data-adsplatform': '{}' } }), CP).pattern, 'AD'));
+check('광고 아님: 광고 표시 없는 자체 기획전 (promotion-banner 안)', () =>
+  assert.notEqual(matchItem(adLink('https://www.coupang.com/np/campaigns/1440', { parentClass: 'promotion-banner' }), CP).pattern, 'AD'));
+check('광고 아님: utm_medium=non_paid, from=home_ad_banner, data-add-to-cart', () => {
+  assert.notEqual(matchItem(adLink('https://wing.coupang.com/signup?utm_medium=non_paid'), CP).pattern, 'AD');
+  assert.notEqual(matchItem(adLink('/p?from=home_ad_banner'), CP).pattern, 'AD');
+  assert.notEqual(matchItem(adLink('/x', { dataAttrs: { 'data-add-to-cart': '1' } }), CP).pattern, 'AD');
+});
+check('광고 아님: 버튼은 광고 표시가 있어도 대상 아님 (광고 닫기·이전·다음 버튼 보호)', () =>
+  assert.notEqual(matchItem(item({ className: 'close', dataAttrs: { 'data-ad-slot': '1' } }), CP).pattern, 'AD'));
+check('광고 번호: 광고만 페이지 순서대로 광고 1, 광고 2', () => {
+  const report = [adLink('/a?adType=DA'), adLink('//cart.coupang.com/cartView.pang'), adLink('/b?adType=DA')];
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '장바구니', '광고 2']);
+});
+check('광고 번호: numberAds를 다시 불러도 1부터 다시 센다', () => {
+  const report = [adLink('/a?adType=DA'), adLink('/b?adType=DA')];
+  matchAll(report, CP); numberAds(report);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '광고 2']);
+});
+
+// ── 슬라이드 점 (0.6.0, #16 쿠팡 AI 요청 횟수): 숫자 이름 + 점 묶음 class → "슬라이드 N" ──
+const dot = (n, extra = {}) => item({ href: '#', ancestorClass: 'dot-navi best-product-list', ...extra },
+  { role: 'link', status: 'meaningless', currentName: String(n) });
+check('슬라이드 점: 쿠팡 dot-navi의 0~7 → 슬라이드 1~8, 묶음이 바뀌면 다시 1부터', () => {
+  const report = [...[0, 1, 2, 3, 4, 5, 6, 7].map((n) => dot(n)), ...[0, 1, 2].map((n) => dot(n))];
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label),
+    ['슬라이드 1', '슬라이드 2', '슬라이드 3', '슬라이드 4', '슬라이드 5', '슬라이드 6', '슬라이드 7', '슬라이드 8', '슬라이드 1', '슬라이드 2', '슬라이드 3']);
+});
+check('슬라이드 점: 1부터 시작하는 묶음은 그대로 (slick-dots 1, 2, 3)', () => {
+  const report = [1, 2, 3].map((n) => item({ parentClass: 'slick-dots' }, { status: 'meaningless', currentName: String(n) }));
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label), ['슬라이드 1', '슬라이드 2', '슬라이드 3']);
+});
+check('슬라이드 점 아님: 쪽 번호(pagination)와 실제 주소가 있는 숫자 링크', () => {
+  assert.notEqual(matchItem(item({ href: '#', ancestorClass: 'pagination' }, { role: 'link', status: 'meaningless', currentName: '2' }), CP).pattern, 'DOT');
+  assert.notEqual(matchItem(dot(2, { href: '/list?page=2' }), CP).pattern, 'DOT');
+});
+check('슬라이드 점 아님: 점 묶음 안이라도 이름이 숫자가 아니면 (빈 이름)', () =>
+  assert.notEqual(matchItem(item({ href: '#', ancestorClass: 'dot-navi' }, { role: 'link' }), CP).pattern, 'DOT'));
+check('numberLabels는 광고와 슬라이드 점 번호를 함께 붙인다', () => {
+  const report = [adLink('/a?adType=DA'), dot(0), dot(1), adLink('/b?adType=DA')];
+  matchAll(report, CP); numberLabels(report);
+  assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '슬라이드 1', '슬라이드 2', '광고 2']);
 });
 
 console.log(`\n${pass}/${pass + fail} passed`);

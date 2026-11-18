@@ -4,7 +4,7 @@ import { collectRoots, collectTargets } from './collector.js';
 import { findIcon } from './ai-payload.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
-import { pageCommon, matchItem } from './matcher.js';
+import { pageCommon, matchItem, numberLabels } from './matcher.js';
 import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
 import { createLabelController } from './apply-labels.js';
@@ -22,6 +22,9 @@ function extractContext(el) {
     iconClass: icon?.getAttribute('class') || null,
     iconSrc: icon?.getAttribute('src') || null,
     parentClass: parent?.getAttribute('class') || null,
+    // ③ 슬라이드 점 판별용: 부모 위 두 단계의 class (예: <ol class="dot-navi"><li><a>0</a></li></ol>)
+    ancestorClass: [parent?.parentElement, parent?.parentElement?.parentElement]
+      .map((n) => n?.getAttribute('class') || '').join(' ').trim().slice(0, 200) || null,
     parentText: (parent?.innerText || '').trim().slice(0, 100),
     prevSiblingText: (el.previousElementSibling?.innerText || '').trim().slice(0, 50),
     nextSiblingText: (el.nextElementSibling?.innerText || '').trim().slice(0, 50),
@@ -115,6 +118,7 @@ export async function scan(root = document) {
     report[i].match = matchPrevious(fingerprints[i], previous.records)
       || matchItem(report[i], pageUrl, common);
   }
+  numberLabels(report); // 광고 1, 광고 2… / 슬라이드 점 번호
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
