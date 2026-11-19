@@ -20,10 +20,12 @@ function looksLikeFilename(name) {
   return /\.(png|jpe?g|gif|svg|webp|ico)$/i.test(name) || /^https?:\/\//i.test(name);
 }
 
+
 /**
  * 하나의 요소에 대해 이름 상태를 판정
  * @returns {{ status: 'ok'|'empty'|'meaningless', name: string, role: string }}
  */
+ /*
 export function checkName(el) {
   const role = getRole(el);
   const name = normalize(computeAccessibleName(el));
@@ -49,6 +51,36 @@ export function checkName(el) {
   }
   return { status: 'ok', name, role };
 }
+*/
+// 넓은 meaningless 규칙(단어 목록·기호·파일명). 오탐이 많아 비활성화
+const USE_BROAD_RULES = false;
+
+/**
+ * 하나의 요소에 대해 이름 상태를 판정
+ * @returns {{ status: 'ok'|'empty'|'meaningless', name: string, role: string }}
+ */
+export function checkName(el) {
+  const role = getRole(el);
+  const name = normalize(computeAccessibleName(el));
+
+  if (name === '') return { status: 'empty', name, role };
+
+  // 숫자로만 된 이름: 슬라이드 점('0', '1' …). matcher.js의 슬라이드 점 이름 붙이기가 사용
+  if (/^\d+$/.test(name)) return { status: 'meaningless', name, role };
+
+  if (USE_BROAD_RULES) {
+    const lower = name.toLowerCase();
+    const onlySymbols = /^[\p{P}\p{S}\p{N}\s\uE000-\uF8FF]+$/u.test(name);
+    const visibleText = normalize(el.innerText).toLowerCase();
+    const isVisibleLabel = visibleText === lower;
+    const badWord = MEANINGLESS.has(lower) && !isVisibleLabel;
+    if (badWord || onlySymbols || looksLikeFilename(name)) {
+      return { status: 'meaningless', name, role };
+    }
+  }
+  return { status: 'ok', name, role };
+}
+
 // 링크가 글자 사이에 끼어 문장의 일부로 읽히는지 (예: "Merge pull request #15 from ...")
 function inSentence(el) {
   if (!getComputedStyle(el).display.startsWith('inline')) return false;
