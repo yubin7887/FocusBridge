@@ -3,10 +3,12 @@ import { AI_MODELS } from './ai-config.js';
 import { isCurrentMessagePage } from './message-page.js';
 import { captureIconCrops } from './ai-capture.js';
 import { buildIconSheet, iconImageData } from './ai-images.js';
+import { imageSourceUrl, loadSourceImages } from './ai-image-source.js';
 
 export const INFER_NAMES = 'focusbridge:ai:infer';
 export const SAVE_NAMES = 'focusbridge:ai:save';
 export const CAPTURE_ICONS = 'focusbridge:ai:capture-icons';
+export const LOAD_IMAGES = 'focusbridge:ai:load-images';
 
 // Only an AI result returned to the same document can be saved.
 export function createAiMessageHandler({ store, extensionId, readSettings, storageReady, infer = inferLabels, getFrame }) {
@@ -70,6 +72,15 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     const isCurrent = () => isCurrentMessagePage(pageKey, sender, extensionId, getFrame);
     if (!await isCurrent()) {
       return { status: 'invalid-request' };
+    }
+    if (message.type === LOAD_IMAGES) {
+      const items = message.items;
+      if (!Array.isArray(items) || !items.length || items.length > AI_BATCH_SIZE
+        || new Set(items.map((item) => item?.requestId)).size !== items.length
+        || items.some((item) => !/^[\da-f]{32}$/i.test(item?.requestId) || !imageSourceUrl(item?.url))) {
+        return { status: 'invalid-request' };
+      }
+      return loadSourceImages(items, isCurrent);
     }
     if (message.type === CAPTURE_ICONS) {
       const settings = await readSettings();
@@ -154,7 +165,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     return { ...response, results };
   }
   return (message, sender, sendResponse) => {
-    if (![INFER_NAMES, SAVE_NAMES, CAPTURE_ICONS].includes(message?.type)) return false;
+    if (![INFER_NAMES, SAVE_NAMES, CAPTURE_ICONS, LOAD_IMAGES].includes(message?.type)) return false;
     handle(message, sender).then(sendResponse, (error) => {
       sendResponse({ status: error?.name === 'TimeoutError' ? 'timeout' : 'api-error' });
     });

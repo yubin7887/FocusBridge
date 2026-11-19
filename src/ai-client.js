@@ -40,8 +40,8 @@ const accessibleNameSchema = {
 function iconParts(images, textPart, imagePart, iconSheet) {
   if (iconSheet) return [
     textPart('Match each numbered icon tile to its element using this mapping. '
-      + JSON.stringify([...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId })))),
-    imagePart(iconSheet),
+      + JSON.stringify(iconSheet.tiles ?? [...images.keys()].map((requestId, index) => ({ tile: index + 1, requestId })))),
+    imagePart(iconSheet.data ?? iconSheet),
   ];
   return [...images].flatMap(([id, data]) => [textPart('Icon for requestId ' + id), imagePart(data)]);
 }
@@ -78,7 +78,8 @@ const providers = {
       const text = JSON.stringify(elements);
       const textPart = (text) => ({ type: 'input_text', text });
       const content = images.size ? [textPart(text),
-        ...iconParts(images, textPart, (data) => ({ type: 'input_image', image_url: PNG_PREFIX + data, detail: 'low' }), iconSheet)] : null;
+        ...iconParts(images, textPart, (data) => ({ type: 'input_image', image_url: PNG_PREFIX + data,
+          detail: iconSheet?.width > 512 || iconSheet?.height > 512 ? 'high' : 'low' }), iconSheet)] : null;
       return {
         url: 'https://api.openai.com/v1/responses',
         headers: { Authorization: `Bearer ${apiKey}` },

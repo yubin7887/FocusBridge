@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -21,7 +21,9 @@
     "contentDigits": 5,
     "prefixMinLen": 5,
     "commonMinItems": 3,
-    "commonMinKinds": 3
+    "commonMinKinds": 3,
+    "largeMinWidth": 150,
+    "largeMinHeight": 80
   },
   "stopwords": [
     "btn",
@@ -94,6 +96,16 @@
     "highlighted",
     "focused"
   ],
+  "ads": {
+    "label": "광고",
+    "paramKeys": ["adtype", "ad_type", "adid", "ad_id"],
+    "valueWords": ["ads", "advert", "advertisement", "sponsored"],
+    "dataAttrPrefixes": ["data-ad-", "data-ads", "data-advert"]
+  },
+  "slideDots": {
+    "label": "슬라이드",
+    "classWords": ["dot", "dots", "bullet", "bullets", "indicator", "indicators"]
+  },
   "ignoredDataAttrs": [
     "data-state",
     "data-disabled",

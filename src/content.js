@@ -4,10 +4,11 @@ import { collectRoots, collectTargets } from './collector.js';
 import { findIcon } from './ai-payload.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
-import { pageCommon, matchItem } from './matcher.js';
+import { pageCommon, matchItem, numberLabels } from './matcher.js';
 import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
 import { createLabelController } from './apply-labels.js';
+import { createReportLogger } from './report-log.js';
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
@@ -21,6 +22,9 @@ function extractContext(el) {
     iconClass: icon?.getAttribute('class') || null,
     iconSrc: icon?.getAttribute('src') || null,
     parentClass: parent?.getAttribute('class') || null,
+    // ③ 슬라이드 점 판별용: 부모 위 두 단계의 class (예: <ol class="dot-navi"><li><a>0</a></li></ol>)
+    ancestorClass: [parent?.parentElement, parent?.parentElement?.parentElement]
+      .map((n) => n?.getAttribute('class') || '').join(' ').trim().slice(0, 200) || null,
     parentText: (parent?.innerText || '').trim().slice(0, 100),
     prevSiblingText: (el.previousElementSibling?.innerText || '').trim().slice(0, 50),
     nextSiblingText: (el.nextElementSibling?.innerText || '').trim().slice(0, 50),
@@ -56,6 +60,7 @@ function cssPath(el) {
 
 const lookupPrevious = createPreviousLookup();
 const labels = createLabelController();
+const logReport = createReportLogger();
 let generation = 0;
 let timer = null;
 let observedUrl = location.href;
@@ -113,27 +118,11 @@ export async function scan(root = document) {
     report[i].match = matchPrevious(fingerprints[i], previous.records)
       || matchItem(report[i], pageUrl, common);
   }
+  numberLabels(report); // 광고 1, 광고 2… / 슬라이드 점 번호
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
   const frame = window === window.top ? 'TOP' : 'iframe';
-  console.groupCollapsed(
-    `[FocusBridge] ${frame} ${location.href.slice(0, 80)} 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
-    //`[FocusBridge] 대상 ${targets.length}개 / 이름 누락 ${missing.length}개 (${elapsed.toFixed(1)}ms)`
-  );
-  console.table(report.map((r, i) => ({
-    no: i + 1, status: r.status, role: r.role, name: r.currentName,
-    previousMatch: previous.status === 'skipped' ? 'skipped'
-      : !fingerprints[i]?.eligible ? 'ineligible'
-      : previous.status !== 'ok' ? previous.status
-      : r.match.source === 'previous' ? 'hit' : 'miss',
-    previousReason: fingerprints[i]?.reason,
-    match: r.match.decision, label: r.match.label, // ③ 결과: confirm(확정)/ai/content
-    selector: r.selector,
-  })));
-  missing.forEach((m, i) => console.log(`#${i + 1}`, m.status, m.element));
-  console.groupEnd();
-
   showOverlay(missing);
   const result = { targets, missing, report, pageUrl, scanId, previousStatus: previous.status,
     withOriginalLabels: labels.withOriginalLabels };
@@ -141,7 +130,8 @@ export async function scan(root = document) {
   const isCurrent = () => scanId === generation && location.href === pageUrl;
   void resolveAiResults(result, fingerprints, isCurrent)
     .then((retryAt) => { if (isCurrent()) scheduleAiRetry(retryAt, pageUrl); })
-    .catch(() => { result.aiStatus = 'unavailable'; });
+    .catch(() => { result.aiStatus = 'unavailable'; })
+    .finally(() => { if (isCurrent()) logReport(result, fingerprints, elapsed, frame); });
   return result;
 }
 

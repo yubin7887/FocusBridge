@@ -4,7 +4,7 @@ src/matcher.js와 같은 규칙을 파이썬으로 옮긴 것. src/dictionary.js
 사용: python3 -I tools/evaluate.py test/data/real [--detail]
 """
 import json, os, re, sys
-from urllib.parse import urlsplit, urljoin
+from urllib.parse import urlsplit, urljoin, parse_qsl
 
 # ───────── 가중치·기준·사전: JS와 같은 src/dictionary.json을 읽는다 ─────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,10 +18,22 @@ CONTENT_DIGITS = _CFG['thresholds']['contentDigits']
 PREFIX_MIN = _CFG['thresholds']['prefixMinLen']
 COMMON_MIN_ITEMS = _CFG['thresholds']['commonMinItems']
 COMMON_MIN_KINDS = _CFG['thresholds']['commonMinKinds']
+LARGE_MIN_W = _CFG['thresholds']['largeMinWidth']
+LARGE_MIN_H = _CFG['thresholds']['largeMinHeight']
 DICT = _CFG['functions']
 SYMBOLS = _CFG['symbols']
 DOMAINS = _CFG['domains']
 STOP = set(_CFG['stopwords'])
+_AD = _CFG['ads']   # 광고 표시 (matcher.js의 isAd와 같음)
+AD_KEYS = set(_AD['paramKeys'])
+AD_WORD_RE = re.compile(r'(?:^|[_\-.])(?:%s)(?:[_\-.]|$)' % '|'.join(_AD['valueWords']), re.I)
+def is_ad(url, data_attrs):
+    if url:
+        for k, v in parse_qsl(url.query, keep_blank_values=True):
+            if (k.lower() in AD_KEYS and v.strip()) or AD_WORD_RE.search(v): return True
+    return any(n.lower().startswith(p) for n in (data_attrs or {}) for p in _AD['dataAttrPrefixes'])
+_DOTS = _CFG['slideDots']   # 슬라이드 점 (matcher.js와 같음)
+DOT_WORDS = set(_DOTS['classWords'])
 IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)
 
 def file_stem(src):
@@ -119,10 +131,21 @@ def judge(item, page_url, common=NO_COMMON):
     url = urlsplit(urljoin(page_url, href)) if real_url else None
     page_host = urlsplit(page_url).hostname or ''
 
+    # [A] 광고 (0.6.0): 실제 주소가 있는 링크 자신에 광고 표시가 있으면 "광고"로 확정
+    if role == 'link' and real_url and is_ad(url, c.get('dataAttrs')):
+        return ('AD', _AD['label'], {})
+    # [D] 슬라이드 점 (0.6.0): 주소 없는 숫자 이름 + 점 묶음 class
+    if not real_url and re.fullmatch(r'\d{1,2}', (item.get('currentName') or '').strip()) \
+       and any(t in DOT_WORDS for cls in (c.get('className'), c.get('parentClass'), c.get('ancestorClass')) for t in class_tokens(cls)):
+        return ('DOT', _DOTS['label'], {})
     # [0] 콘텐츠형 가려내기 (#17): 주소에 숫자가 길면 콘텐츠형 후보.
     #     요소 자신(class·id·아이콘·data-)의 단서로 [3]이 확정되면 그 기능, 아니면 콘텐츠형. 주소 단어는 쓰지 않음.
     content_like = bool(real_url and re.search(r'\d{%d,}' % CONTENT_DIGITS, href))
-    if not content_like and url and url.scheme in ('http', 'https') and url.hostname:
+    # 큰 요소(배너·카드, 0.6.0): 주소는 단서로 쓰지 않고, 확정이 안 되면 AI로 (matcher.js와 같음)
+    rect = c.get('rect')
+    large = bool(rect) and rect['w'] >= LARGE_MIN_W and rect['h'] >= LARGE_MIN_H
+    url_unusable = content_like or large
+    if not url_unusable and url and url.scheme in ('http', 'https') and url.hostname:
         host = url.hostname.lower()
         # [1] F1 다른 사이트 링크
         if registrable(host) != registrable(page_host):
@@ -135,7 +158,7 @@ def judge(item, page_url, common=NO_COMMON):
 
     # [3] F3 사전 매칭: 출처별 토큰 모으기
     src = {
-        'path': split_tokens(url.path) if url and not content_like and registrable(url.hostname or page_host) == registrable(page_host) else [],
+        'path': split_tokens(url.path) if url and not url_unusable and registrable(url.hostname or page_host) == registrable(page_host) else [],
         'self': [t for t in split_tokens(c.get('id')) + class_tokens(c.get('className')) if t not in common['cls']],
         'icon': [t for t in class_tokens(c.get('iconClass')) if t not in common['cls']] + split_tokens(file_stem(c.get('iconSrc'))),
         'data': [t for t in data_tokens(c.get('dataAttrs')) if t not in common['data']],
@@ -172,7 +195,7 @@ def judge(item, page_url, common=NO_COMMON):
 def main():
     d = sys.argv[1]; detail = '--detail' in sys.argv
     labs = {(o['site'], o['no']): o for o in json.load(open(os.path.join(d, 'labels.json'), encoding='utf-8'))}
-    tally = {'확정 정답': 0, '확정 오답': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
+    tally = {'확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
     rows = []
     for fn in sorted(os.listdir(d)):
         if not fn.endswith('.json') or fn == 'labels.json': continue
@@ -182,7 +205,11 @@ def main():
         for it in items:
             how, label, cand = judge(it, data['url'], common)
             exp = labs[(site, it['no'])]['expected']
-            if label:
+            if how == 'AD':
+                verdict = '광고 표시' if exp == 'ad' else '확정 오답'
+            elif exp == 'ad':
+                verdict = 'AI로 (놓침)'
+            elif label:
                 verdict = '확정 정답' if isinstance(exp, list) and label in exp else '확정 오답'
             elif how == 'content':
                 verdict = '콘텐츠 가려냄' if exp == 'content' else 'AI로 (놓침)'
