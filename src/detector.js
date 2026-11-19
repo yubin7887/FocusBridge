@@ -67,7 +67,7 @@ function adjacentText(el, dir) {
  * @param {Element[]} targets  collectTargets()의 결과
  * @param {{ includeMeaningless?: boolean }} opts
  */
-export function detectMissingNames(targets, { includeMeaningless = true } = {}) {
+export function detectMissingNames(targets, { includeMeaningless = false } = {}) {
   const missing = [];
   for (const el of targets) {
     const r = checkName(el);
