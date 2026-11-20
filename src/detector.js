@@ -1,7 +1,7 @@
 // ② 이름 누락 탐지
 // 브라우저가 스크린리더에 넘기는 "접근 가능한 이름(accessible name)"을
 // W3C accname 명세대로 계산해, 비었거나 의미 없는 요소를 골라낸다.
-import { computeAccessibleName, getRole } from 'dom-accessibility-api';
+import { computeAccessibleName, getRole , isInaccessible } from 'dom-accessibility-api';
 
 // 이름이 있긴 하지만 기능을 전혀 알려주지 못하는 값들
 // (확장 시 기능 사전 단계와 공유하도록 분리해도 됨)
@@ -20,38 +20,19 @@ function looksLikeFilename(name) {
   return /\.(png|jpe?g|gif|svg|webp|ico)$/i.test(name) || /^https?:\/\//i.test(name);
 }
 
-
-/**
- * 하나의 요소에 대해 이름 상태를 판정
- * @returns {{ status: 'ok'|'empty'|'meaningless', name: string, role: string }}
- */
- /*
-export function checkName(el) {
-  const role = getRole(el);
-  const name = normalize(computeAccessibleName(el));
-
-  if (name === '') return { status: 'empty', name, role };
-
-  const lower = name.toLowerCase();  
-  // 기호만 있는 이름: ")", "|", ">", 아이콘 폰트 문자 → 문맥과 무관하게 의미 없음
-  const onlySymbols = /^[\p{P}\p{S}\s\uE000-\uF8FF]+$/u.test(name);
-  // 숫자가 섞인 짧은 식별자: "#15", "0", "3/10" → 문장 속에 있으면 문맥으로 이해 가능
-  const numericId = !onlySymbols && /^[\p{P}\p{S}\p{N}\s]+$/u.test(name);
-
-  // 이름이 화면에 보이는 글자와 같으면, 일부러 붙인 메뉴 이름으로 보고 단어 목록 검사를 건너뜀
-  const visibleText = normalize(el.innerText).toLowerCase();
-  const isVisibleLabel = visibleText === lower;
-  const badWord = MEANINGLESS.has(lower) && !isVisibleLabel;
-
-  if (badWord || onlySymbols || looksLikeFilename(name)) {
-    return { status: 'meaningless', name, role };
+// 요소 안에서 스크린리더가 읽지 못하게 숨겨진 글자를 모은다 (display:none, visibility:hidden 등)
+function hiddenText(el) {
+  const parts = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+    const parent = t.parentElement;
+    if (!parent || parent.closest('script, style, template, noscript')) continue;
+    const text = normalize(t.textContent);
+    if (text && isInaccessible(parent)) parts.push(text);
   }
-  if (numericId && !inSentence(el)) {
-    return { status: 'meaningless', name, role };
-  }
-  return { status: 'ok', name, role };
+  return parts.join(' ');
 }
-*/
+
 // 넓은 meaningless 규칙(단어 목록·기호·파일명). 오탐이 많아 비활성화
 const USE_BROAD_RULES = false;
 
@@ -64,6 +45,14 @@ export function checkName(el) {
   const name = normalize(computeAccessibleName(el));
 
   if (name === '') return { status: 'empty', name, role };
+
+  // 진짜 이름은 숨겨지고 배지·상태 글자("N", "OFF")만 이름으로 남은 경우 → 이름이 없는 것과 같음
+  if (name.length <= 3) {
+    const hidden = hiddenText(el);
+    if (hidden && !name.includes(hidden)) {
+      return { status: 'empty', name, role, reason: 'hidden-name', hiddenText: hidden };
+    }
+  }
 
   // 숫자로만 된 이름: 슬라이드 점('0', '1' …). matcher.js의 슬라이드 점 이름 붙이기가 사용
   if (/^\d+$/.test(name)) return { status: 'meaningless', name, role };
