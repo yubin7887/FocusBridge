@@ -1,5 +1,6 @@
 import { createPageKey, exactFingerprintMatch } from './previous-fingerprint.js';
 import { LOOKUP_PREVIOUS } from './previous-messages.js';
+import { isUnhelpfulGeneratedName } from './detector.js';
 
 // 진행 중인 같은 페이지 조회만 공유한다. 완료 결과는 캐시하지 않는다.
 export function createPreviousLookup({ runtime = globalThis.chrome?.runtime, timeoutMs = 2000 } = {}) {
@@ -34,8 +35,9 @@ export function matchPrevious(fingerprint, records, time = Date.now()) {
   // 중복 응답도 모호한 기록으로 취급한다. 응답 수신 후 만료 여부를 다시 검사한다.
   if (candidates.length !== 1) return null;
   const record = candidates[0];
+  const label = typeof record.label === 'string' ? record.label.trim() : '';
   if (record.status !== 'active' || record.source !== 'ai'
     || !Number.isFinite(record.expiresAt) || record.expiresAt <= time
-    || typeof record.label !== 'string' || !record.label.trim() || record.label.length > 200) return null;
-  return { decision: 'confirm', pattern: 'P1', label: record.label, score: 0, candidates: [], source: 'previous' };
+    || !label || label.length > 200 || isUnhelpfulGeneratedName(label)) return null;
+  return { decision: 'confirm', pattern: 'P1', label, score: 0, candidates: [], source: 'previous' };
 }

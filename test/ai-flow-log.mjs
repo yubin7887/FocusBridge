@@ -3,7 +3,7 @@ import test from 'node:test';
 import { build } from 'esbuild';
 import { chromium } from 'playwright';
 
-test('the first response logs its image source once even when a newer scan reuses the pending request', async () => {
+async function checkPendingReuse(pending) {
   const bundle = await build({
     stdin: { contents: "export { scan } from './src/content.js';", resolveDir: process.cwd() },
     bundle: true, format: 'iife', globalName: 'flow', write: false,
@@ -17,9 +17,18 @@ test('the first response logs its image source once even when a newer scan reuse
     await page.route('https://example.com/**', (route) => route.fulfill({
       contentType: 'text/html', body: '<!doctype html><html lang="ko"><body>' + link + link + '</body></html>',
     }));
-    await page.addInitScript(() => {
+    await page.addInitScript((holdDecode) => {
       window.aiTables = [];
       window.inferMessages = [];
+      if (holdDecode) {
+        const decode = HTMLImageElement.prototype.decode;
+        HTMLImageElement.prototype.decode = async function () {
+          if (this.src.startsWith('data:image/svg+xml,') && !window.releaseDecode) {
+            await new Promise((resolve) => { window.releaseDecode = resolve; });
+          }
+          return decode.call(this);
+        };
+      }
       let detailGroup = false;
       const group = console.groupCollapsed.bind(console);
       const table = console.table.bind(console);
@@ -46,14 +55,18 @@ test('the first response logs its image source once even when a newer scan reuse
         if (message.type === 'focusbridge:ai:save') return { results: message.ids.map((requestId) => ({ requestId, status: 'saved' })) };
         return { images: [], status: 'capture-disabled' };
       } } };
-    });
+    }, pending === 'image preparation');
     await page.goto('https://example.com/first-log');
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    if (pending === 'image preparation') {
+      await page.waitForFunction(() => typeof window.releaseDecode === 'function');
+      await page.evaluate(async () => { await flow.scan(); releaseDecode(); });
+    }
     await page.waitForFunction(() => typeof releaseInference === 'function');
     assert.equal(await page.evaluate(() => aiTables.length), 0);
 
-    // The first scan becomes stale while its one API request is still in flight.
-    await page.evaluate(async () => { await flow.scan(); releaseInference(); });
+    if (pending === 'API response') await page.evaluate(async () => { await flow.scan(); });
+    await page.evaluate(() => releaseInference());
     await page.waitForFunction(() => window.__focusBridge?.report.length === 2
       && __focusBridge.report.every((row) => row.aiReused === true && row.labelApplied)
       && aiTables.length > 0);
@@ -75,4 +88,8 @@ test('the first response logs its image source once even when a newer scan reuse
     assert.equal(await page.evaluate(() => aiTables.length), 1);
     assert.equal(await page.evaluate(() => inferMessages.length), 1);
   } finally { await browser.close(); }
-});
+}
+
+for (const pending of ['image preparation', 'API response']) {
+  test(`a newer scan reuses pending ${pending} and logs the image source once`, () => checkPendingReuse(pending));
+}

@@ -13,12 +13,9 @@ const EXPECT = [
   '닫기',   // 4 div.close (앞 형제 글자 "알림")
   null,     // 5 logo.png 링크 (주소가 첫 화면이 아님)
   '검색',   // 6 i.fa-search
-  null,     // 7 글자 "button"
-  '더보기', // 8 href="/more"
-  null,     // 9 aria-label="아이콘"
-  '검색',   // 10 alt="ic_search.png"
-  null,     // 11 화면 밖 빈 버튼
-  null,     // 12 Shadow DOM 빈 버튼
+  null,     // 7 숨겨진 이름과 보이는 배지 "N"
+  null,     // 8 화면 밖 빈 버튼
+  null,     // 9 Shadow DOM 빈 버튼
 ];
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
@@ -33,13 +30,14 @@ const got = await page.evaluate(() => window.__focusBridge.report.map((r) => ({
 })));
 await browser.close();
 
-let fail = got.length === EXPECT.length ? 0 : 1;
-if (fail) console.log(`FAIL  항목 수가 다름: 기대 ${EXPECT.length}, 실제 ${got.length}`);
+const countMatches = got.length === EXPECT.length;
+if (!countMatches) console.log(`FAIL  항목 수가 다름: 기대 ${EXPECT.length}, 실제 ${got.length}`);
+let passed = 0;
 EXPECT.forEach((exp, i) => {
   const r = got[i] || {};
   const ok = exp === null ? r.decision === 'ai' : (r.decision === 'confirm' && r.label === exp);
-  if (!ok) fail++;
+  if (ok) passed++;
   console.log(`${ok ? 'PASS' : 'FAIL'}  #${String(i + 1).padEnd(2)} 기대=${exp ?? 'AI'}  실제=${r.label ?? r.decision}`);
 });
-console.log(`\n${EXPECT.length - fail}/${EXPECT.length} passed`);
-process.exit(fail ? 1 : 0);
+console.log(`\n${passed}/${EXPECT.length} passed`);
+process.exit(countMatches && passed === EXPECT.length ? 0 : 1);

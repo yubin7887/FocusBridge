@@ -14,6 +14,7 @@ check('기존 verification 메타데이터는 판정에 사용하지 않음',
 check('만료 경계에서 재사용 거부', !matchPrevious(fp, [record], 100));
 check('중복 기록 재사용 거부', !matchPrevious(fp, [record, record], 99));
 check('충돌 기록 재사용 거부', !matchPrevious(fp, [{ ...record, status: 'conflict' }], 99));
+check('기존 DB에 남은 일반 역할 이름 재사용 거부', !matchPrevious(fp, [{ ...record, label: 'button' }], 99));
 check('다른 원본 재사용 거부', !matchPrevious(fp, [{ ...record, fingerprintCanonical: 'other' }], 99));
 check('API 없는 환경에서도 실패 응답', (await createPreviousLookup({ runtime: {} })(fp.pageKey)).status === 'unavailable');
 check('통신 오류를 실패로 반환', (await createPreviousLookup({ runtime: { sendMessage: () => { throw Error(); } } })(fp.pageKey)).status === 'error');
@@ -100,9 +101,9 @@ try {
   await page.locator('button').evaluate((el) => el.setAttribute('aria-label', '사이트 검색'));
   await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
   check('사이트가 직접 지정한 새 이름은 유지', await page.getByRole('button', { name: '사이트 검색', exact: true }).count() === 1);
-  await start('<header id="header"><span id="old" hidden>버튼</span><button id="search" class="search" data-action="search" aria-labelledby="old"></button></header>');
+  await start('<header id="header"><span id="old" hidden>N</span><button id="search" class="search" data-action="search" aria-labelledby="old"><span hidden>검색 기능</span></button></header>');
   await finish();
-  check('의미 없는 aria-labelledby보다 복구 이름을 적용', await page.getByRole('button', { name: '검색', exact: true }).count() === 1);
+  check('배지만 읽히던 aria-labelledby 대신 짧은 복구 이름을 적용', await page.getByRole('button', { name: '검색', exact: true }).count() === 1);
   await page.locator('#old').evaluate((el) => { el.textContent = '상품 찾기'; });
   await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
   check('원래 참조가 의미 있는 이름을 제공하면 복원', await page.getByRole('button', { name: '상품 찾기', exact: true }).count() === 1
