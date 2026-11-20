@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -23,7 +23,9 @@
     "commonMinItems": 3,
     "commonMinKinds": 3,
     "largeMinWidth": 150,
-    "largeMinHeight": 80
+    "largeMinHeight": 80,
+    "hiddenNameMaxLen": 30,
+    "hiddenNameMaxWords": 5
   },
   "stopwords": [
     "btn",

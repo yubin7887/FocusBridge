@@ -3,6 +3,7 @@
 // DOM을 읽지 않는 순수 함수라서 브라우저 없이 Node에서도 테스트할 수 있다.
 //
 // 판별 순서 (위에서부터, 걸리면 멈춤)
+//   [H] 숨겨진 진짜 이름 (0.8.0) ②가 찾은 숨겨진 이름(hiddenText)이 짧은 이름 모양이면 그대로 쓴다
 //   [A] 광고 (0.6.0)       링크 자신의 주소·data- 속성에 광고 표시가 있으면 "광고 1", "광고 2"… (AI 없이 확정)
 //       콘텐츠형 중 배너 (0.7.0)       그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 1"…
 //   [D] 슬라이드 점 (0.6.0) 숫자만 있는 이름('0', '1'…) + 점 묶음 class(dot·bullet·indicator) → "슬라이드 1"…
@@ -204,6 +205,19 @@ function contentResult(item, c) {
   return banner ? result('confirm', 'BANNER', BANNER.label, 100) : result('content', 'C');
 }
 
+// 숨겨진 진짜 이름 (0.8.0): 진짜 이름은 화면 읽기에서 숨겨지고 배지·상태 글자("N", "0", "OFF")만 읽히는 요소.
+//   ②가 reason: 'hidden-name'과 숨겨진 글자(hiddenText)를 넘겨 준다 (예: 넥슨 "N" 배지 + 숨겨진 "넥슨현대카드").
+//   사이트가 직접 붙여 둔 이름이라 사전 추측보다 정확하므로 가장 먼저 본다.
+//   다만 짧은 이름 모양일 때만: 글자가 있고, hiddenNameMaxLen자 이하, hiddenNameMaxWords단어 이하.
+//   (숨겨진 하위 메뉴 전체처럼 긴 글은 이름이 아니므로 평소 판별로 넘긴다)
+function hiddenName(item) {
+  if (item.reason !== 'hidden-name') return null;
+  const text = (item.hiddenText || '').replace(/\s+/g, ' ').trim();
+  if (!text || !/\p{L}/u.test(text)) return null;
+  if ([...text].length > T.hiddenNameMaxLen || text.split(' ').length > T.hiddenNameMaxWords) return null;
+  return text;
+}
+
 const NO_COMMON = { cls: new Set(), data: new Set() };
 
 /**
@@ -221,6 +235,10 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   const realUrl = href !== '' && !href.startsWith('#') && !href.toLowerCase().startsWith('javascript:');
   const url = realUrl ? parseUrl(href, pageUrl) : null;
   const pageHost = parseUrl(pageUrl)?.hostname || '';
+
+  // [H] 숨겨진 진짜 이름 (0.8.0)
+  const hidden = hiddenName(item);
+  if (hidden) return result('confirm', 'H', hidden, 100);
 
   // [A] 광고 (0.6.0): 실제 주소가 있는 링크만. 광고 영역 안의 닫기·이전·다음 버튼은 해당하지 않는다.
   if (role === 'link' && realUrl && isAd(url, c.dataAttrs)) return result('confirm', 'AD', AD.label, 100);
