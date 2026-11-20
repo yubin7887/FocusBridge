@@ -103,7 +103,8 @@ try {
   check('사이트가 직접 지정한 새 이름은 유지', await page.getByRole('button', { name: '사이트 검색', exact: true }).count() === 1);
   await start('<header id="header"><span id="old" hidden>N</span><button id="search" class="search" data-action="search" aria-labelledby="old"><span hidden>검색 기능</span></button></header>');
   await finish();
-  check('배지만 읽히던 aria-labelledby 대신 짧은 복구 이름을 적용', await page.getByRole('button', { name: '검색', exact: true }).count() === 1);
+  // 사전 0.8.0: 숨겨진 진짜 이름("검색 기능")이 짧은 이름 모양이면 사전 결과("검색")보다 먼저 그대로 쓴다
+  check('배지만 읽히던 aria-labelledby 대신 짧은 복구 이름을 적용', await page.getByRole('button', { name: '검색 기능', exact: true }).count() === 1);
   await page.locator('#old').evaluate((el) => { el.textContent = '상품 찾기'; });
   await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
   check('원래 참조가 의미 있는 이름을 제공하면 복원', await page.getByRole('button', { name: '상품 찾기', exact: true }).count() === 1

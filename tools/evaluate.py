@@ -32,6 +32,14 @@ def is_ad(url, data_attrs):
         for k, v in parse_qsl(url.query, keep_blank_values=True):
             if (k.lower() in AD_KEYS and v.strip()) or AD_WORD_RE.search(v): return True
     return any(n.lower().startswith(p) for n in (data_attrs or {}) for p in _AD['dataAttrPrefixes'])
+HIDDEN_MAX_LEN = _CFG['thresholds']['hiddenNameMaxLen']
+HIDDEN_MAX_WORDS = _CFG['thresholds']['hiddenNameMaxWords']
+def hidden_name(item):   # 숨겨진 진짜 이름 (matcher.js의 hiddenName과 같음)
+    if item.get('reason') != 'hidden-name': return None
+    text = re.sub(r'\s+', ' ', item.get('hiddenText') or '').strip()
+    if not text or not re.search(r'[^\W\d_]', text): return None
+    if len(text) > HIDDEN_MAX_LEN or len(text.split(' ')) > HIDDEN_MAX_WORDS: return None
+    return text
 _BANNER = _CFG['bannerImages']   # 콘텐츠형 중 배너 (matcher.js의 contentResult와 같음)
 BANNER_WORDS = set(_BANNER['words'])
 def content_result(item, c):
@@ -143,6 +151,9 @@ def judge(item, page_url, common=NO_COMMON):
     url = urlsplit(urljoin(page_url, href)) if real_url else None
     page_host = urlsplit(page_url).hostname or ''
 
+    # [H] 숨겨진 진짜 이름 (0.8.0)
+    hidden = hidden_name(item)
+    if hidden: return ('H', hidden, {})
     # [A] 광고 (0.6.0): 실제 주소가 있는 링크 자신에 광고 표시가 있으면 "광고"로 확정
     if role == 'link' and real_url and is_ad(url, c.get('dataAttrs')):
         return ('AD', _AD['label'], {})

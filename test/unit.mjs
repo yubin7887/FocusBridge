@@ -266,5 +266,27 @@ check('배너 아님: 그림이 없는 링크', () =>
 check('배너 아님: AI로 가는 항목은 그대로 AI (숫자 4자리 /np/campaigns/1440)', () =>
   assert.equal(matchItem(bannerLink('https://www.coupang.com/np/campaigns/1440', { ancestorClass: 'promotion-banner' }), CP).decision, 'ai'));
 
+// ── 숨겨진 진짜 이름 (0.8.0): ②가 넘긴 hiddenText가 짧은 이름 모양이면 그대로 쓴다 ──
+const hiddenItem = (name, hiddenText, context = {}, extra = {}) =>
+  ({ status: 'empty', role: 'link', currentName: name, reason: 'hidden-name', hiddenText, context, ...extra });
+check('숨겨진 이름: 넥슨 "N" 배지 + 숨겨진 "넥슨현대카드" → 넥슨현대카드', () => {
+  const r = matchItem(hiddenItem('N', '넥슨현대카드', { href: 'https://www.nexon.com/card' }), 'https://www.nexon.com/Home/Game');
+  assert.equal(r.pattern, 'H'); assert.equal(r.label, '넥슨현대카드');
+});
+check('숨겨진 이름: 사전 단서보다 우선 (장바구니 배지 "0" + 숨겨진 "장바구니 담기")', () =>
+  assert.equal(matchItem(hiddenItem('0', '장바구니 담기', { href: '//cart.coupang.com/cartView.pang' }), CP).label, '장바구니 담기'));
+check('숨겨진 이름: 광고 표시가 있어도 사이트가 붙인 진짜 이름이 우선', () =>
+  assert.equal(matchItem(hiddenItem('N', '오뚜기 브랜드관', { href: '/a?adType=DA' }), CP).label, '오뚜기 브랜드관'));
+check('숨겨진 이름: 공백은 하나로 정리', () =>
+  assert.equal(matchItem(hiddenItem('N', '  새   알림 ', {}, { role: 'button' }), PAGE).label, '새 알림'));
+check('숨겨진 이름 안 씀: 숨겨진 하위 메뉴처럼 긴 글 (단어 6개 이상 / 30자 초과) → 평소 판별', () => {
+  assert.notEqual(matchItem(hiddenItem('N', '홈 게임 커뮤니티 고객센터 이벤트 쿠폰', {}, { role: 'button' }), PAGE).pattern, 'H');
+  assert.notEqual(matchItem(hiddenItem('N', '가'.repeat(31), {}, { role: 'button' }), PAGE).pattern, 'H');
+});
+check('숨겨진 이름 안 씀: 글자 없이 숫자·기호뿐', () =>
+  assert.notEqual(matchItem(hiddenItem('N', '1,234 / 99+', {}, { role: 'button' }), PAGE).pattern, 'H'));
+check('숨겨진 이름 안 씀: reason이 hidden-name이 아니면 hiddenText가 있어도 무시', () =>
+  assert.notEqual(matchItem({ ...hiddenItem('N', '알림'), reason: null }, PAGE).pattern, 'H'));
+
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);
