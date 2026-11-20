@@ -91,6 +91,22 @@ test('image loading rejects malformed, duplicate, and non-HTTP source requests',
   }
 });
 
+test('malformed inference and save IDs are rejected before inference or storage', async () => {
+  const { send, inferMessage, inferred, saved } = fixture();
+  const message = inferMessage(PAGE);
+  const item = message.items[0];
+  for (const items of [[null], [item, item], [{ ...item, payload: { requestId: [requestId] } }]]) {
+    assert.equal((await send({ ...message, items })).status, 'invalid-request');
+  }
+  assert.equal(inferred.length, 0);
+
+  assert.equal((await send(message)).status, 'ok');
+  const save = { type: SAVE_NAMES, pageKey: PAGE, ids: [[requestId]] };
+  assert.equal((await send(save)).status, 'invalid-request');
+  assert.equal(saved.length, 0);
+  assert.equal((await send({ ...save, ids: [requestId] })).results[0].status, 'saved');
+});
+
 test('a response from an earlier URL cannot issue a save ticket after SPA navigation', async () => {
   const { frame, send, inferMessage, saved, setInfer } = fixture();
   setInfer(async () => {

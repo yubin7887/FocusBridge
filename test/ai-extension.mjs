@@ -274,7 +274,7 @@ try {
   await browser.route('https://www.nexon.com/Home/Game*', (route) => route.fulfill({
     contentType: 'text/html; charset=utf-8',
     body: '<!doctype html><html lang="ko"><header><button id="spa-control" data-action="quantumspin">'
-      + '<i style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i>'
+      + '<i aria-hidden="true" style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i>'
       + '</button></header></html>',
   }));
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: true }));
@@ -344,7 +344,7 @@ try {
     body: '<!doctype html><html lang="ko"><main><div id="notion-toolbar">'
       + Array.from({ length: 3 }, (_, index) => '<div role="button" tabindex="0" id="notion-control-' + index
         + '" data-action="quantumspin" style="display:inline-block;margin:8px;width:32px;height:32px">'
-        + '<i style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i></div>').join('')
+        + '<i aria-hidden="true" style="display:block;width:20px;height:20px;color:transparent;background:rgb(12,34,56)">&#xE001;</i></div>').join('')
       + '</div></main></html>',
   }));
   await worker.evaluate(async () => {
@@ -645,7 +645,7 @@ try {
       <a id="public-cdn" href="/portfolio/b"><img src="https://images.example.test/public.png" width="120" height="40" alt=""></a>
       <a id="restricted-cdn" href="/portfolio/c"><img src="https://images.example.test/restricted.png"
         width="120" height="40" alt="" style="background:rgb(41,82,123)"></a>
-      <a id="url-link" href="/portfolio/d" style="height:48px;position:relative;left:-28px;background:rgb(53,106,159)">https://example.com/d</a>`,
+      <a id="url-link" href="/portfolio/d" style="height:48px;position:relative;left:-28px;background:rgb(53,106,159)"><span aria-hidden="true">https://example.com/d</span></a>`,
   }));
   await worker.evaluate(() => chrome.storage.local.set({ iconCaptureEnabled: false }));
   await page.goto('https://example.com/image-links');

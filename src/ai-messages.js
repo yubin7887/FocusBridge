@@ -10,6 +10,10 @@ export const SAVE_NAMES = 'focusbridge:ai:save';
 export const CAPTURE_ICONS = 'focusbridge:ai:capture-icons';
 export const LOAD_IMAGES = 'focusbridge:ai:load-images';
 
+function isRequestId(value) {
+  return typeof value === 'string' && /^[\da-f]{32}$/i.test(value);
+}
+
 // Only an AI result returned to the same document can be saved.
 export function createAiMessageHandler({ store, extensionId, readSettings, storageReady, infer = inferLabels, getFrame }) {
   const completed = new Map();
@@ -77,7 +81,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
       const items = message.items;
       if (!Array.isArray(items) || !items.length || items.length > AI_BATCH_SIZE
         || new Set(items.map((item) => item?.requestId)).size !== items.length
-        || items.some((item) => !/^[\da-f]{32}$/i.test(item?.requestId) || !imageSourceUrl(item?.url))) {
+        || items.some((item) => !isRequestId(item?.requestId) || !imageSourceUrl(item?.url))) {
         return { status: 'invalid-request' };
       }
       return loadSourceImages(items, isCurrent);
@@ -94,7 +98,9 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
       if (entry.expires <= now) completed.delete(token);
     }
     if (message.type === SAVE_NAMES) {
-      if (!Array.isArray(message.ids) || message.ids.length > AI_BATCH_SIZE) return { status: 'invalid-request' };
+      if (!Array.isArray(message.ids) || message.ids.length > AI_BATCH_SIZE || !message.ids.every(isRequestId)) {
+        return { status: 'invalid-request' };
+      }
       const results = [];
       for (const requestId of message.ids) {
         const token = prefix + requestId;
@@ -110,14 +116,16 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
     }
     const items = message.items;
     if (!Array.isArray(items) || !items.length || items.length > AI_BATCH_SIZE) return { status: 'invalid-request' };
-    const ids = new Set();
-    for (const { payload, fingerprint } of items) {
-      if (!payload || !/^[\da-f]{32}$/i.test(payload.requestId) || ids.has(payload.requestId)
+    const fingerprints = new Map();
+    for (const item of items) {
+      const payload = item?.payload;
+      const fingerprint = item?.fingerprint;
+      if (!isRequestId(payload?.requestId) || fingerprints.has(payload.requestId)
         || (fingerprint && (fingerprint.eligible !== true || fingerprint.pageKey !== pageKey
           || typeof fingerprint.canonical !== 'string' || fingerprint.canonical.length > 16000))) {
         return { status: 'invalid-request' };
       }
-      ids.add(payload.requestId);
+      fingerprints.set(payload.requestId, fingerprint);
     }
     const payloads = items.map(({ payload }) => payload);
     if (JSON.stringify(payloads).length > MAX_AI_PAYLOAD) return { status: 'invalid-request' };
@@ -157,7 +165,7 @@ export function createAiMessageHandler({ store, extensionId, readSettings, stora
       return { status: 'stale', model: settings.model };
     }
     for (const { requestId, label } of results) {
-      const fingerprint = items.find(({ payload }) => payload.requestId === requestId)?.fingerprint;
+      const fingerprint = fingerprints.get(requestId);
       if (!label || !fingerprint) continue;
       if (completed.size >= 512) completed.delete(completed.keys().next().value);
       completed.set(prefix + requestId, { label, fingerprint, expires: Date.now() + 60000 });

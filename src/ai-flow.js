@@ -63,6 +63,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     const request = shared ?? cached ?? { signature, payload: { requestId: newRequestId(), ...evidence }, fingerprint, linkKey };
     if (linkKey) pendingLinks.set(linkKey, request);
     request.isCurrent = isCurrent;
+    if (!shared) request.imageElement = element;
     return [{ element, entry, request, reused: Boolean(shared || cached) }];
   }));
 
@@ -72,19 +73,25 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     const fresh = freshWork(batch);
     if (fresh.length) {
       const send = network.then(async () => {
-        if (!fresh.some(({ request }) => request.isCurrent())) return { status: 'stale' };
-        const captured = isCurrent() ? await collectAiIcons(fresh, async (viewport, rects) => {
-          if (!isCurrent()) return { images: [], status: 'scan-changed' };
+        // A newer scan can take ownership of a pending request during image preparation.
+        const active = fresh.filter(({ request }) => request.isCurrent())
+          .map(({ request }) => ({ request, element: request.imageElement }));
+        if (!active.length) return { status: 'stale' };
+        const sameImageTarget = ({ request, element }) => request.isCurrent() && request.imageElement === element;
+        const captured = await collectAiIcons(active, async (viewport, rects) => {
+          if (!active.every(sameImageTarget)) return { images: [], status: 'scan-changed' };
           return runtime.sendMessage({ type: CAPTURE_ICONS, pageKey, viewport, rects });
-        }, async (items) => {
-          if (!isCurrent()) return { images: [] };
-          return runtime.sendMessage({ type: LOAD_IMAGES, pageKey, items });
-        }).catch(() => null) : null;
-        const current = fresh.filter(({ request }) => request.isCurrent());
+        }, async (sources) => {
+          const currentIds = new Set(active.filter(sameImageTarget).map(({ request }) => request.payload.requestId));
+          const items = sources.filter(({ requestId }) => currentIds.has(requestId));
+          return items.length ? runtime.sendMessage({ type: LOAD_IMAGES, pageKey, items }) : { images: [] };
+        }).catch(() => null);
+        const current = active.filter(({ request }) => request.isCurrent());
         if (!current.length) return { status: 'stale' };
         try {
-          const items = current.map(({ request }) => {
-            const image = isCurrent() ? captured?.images.get(request.payload.requestId)?.() : undefined;
+          const items = current.map((item) => {
+            const { request } = item;
+            const image = sameImageTarget(item) ? captured?.images.get(request.payload.requestId)?.() : undefined;
             request.imageSource = image?.source;
             return { payload: request.payload, fingerprint: request.fingerprint, image: image?.data };
           });
@@ -93,7 +100,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
           return await runtime.sendMessage({ type: INFER_NAMES, pageKey, items, imageStatus });
         } catch { return { status: 'unavailable' }; }
       });
-      network = send.then(() => {});
+      network = send.then(() => {}, () => {});
       for (const { element, request } of fresh) {
         request.expires = Infinity;
         if (request.linkKey) {
@@ -120,10 +127,11 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       }
       return;
     }
+    const failure = replies.find(({ status }) => status !== 'ok');
+    result.aiStatus = failure?.status ?? 'ok';
     const ready = batch.flatMap((item, i) => {
       const { entry } = item;
       const { status, label, model, httpStatus, requestCount } = replies[i];
-      result.aiStatus = status;
       entry.aiStatus = status === 'ok' ? (label ? 'stale-element' : 'no-label') : status;
       entry.aiModel = model;
       entry.aiHttpStatus = httpStatus;
@@ -206,7 +214,6 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       console.groupEnd();
       for (const { request } of firstResults) loggedResponses.add(request);
     }
-    const failure = replies.find(({ status }) => status !== 'ok');
     if (failure) return failure.status === 'service-unavailable' ? failure.retryAt : undefined;
   }
 }

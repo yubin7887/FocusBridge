@@ -1,4 +1,4 @@
-import { checkName } from './detector.js';
+import { checkName, isUnhelpfulGeneratedName } from './detector.js';
 import { TARGET_ROLES } from './collector.js';
 
 // Track exactly the attributes we wrote so that later page changes retain ownership.
@@ -65,6 +65,7 @@ export function createLabelController() {
     if (applied.has(element)) return true;
     const label = typeof match.label === 'string' ? match.label.trim().replace(/\s+/g, ' ') : '';
     if (!label || label.length > 200 || /[\u0000-\u001f\u007f]/.test(label)) return false;
+    if (match.source === 'ai' && isUnhelpfulGeneratedName(label)) return false;
     const current = checkName(element);
     if (!TARGET_ROLES.has(current.role) || current.status === 'ok'
       || current.role !== expected.role || current.name !== expected.name || current.status !== expected.status) return false;
@@ -80,7 +81,9 @@ export function createLabelController() {
     // A valid aria-labelledby reference takes precedence over aria-label.
     if (checkName(element).name !== label && element.hasAttribute('aria-labelledby')) set('aria-labelledby', null);
     const named = checkName(element);
-    if (named.status !== 'ok' || named.name !== label) {
+    // A verified explicit label can be short even when the original control contains hidden text.
+    const repairedHiddenName = named.reason === 'hidden-name' && label !== current.name;
+    if (named.name !== label || (named.status !== 'ok' && !repairedHiddenName)) {
       restore(element, changes);
       return false;
     }
