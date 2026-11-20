@@ -4,6 +4,7 @@
 //
 // 판별 순서 (위에서부터, 걸리면 멈춤)
 //   [A] 광고 (0.6.0)       링크 자신의 주소·data- 속성에 광고 표시가 있으면 "광고 1", "광고 2"… (AI 없이 확정)
+//       콘텐츠형 중 배너 (0.7.0)       그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 1"…
 //   [D] 슬라이드 점 (0.6.0) 숫자만 있는 이름('0', '1'…) + 점 묶음 class(dot·bullet·indicator) → "슬라이드 1"…
 //   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
 //       큰 요소(배너·카드, 0.6.0)        주소는 단서로 쓰지 않음 → 자기 단서로 확정이 안 되면 AI로
@@ -155,13 +156,18 @@ const DOT_WORDS = new Set(DOTS.classWords);
 const NUMBER_NAME_RE = /^\d{1,2}$/;
 
 /**
- * 광고·슬라이드 점 번호 붙이기. matchItem은 항목 하나만 보므로, 순서가 필요한 이름은 report 전체를 보고 정한다.
+ * 광고·배너·슬라이드 점 번호 붙이기. matchItem은 항목 하나만 보므로, 순서가 필요한 이름은 report 전체를 보고 정한다.
  * - 광고: 페이지 순서대로 "광고 1", "광고 2"…
+ * - 배너: 페이지 순서대로 "배너 이미지 1", "배너 이미지 2"… (광고와 번호를 따로 센다)
  * - 슬라이드 점: 화면의 숫자를 그대로 쓰되, 0부터 시작하는 묶음(0, 1, 2…)은 1을 더해 "슬라이드 1"부터 읽히게 한다.
  *   숫자가 1씩 늘어나는 동안을 한 묶음으로 본다 (쿠팡은 카테고리마다 0~7이 반복된다).
  */
 export function numberLabels(report) {
   numberAds(report);
+  let banners = 0;
+  for (const item of report) {
+    if (item.match?.pattern === 'BANNER') item.match.label = `${BANNER.label} ${++banners}`;
+  }
   let group = [];
   const flush = () => {
     const base = Number(group[0]?.currentName) === 0 ? 1 : 0;
@@ -176,6 +182,26 @@ export function numberLabels(report) {
   }
   flush();
   return report;
+}
+
+// 콘텐츠형 중 배너 (0.7.0): 콘텐츠형은 사전도 AI도 이름을 붙이지 않아 화면 읽기에서 "링크"로만 읽혔다.
+//   그중 누가 봐도 배너인 것만 "배너 이미지 N"으로 알려 준다 (쿠팡 날개 영역의 자체 기획전 배너 등).
+//   조건을 모두 만족할 때만: 이름 없음(글자 없음) + 링크 안에 그림 + 옆·부모에 대신 읽을 글자 없음
+//   + 요소·부모·위 두 단계 class나 그림 주소에 배너 단어. 뉴스 사진·상품 카드처럼 옆에 제목이 있는 것은 제외한다.
+//   AI로 가는 항목(판정 ai)은 건드리지 않는다: AI가 그림을 보고 더 나은 이름을 붙일 수 있기 때문.
+const BANNER = DICT.bannerImages;
+const BANNER_WORDS = new Set(BANNER.words);
+//   또 하나: 안에 그림도 글자도 없는 큰 링크(배경 그림 위에 덮은 투명 링크, 예: 쿠팡 "오늘의 쇼핑 제안" 큰 그림)도 배너로 본다.
+function contentResult(item, c) {
+  const hasClue = (tokens) => tokens.some((t) => BANNER_WORDS.has(t));
+  const r = c.rect;
+  const noNear = ![c.prevSiblingText, c.nextSiblingText, c.parentText].some((t) => (t || '').trim());
+  const imageBanner = Boolean(c.iconSrc)
+    && ([c.id, c.className, c.parentClass, c.ancestorClass, c.iconClass].some((v) => hasClue(classTokens(v)))
+      || hasClue(tokenize(c.iconSrc)));
+  const overlay = !c.iconSrc && !c.iconClass && Boolean(r) && r.w >= T.largeMinWidth && r.h >= T.largeMinHeight;
+  const banner = item.status === 'empty' && noNear && (imageBanner || overlay);
+  return banner ? result('confirm', 'BANNER', BANNER.label, 100) : result('content', 'C');
 }
 
 const NO_COMMON = { cls: new Set(), data: new Set() };
@@ -266,7 +292,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
     const score = Object.values(evidence).reduce((a, b) => a + b, 0);
     if (score > 0) scored.push({ label: f.label, score, evidence });
   }
-  if (scored.length === 0) return contentLike ? result('content', 'C') : result('ai', null);
+  if (scored.length === 0) return contentLike ? contentResult(item, c) : result('ai', null);
 
   scored.sort((a, b) => b.score - a.score);
   const [best, second] = scored;
@@ -275,7 +301,7 @@ export function matchItem(item, pageUrl, common = NO_COMMON) {
   if (hasDirect && best.score >= T.confirm && best.score - (second?.score || 0) >= T.margin) {
     return result('confirm', 'F3', best.label, best.score, top);
   }
-  if (contentLike) return result('content', 'C');
+  if (contentLike) return contentResult(item, c);
   return result('ai', null, null, 0, top);
 }
 
