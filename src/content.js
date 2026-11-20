@@ -91,6 +91,8 @@ export async function scan(root = document) {
     status: m.status,
     role: m.role,
     currentName: m.name,
+    reason: m.reason ?? null,           // 'hidden-name'이면 진짜 이름이 숨겨진 경우
+    hiddenText: m.hiddenText ?? null,   // 숨겨진 진짜 이름 후보
     selector: cssPath(m.element),
     context: extractContext(m.element),
   }));
