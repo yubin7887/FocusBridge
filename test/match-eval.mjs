@@ -14,7 +14,7 @@ const dir = process.argv[2]
 const labels = new Map(JSON.parse(fs.readFileSync(path.join(dir, 'labels.json'), 'utf8'))
   .map((o) => [`${o.site}#${o.no}`, o]));
 
-const tally = { '확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0 };
+const tally = { '확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '배너 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0 };
 const problems = [];
 for (const fn of fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'labels.json').sort()) {
   const site = fn.replace(/(-main)?\.json$/, '');
@@ -25,7 +25,9 @@ for (const fn of fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 
     const r = matchItem(it, data.url, common);
     const exp = labels.get(`${site}#${it.no}`).expected;
     let verdict;
-    if (r.pattern === 'AD') verdict = exp === 'ad' ? '광고 표시' : '확정 오답';   // 광고 링크 → "광고 N"
+    if (r.pattern === 'BANNER') verdict = exp === 'banner' ? '배너 표시' : '확정 오답';   // 콘텐츠형 배너 → "배너 이미지 N"
+    else if (exp === 'banner') verdict = 'AI로 (놓침)';
+    else if (r.pattern === 'AD') verdict = exp === 'ad' ? '광고 표시' : '확정 오답';   // 광고 링크 → "광고 N"
     else if (exp === 'ad') verdict = 'AI로 (놓침)';
     else if (r.decision === 'confirm') verdict = Array.isArray(exp) && exp.includes(r.label) ? '확정 정답' : '확정 오답';
     else if (r.decision === 'content') verdict = exp === 'content' ? '콘텐츠 가려냄' : 'AI로 (놓침)';

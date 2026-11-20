@@ -264,7 +264,7 @@
     "pattern": "C2",
     "answer": null,
     "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
-    "expected": "content"
+    "expected": "banner"
   },
   {
     "site": "coupang",
@@ -273,7 +273,7 @@
     "pattern": "C2",
     "answer": null,
     "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
-    "expected": "content"
+    "expected": "banner"
   },
   {
     "site": "coupang",
@@ -282,7 +282,7 @@
     "pattern": "C2",
     "answer": null,
     "note": "배너 슬라이드 이미지. 이름은 그림 속 글자 (#5는 주소가 로그인 페이지인 홍보 배너)",
-    "expected": "content"
+    "expected": "banner"
   },
   {
     "site": "coupang",

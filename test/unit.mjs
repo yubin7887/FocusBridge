@@ -59,8 +59,8 @@ check('[0] 큰 배너가 다른 사이트(인스타그램)로 가도 인스타�
   assert.equal(matchItem(item({ href: 'https://www.instagram.com/x', rect: BIG }, { role: 'link' }), PAGE).decision, 'ai'));
 check('[0] 큰 요소라도 요소 자신의 단서가 분명하면 확정', () =>
   assert.equal(matchItem(item({ href: '/notice', className: 'btn-more', rect: BIG }, { role: 'link' }), PAGE).label, '더보기'));
-check('[0] 큰 요소의 숫자 주소는 계속 콘텐츠형', () =>
-  assert.equal(matchItem(item({ href: '/product/7481213', rect: BIG }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] 큰 요소의 숫자 주소는 계속 콘텐츠형 (큰 상품 사진 링크)', () =>
+  assert.equal(matchItem(item({ href: '/product/7481213', rect: BIG, iconSrc: '/img/goods/7481213.jpg' }, { role: 'link' }), PAGE).decision, 'content'));
 check('[0] 넓은 검색창(712×36)은 큰 요소가 아님', () =>
   assert.equal(matchItem(item({ className: 'search-bar', rect: { x: 0, y: 0, w: 712, h: 36 } }), PAGE).label, '검색'));
 
@@ -236,6 +236,35 @@ check('numberLabels는 광고와 슬라이드 점 번호를 함께 붙인다', (
   matchAll(report, CP); numberLabels(report);
   assert.deepEqual(report.map((r) => r.match.label), ['광고 1', '슬라이드 1', '슬라이드 2', '광고 2']);
 });
+
+// ── 콘텐츠형 중 배너 (0.7.0): 그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 N" ──
+const bannerLink = (href, extra = {}) => item({ href, iconSrc: 'https://image.coupangcdn.com/image/displayitem/x.jpg', ...extra }, { role: 'link' });
+check('배너: 쿠팡 날개 영역(promotion-banner) 자체 기획전 → 배너 이미지', () =>
+  assert.equal(matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner wa-sidebar' }), CP).pattern, 'BANNER'));
+check('배너: 그림 주소의 /banner/ 도 단서', () =>
+  assert.equal(matchItem(bannerLink('/mlp/web/mlp-landing-page?landingId=5418&trcid=812431344920',
+    { iconSrc: 'https://image4.coupangcdn.com/image/ccm/banner/73ae37c9.png' }), CP).pattern, 'BANNER'));
+check('배너 번호: 광고와 따로 세어 배너 이미지 1, 2', () => {
+  const report = [bannerLink('https://pages.coupang.com/p/179723', { parentClass: 'promo' }), adLink('/a?adType=DA'),
+    bannerLink('https://pages.coupang.com/p/164807', { parentClass: 'promo' })];
+  matchAll(report, CP);
+  assert.deepEqual(report.map((r) => r.match.label), ['배너 이미지 1', '광고 1', '배너 이미지 2']);
+});
+check('배너: 그림 없는 큰 투명 링크 (쿠팡 오늘의 쇼핑 제안 today-image, 1020×450)', () =>
+  assert.equal(matchItem(item({ href: 'https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5418&trcid=812431344920',
+    className: 'today-image', rect: { x: 135, y: 222, w: 1020, h: 450 } }, { role: 'link' }), CP).pattern, 'BANNER'));
+check('배너 아님: 그림 없는 작은 링크, 또는 옆에 제목이 있는 큰 투명 링크(카드 덮개)', () => {
+  assert.equal(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 100, h: 40 } }, { role: 'link' }), CP).decision, 'content');
+  assert.equal(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 300, h: 300 }, nextSiblingText: '상품 이름' }, { role: 'link' }), CP).decision, 'content');
+});
+check('배너 아님: 옆에 제목 글자가 있는 사진 링크 (뉴스 사진·상품 카드)', () =>
+  assert.equal(matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner', prevSiblingText: '기사 제목' }), CP).decision, 'content'));
+check('배너 아님: 배너 단서가 없는 그림 링크 (상품 사진)', () =>
+  assert.equal(matchItem(bannerLink('https://www.musinsa.com/products/4012345'), 'https://www.musinsa.com/').decision, 'content'));
+check('배너 아님: 그림이 없는 링크', () =>
+  assert.equal(matchItem(item({ href: 'https://pages.coupang.com/p/179723', ancestorClass: 'promotion-banner' }, { role: 'link' }), CP).decision, 'content'));
+check('배너 아님: AI로 가는 항목은 그대로 AI (숫자 4자리 /np/campaigns/1440)', () =>
+  assert.equal(matchItem(bannerLink('https://www.coupang.com/np/campaigns/1440', { ancestorClass: 'promotion-banner' }), CP).decision, 'ai'));
 
 console.log(`\n${pass}/${pass + fail} passed`);
 process.exit(fail ? 1 : 0);

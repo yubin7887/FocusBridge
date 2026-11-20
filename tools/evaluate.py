@@ -32,6 +32,18 @@ def is_ad(url, data_attrs):
         for k, v in parse_qsl(url.query, keep_blank_values=True):
             if (k.lower() in AD_KEYS and v.strip()) or AD_WORD_RE.search(v): return True
     return any(n.lower().startswith(p) for n in (data_attrs or {}) for p in _AD['dataAttrPrefixes'])
+_BANNER = _CFG['bannerImages']   # 콘텐츠형 중 배너 (matcher.js의 contentResult와 같음)
+BANNER_WORDS = set(_BANNER['words'])
+def content_result(item, c):
+    has_clue = lambda toks: any(t in BANNER_WORDS for t in toks)
+    no_near = not any((c.get(k) or '').strip() for k in ('prevSiblingText', 'nextSiblingText', 'parentText'))
+    image_banner = bool(c.get('iconSrc')) \
+        and (any(has_clue(class_tokens(c.get(k))) for k in ('id', 'className', 'parentClass', 'ancestorClass', 'iconClass'))
+             or has_clue(split_tokens(c.get('iconSrc'))))
+    r = c.get('rect') or {}
+    overlay = not c.get('iconSrc') and not c.get('iconClass') and (r.get('w') or 0) >= LARGE_MIN_W and (r.get('h') or 0) >= LARGE_MIN_H   # 큰 투명 링크
+    banner = item['status'] == 'empty' and no_near and (image_banner or overlay)
+    return ('BANNER', _BANNER['label'], {}) if banner else ('content', None, {})
 _DOTS = _CFG['slideDots']   # 슬라이드 점 (matcher.js와 같음)
 DOT_WORDS = set(_DOTS['classWords'])
 IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)
@@ -183,19 +195,19 @@ def judge(item, page_url, common=NO_COMMON):
         if any(tx in t for t in near_texts for tx in f['texts']) or \
            any(hit(t, k) for t in near_class for k in f['tokens']): got['near'] = W['near']
         if got: scores[f['label']] = (sum(got.values()), got)
-    if not scores: return ('content', None, {}) if content_like else ('AI', None, {})
+    if not scores: return content_result(item, c) if content_like else ('AI', None, {})
     ranked = sorted(scores.items(), key=lambda kv: -kv[1][0])
     best_label, (best, got) = ranked[0]
     second = ranked[1][1][0] if len(ranked) > 1 else 0
     if best >= CONFIRM and (DIRECT & set(got)) and best - second >= MARGIN:
         return ('F3', best_label, dict(ranked))
-    if content_like: return ('content', None, {})
+    if content_like: return content_result(item, c)
     return ('AI', None, dict(ranked))
 
 def main():
     d = sys.argv[1]; detail = '--detail' in sys.argv
     labs = {(o['site'], o['no']): o for o in json.load(open(os.path.join(d, 'labels.json'), encoding='utf-8'))}
-    tally = {'확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
+    tally = {'확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '배너 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
     rows = []
     for fn in sorted(os.listdir(d)):
         if not fn.endswith('.json') or fn == 'labels.json': continue
@@ -205,7 +217,11 @@ def main():
         for it in items:
             how, label, cand = judge(it, data['url'], common)
             exp = labs[(site, it['no'])]['expected']
-            if how == 'AD':
+            if how == 'BANNER':
+                verdict = '배너 표시' if exp == 'banner' else '확정 오답'
+            elif exp == 'banner':
+                verdict = 'AI로 (놓침)'
+            elif how == 'AD':
                 verdict = '광고 표시' if exp == 'ad' else '확정 오답'
             elif exp == 'ad':
                 verdict = 'AI로 (놓침)'

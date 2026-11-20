@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "weights": {
     "path": 40,
     "self": 35,
@@ -101,6 +101,10 @@
     "paramKeys": ["adtype", "ad_type", "adid", "ad_id"],
     "valueWords": ["ads", "advert", "advertisement", "sponsored"],
     "dataAttrPrefixes": ["data-ad-", "data-ads", "data-advert"]
+  },
+  "bannerImages": {
+    "label": "배너 이미지",
+    "words": ["banner", "banners", "bnr", "promotion", "promo"]
   },
   "slideDots": {
     "label": "슬라이드",
