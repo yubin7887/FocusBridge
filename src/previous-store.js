@@ -81,13 +81,14 @@ export function createPreviousStore({ dbName = 'focusbridge', now = Date.now } =
         const existing = request.result;
         // DB 열기/트랜잭션 대기 시간이 아니라 실제 기록 판정 시각을 사용한다.
         const time = now();
-        const active = existing && existing.expiresAt > time;
+        const unexpired = existing && existing.expiresAt > time;
         // 해시가 같아도 원본이 다르면 만료 여부와 무관하게 같은 요소로 취급하지 않는다.
         if (existing && (existing.fingerprintCanonical !== fingerprint.canonical
-          || (active && (existing.status === 'conflict' || existing.label !== label.trim())))) {
+          || (unexpired && existing.status === 'conflict'))) {
           store.put({ ...existing, status: 'conflict', updatedAt: time });
           done({ status: 'conflict' });
-        } else if (active) {
+        } else if (unexpired) {
+          // A late AI result must not invalidate an exact, reusable record.
           done({ status: 'unchanged', expiresAt: existing.expiresAt });
         } else {
           const record = {
