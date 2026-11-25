@@ -5,7 +5,8 @@ import { chromium } from 'playwright';
 const bundle = await build({
   stdin: { contents: `export * from './src/previous-store.js';
     export * from './src/previous-fingerprint.js';
-    export * from './src/previous-messages.js';`, resolveDir: process.cwd() },
+    export * from './src/previous-messages.js';
+    export { createPreviousLookup, matchPrevious } from './src/previous-matcher.js';`, resolveDir: process.cwd() },
   bundle: true, format: 'iife', globalName: 'previous', write: false,
 });
 const browser = await chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
@@ -17,14 +18,30 @@ try {
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   const results = await page.evaluate(async () => {
     const { createPreviousStore, createFingerprint, RECORD_TTL_MS,
-      createPreviousMessageHandler, LOOKUP_PREVIOUS } = previous;
+      createPreviousMessageHandler, LOOKUP_PREVIOUS, createPreviousLookup, matchPrevious } = previous;
     const rows = [];
     const check = (title, value) => { rows.push([title, Boolean(value)]); };
     const rejects = async (fn) => { try { await fn(); return false; } catch { return true; } };
     const fingerprint = createFingerprint(document.getElementById('cart'));
     check('실제 DOM에서 저장 가능한 Fingerprint 생성', fingerprint.eligible);
     let time = 1000000000;
-    let store = createPreviousStore({ dbName: 'focusbridge-test', now: () => time });
+    const dbName = 'focusbridge-test';
+    let store = createPreviousStore({ dbName, now: () => time });
+    const seedLegacyConflict = async (name, record) => {
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(name, 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('confirmedLabels', 'readwrite');
+          tx.oncomplete = resolve;
+          tx.onabort = () => reject(tx.error);
+          tx.objectStore('confirmedLabels').put({ ...record, status: 'conflict' });
+        });
+      } finally { db.close(); }
+    };
     const input = { fingerprint, label: '장바구니', source: 'ai' };
     check('처음 방문한 페이지는 빈 기록', (await store.lookupPage(fingerprint.pageKey)).length === 0);
     check('사전 매칭 결과 저장 거부', await rejects(() => store.saveAiResult({ ...input, source: 'dictionary' })));
@@ -42,7 +59,7 @@ try {
     time += 1000;
     check('중복 저장은 만료 연장하지 않음', (await store.saveAiResult(input)).expiresAt === first.expiresAt);
     await store.close();
-    store = createPreviousStore({ dbName: 'focusbridge-test', now: () => time });
+    store = createPreviousStore({ dbName, now: () => time });
     check('연결을 다시 열어도 기록 유지', (await store.lookupPage(fingerprint.pageKey)).length === 1);
     time = first.expiresAt - 1;
     check('만료 직전 조회 가능', (await store.lookupPage(fingerprint.pageKey)).length === 1);
@@ -53,7 +70,18 @@ try {
     check('만료된 이름은 새 AI 이름으로 교체', replaced.status === 'saved'
       && (await store.lookupPage(fingerprint.pageKey))[0]?.label === '주문하기');
     check('교체 시점부터 새로운 7일 적용', replaced.expiresAt === time + RECORD_TTL_MS);
-    check('유효한 기록에 다른 이름 저장 시 충돌 처리', (await store.saveAiResult({ ...input, label: '삭제' })).status === 'conflict');
+    const beforeTimeout = (await store.lookupPage(fingerprint.pageKey))[0];
+    const lookup = createPreviousLookup({ timeoutMs: 5, runtime: { sendMessage: () => new Promise(() => {}) } });
+    const timedOut = await lookup(fingerprint.pageKey);
+    check('조회 타임아웃이면 그 검사에서는 저장 이름을 받지 못함', timedOut.status === 'timeout' && timedOut.records.length === 0);
+    time += 1000;
+    const lateSave = await store.saveAiResult({ ...input, label: '주문하기 버튼 열기' });
+    const nextVisit = await store.lookupPage(fingerprint.pageKey);
+    check('조회 지연 후 다른 AI 이름이 도착해도 기존 이름으로 다음 방문에 hit', lateSave.status === 'unchanged'
+      && matchPrevious(fingerprint, nextVisit, time)?.label === '주문하기');
+    check('뒤늦은 저장이 기존 기록의 시각을 바꾸지 않음', lateSave.expiresAt === beforeTimeout.expiresAt
+      && nextVisit[0]?.updatedAt === beforeTimeout.updatedAt);
+    await seedLegacyConflict(dbName, beforeTimeout);
     check('충돌 기록은 조회 결과에서 제외', (await store.lookupPage(fingerprint.pageKey)).length === 0);
     check('유효기간 중 재저장으로 충돌이 풀리지 않음', (await store.saveAiResult(input)).status === 'conflict');
     time += RECORD_TTL_MS * 2;
@@ -63,15 +91,19 @@ try {
     time += RECORD_TTL_MS;
     check('만료 후 같은 이름도 새 AI 결과로 갱신', (await store.saveAiResult(input)).status === 'saved');
     const concurrent = createPreviousStore({ dbName: 'focusbridge-concurrent', now: () => time });
-    await Promise.all([concurrent.saveAiResult(input), concurrent.saveAiResult({ ...input, label: '삭제' })]);
-    check('동시 저장도 상충 이름을 재사용하지 않음', (await concurrent.lookupPage(fingerprint.pageKey)).length === 0);
+    const candidates = [input, { ...input, label: '장바구니 열기' }];
+    const outcomes = await Promise.all(candidates.map((candidate) => concurrent.saveAiResult(candidate)));
+    const firstSaved = candidates[outcomes.findIndex(({ status }) => status === 'saved')];
+    const concurrentRecords = await concurrent.lookupPage(fingerprint.pageKey);
+    check('동시 저장에서 먼저 저장된 이름 한 개를 유지', outcomes.some(({ status }) => status === 'unchanged')
+      && concurrentRecords.length === 1 && concurrentRecords[0].label === firstSaved?.label);
     const cleanupName = 'focusbridge-cleanup';
     const cleanupStore = createPreviousStore({ dbName: cleanupName, now: () => time });
     const otherPage = 'https://example.com/other';
     const otherFingerprint = { ...fingerprint, pageKey: otherPage,
       canonical: JSON.stringify({ ...JSON.parse(fingerprint.canonical), pageKey: otherPage }) };
     await cleanupStore.saveAiResult(input);
-    await cleanupStore.saveAiResult({ ...input, label: '삭제' });
+    await seedLegacyConflict(cleanupName, (await cleanupStore.lookupPage(fingerprint.pageKey))[0]);
     time += 1000;
     await cleanupStore.saveAiResult({ ...input, fingerprint: otherFingerprint });
     const countRecords = async () => {
