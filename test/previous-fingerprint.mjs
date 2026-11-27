@@ -125,7 +125,9 @@ try {
     el = reset(); el.removeAttribute('data-action'); el.querySelector('svg').remove();
     record('ID·class·위치만 있는 빈 버튼 거부', capture(el).reason === 'insufficient-evidence');
     el = reset(); el.removeAttribute('data-action'); el.parentElement.removeAttribute('id');
-    record('부모 식별 단서 없는 아이콘 버튼 제외', capture(el).reason === 'insufficient-evidence');
+    record('부모 식별 단서가 없고 연결되지 않은 SVG 참조만 있으면 제외', capture(el).reason === 'insufficient-evidence');
+    el.querySelector('svg').innerHTML = '<path d="M0 0h8"/>';
+    record('부모 ID가 없어도 고유한 자기 ID와 유효한 아이콘으로 구분', capture(el).eligible);
     el = reset(); el.removeAttribute('data-action'); el.removeAttribute('id'); el.after(el.cloneNode(true));
     record('완화된 후보도 중복되면 거부', capture(el).reason === 'ambiguous-element');
 
@@ -189,7 +191,29 @@ try {
     const otherKeyboard = document.querySelector('main button');
     otherKeyboard.id = 'keyboard';
     otherKeyboard.classList.add('other');
-    record('버튼 자체의 ID가 중복되면 제외', capture(keyboardButton).reason === 'duplicate-id');
+    record('버튼 ID가 중복돼도 서로 다른 영역과 아이콘으로 구분', capture(keyboardButton).eligible);
+
+    const scopedActions = '<header><button id="cart" data-action="open-panel"></button></header>'
+      + '<footer><button id="cart" data-action="open-panel"></button></footer>';
+    reset(scopedActions);
+    let scopedButtons = [...document.querySelectorAll('button')];
+    const [headerButton, footerButton] = scopedButtons.map(capture);
+    record('동일한 중복 ID 버튼을 헤더와 푸터에서 별도로 저장',
+      headerButton.eligible && footerButton.eligible && !match(headerButton, footerButton));
+    reset(scopedActions);
+    scopedButtons = [...document.querySelectorAll('button')];
+    record('영역별 버튼 재생성 시 각 지문과 정확히 일치',
+      match(headerButton, capture(scopedButtons[0])) && match(footerButton, capture(scopedButtons[1])));
+    scopedButtons[0].after(scopedButtons[0].cloneNode(true));
+    record('같은 영역 안에서 구별 불가능한 중복 버튼은 제외', capture(scopedButtons[0]).reason === 'ambiguous-element');
+    el = reset('<div><button id="cart"></button></div><div><span id="cart"></span></div>');
+    record('중복 ID 이외에 동작 단서가 없는 버튼은 제외', !capture(el).eligible);
+
+    el = reset('<div><div id="cart" role="tab" aria-controls="content"></div></div><section id="content">설정</section>');
+    const panelTab = capture(el);
+    record('고유 패널과 연결된 탭은 별도 아이콘 없이 저장', panelTab.eligible);
+    document.querySelector('#content').id = 'other-content';
+    record('패널 연결이 유일한 단서이면 미해결 참조를 제외', capture(el).reason === 'ambiguous-reference');
 
     el = reset(); el.removeAttribute('id'); el.after(el.cloneNode(true));
     record('위치만 다른 동일 버튼 거부', capture(el).reason === 'ambiguous-element');
@@ -225,9 +249,24 @@ try {
     record('옆 요소의 잘못된 URL 원래 값이 바뀌면 불일치', !match(nearbyInvalidUrl, capture(el)));
     el.setAttribute('href', 'http://[');
     record('검사 대상 자체의 깨진 링크 주소는 제외', !capture(el).eligible);
+    el = reset('<nav><a id="cart" data-command="open-widget" href="http://["></a></nav>');
+    const badUrlWithCommand = capture(el);
+    record('독립적인 동작이 선언된 링크는 깨진 주소 원문과 함께 저장',
+      badUrlWithCommand.eligible && badUrlWithCommand.canonical.includes('http://['));
+    el.setAttribute('href', 'http://]');
+    record('깨진 목적지 원문이 바뀌면 불일치', !match(badUrlWithCommand, capture(el)));
+    el.setAttribute('data-command', 'true');
+    record('의미가 없는 상태값만으로 깨진 주소를 허용하지 않음', !capture(el).eligible);
+    el = reset('<nav><a id="cart" href="/cart"><img src="http://[" alt=""></a></nav>');
+    record('유효한 목적지 링크의 깨진 아이콘 주소를 포함해 저장', capture(el).eligible);
+    record('유효한 메일 링크도 목적지로 저장', capture(reset('<a id="cart" href="mailto:help@example.com"></a>')).eligible);
+    record('유효한 전화 링크도 목적지로 저장', capture(reset('<a id="cart" href="tel:+821012345678"></a>')).eligible);
     el = reset('<nav><a id="cart" href="/cart"></a></nav><aside></aside>');
     document.querySelector('aside').innerHTML = '<a href="/catalog"></a>'.repeat(2000);
     record('2,000개 넘는 링크가 있어도 목적지로 후보를 좁혀 비교', match(link, capture(el)));
+    el = reset();
+    document.body.insertAdjacentHTML('beforeend', '<aside>' + '<button data-action="other"></button>'.repeat(2000) + '</aside>');
+    record('2,000개 넘는 버튼에서 동작과 ID가 다른 후보를 제외', match(saved, capture(el)));
 
     const badges = '<section><a class="badge" href="/store?app=one"></a><a class="badge" href="/store?app=two"></a></section>';
     reset(badges + badges);
@@ -253,6 +292,8 @@ try {
     const top = capture(reset(topLink));
     record('페이지에서 유일한 #top 링크 수집', top.eligible);
     record('같은 #top 링크를 다시 수집하면 정확히 일치', match(top, capture(reset(topLink))));
+    el = reset(`${topLink}<aside>${'<a href="/catalog"></a>'.repeat(2000)}</aside>`);
+    record('일반 링크가 많아도 문서 내 앵커 후보만 확인', match(top, capture(el)));
     el = reset('<section id="details"></section><footer><a id="cart" href="#details"></a></footer>');
     const fragmentLink = capture(el);
     record('문서에 유일한 대상이 있는 앵커 링크 수집', fragmentLink.eligible);
@@ -278,8 +319,27 @@ try {
     record('참조 대상 수집', reference.eligible);
     target.textContent = '삭제';
     record('참조 대상 문맥 변경 거부', !match(reference, capture(el)));
+    const secondPanel = target.cloneNode(); secondPanel.textContent = '검색';
+    target.after(secondPanel);
+    const duplicatedReference = capture(el);
+    record('독립적인 동작이 있는 버튼에서 중복 참조 전체를 기록', duplicatedReference.eligible);
+    target.before(secondPanel);
+    record('중복 참조 대상의 순서가 달라지면 불일치', !match(duplicatedReference, capture(el)));
+    secondPanel.remove();
     target.remove();
-    record('사라진 참조 대상 거부', capture(el).reason === 'ambiguous-reference');
+    const missingReference = capture(el);
+    record('독립적인 동작이 있는 버튼에서 없는 ARIA 대상도 상태로 저장', missingReference.eligible);
+    document.body.append(target);
+    record('빠졌던 대상이 나타나면 기존 라벨 재사용 거부', !match(missingReference, capture(el)));
+    target.remove();
+    el.removeAttribute('data-action');
+    record('동작 단서 없이 사라진 ARIA 대상은 제외', capture(el).reason === 'ambiguous-reference');
+    el = reset('<form id="form"><input id="cart" type="button" data-action="open-widget"></form><form id="form"></form>');
+    const inputButton = capture(el);
+    record('동작이 선언된 입력형 버튼을 저장', inputButton.eligible);
+    record('입력형 버튼의 value는 지문에 저장하지 않음', !inputButton.canonical.includes('"value"'));
+    el.setAttribute('form', 'form');
+    record('중복 form 연결은 별도 동작이 있어도 제외', capture(el).reason === 'ambiguous-reference');
     el = reset();
     record('Fingerprint 버전 변경 거부', !match({ ...saved, version: 0 }, capture(el)));
     const frame = document.createElement('iframe'); document.body.append(frame);

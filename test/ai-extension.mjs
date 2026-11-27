@@ -111,9 +111,14 @@ try {
           request.signal.addEventListener('abort', () => reject(request.signal.reason), { once: true });
         });
       }
-      const results = inputs.map(({ requestId, attributes, destination, visual, page }) => {
+      const results = inputs.map(({ requestId, attributes, destination, visual, context, page }) => {
         if (destination?.href === '#top') return { requestId, label: '맨 위로 이동' };
         if (page?.title === 'YouTube 키보드 테스트') return { requestId, label: '가상 키보드' };
+        if (page?.title === '이전 매칭 단서 테스트') {
+          const label = attributes?.id === 'stack-widget' ? context.heading + ' 열기'
+            : attributes?.id === 'bad-destination' ? '도구 열기' : '설정 탭 열기';
+          return { requestId, label };
+        }
         if (page?.title === '무료 이미지 배경 지우기') {
           const label = visual?.pattern === 'checkerboard' ? '투명 배경 선택'
             : visual?.pattern === 'conic gradient' ? '배경 색상 선택'
@@ -877,6 +882,46 @@ try {
       ?.report.some(({ match }) => match.source === 'previous' && match.label === '가상 키보드'));
     assert.equal(await worker.evaluate(() => requests.length), requestsBeforeKeyboardRevisit);
     console.log('PASS 중복 컨테이너 ID가 있는 가상 키보드 저장 및 재방문 재사용');
+
+    const scopedControl = '<button id="stack-widget" data-action="quantumspin" aria-controls="panel"><img src="http://[" alt=""></button>';
+    const recoveredControlFixture = '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>이전 매칭 단서 테스트</title></head><body>'
+      + '<header><h2>상단 도구</h2>' + scopedControl + '</header><footer><h2>하단 도구</h2>' + scopedControl + '</footer>'
+      + '<nav><a id="bad-destination" data-command="cycle" href="http://["></a></nav>'
+      + '<section><div role="tab" tabindex="0" aria-controls="settings-panel"></div></section>'
+      + '<div><section id="panel">공통 패널</section><section id="panel">보조 패널</section>'
+      + '<section id="settings-panel">설정</section></div></body></html>';
+    await browser.route('https://example.com/recovered-controls', (route) => route.fulfill({
+      contentType: 'text/html', body: recoveredControlFixture,
+    }));
+    const beforeRecoveredControls = await worker.evaluate(() => requests.length);
+    await page.goto('https://example.com/recovered-controls');
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.every((row) => row.labelApplied && row.aiStorage === 'saved');
+    });
+    const expectedLabels = ['상단 도구 열기', '하단 도구 열기', '도구 열기', '설정 탭 열기'];
+    assert.deepEqual((await stored(page.url())).map(({ label }) => label).sort(), [...expectedLabels].sort());
+    assert.equal(await worker.evaluate(() => requests.length), beforeRecoveredControls + 1);
+    await page.reload();
+    const recoveredReport = await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.every((row) => row.labelApplied && row.match.source === 'previous') && report;
+    });
+    assert.deepEqual((await recoveredReport.jsonValue()).map(({ match }) => match.label), expectedLabels);
+    assert.equal(await worker.evaluate(() => requests.length), beforeRecoveredControls + 1);
+    await page.locator('#bad-destination').evaluate((link) => link.setAttribute('href', 'http://]'));
+    await waitForStorage('#bad-destination', 'saved');
+    assert.equal(await worker.evaluate(() => requests.length), beforeRecoveredControls + 2);
+    assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 1);
+    await page.locator('[id="panel"]').first().evaluate((panel) => { panel.textContent = '새 패널'; });
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.filter((row) => row.aiStorage === 'saved').length === 2
+        && report.filter((row) => row.match.source === 'previous').length === 2;
+    });
+    assert.equal(await worker.evaluate(() => requests.length), beforeRecoveredControls + 3);
+    assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
+    console.log('PASS 중복 ID와 ARIA 참조·깨진 URL·탭을 DB로 복구, 달라진 동작 단서만 다시 요청');
 
     const shareableStoreLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
       + '<a class="store-badge" href="/page/mlink?store=playstore"></a></section>';
