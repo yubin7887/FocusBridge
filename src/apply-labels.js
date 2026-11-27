@@ -39,6 +39,16 @@ export function createLabelController() {
     applied.clear();
   }
 
+  function keepOnly(elements) {
+    if (!applied.size) return;
+    const keep = new Set(elements);
+    for (const [element, changes] of applied) {
+      if (keep.has(element)) continue;
+      restore(element, changes);
+      applied.delete(element);
+    }
+  }
+
   function withOriginalLabels(read) {
     if (!applied.size) return read();
     const restorable = [];
@@ -62,8 +72,15 @@ export function createLabelController() {
 
   function apply(element, match, expected) {
     if (!element?.isConnected || match?.decision !== 'confirm') return false;
-    if (applied.has(element)) return true;
     const label = typeof match.label === 'string' ? match.label.trim().replace(/\s+/g, ' ') : '';
+    const oldChanges = applied.get(element);
+    if (oldChanges) {
+      if (element.getAttribute('aria-label') === label
+        && oldChanges.every(({ attr, after }) => element.getAttribute(attr) === after)
+        && checkName(element).name === label) return true;
+      restore(element, oldChanges);
+      applied.delete(element);
+    }
     if (!label || label.length > 200 || /[\u0000-\u001f\u007f]/.test(label)) return false;
     if (match.source === 'ai' && isUnhelpfulGeneratedName(label)) return false;
     const current = checkName(element);
@@ -98,5 +115,5 @@ export function createLabelController() {
     }
   }
 
-  return { applyMatches, ownMutation, restoreAll, withOriginalLabels };
+  return { applyMatches, keepOnly, ownMutation, restoreAll, withOriginalLabels };
 }

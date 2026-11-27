@@ -116,6 +116,34 @@ try {
   });
   await page.waitForFunction(() => window.__focusBridge?.report);
   check('동일 페이지 연속 검사에서 최신 검사만 게시', await page.evaluate(async () => (await latest).scanId === __focusBridge.scanId));
+  await start(`<main><ul class="promotion-banner">
+    <li><a id="banner-a" href="/p/164807"><img src="/first.png" alt="" width="102" height="150"></a></li>
+    <li><a id="banner-b" href="/p/164808"><img src="/second.png" alt="" width="102" height="150"></a></li>
+    </ul><div id="other-area"></div></main>`);
+  const finishBannerScan = async () => {
+    await page.evaluate(() => requests.shift().resolve({ ok: true, records: [] }));
+    await page.waitForFunction(() => window.__focusBridge?.report);
+  };
+  await finishBannerScan();
+  const banner = page.locator('#banner-b');
+  check('사전 규칙으로 배너 번호 적용', await banner.getAttribute('aria-label') === '배너 이미지 2');
+  await page.locator('#other-area').evaluate((el) => el.setAttribute('data-updated', 'true'));
+  await page.waitForFunction(() => window.__focusBridge === null);
+  check('다른 영역이 바뀌어 재검사를 예약해도 배너의 접근성 이름 유지',
+    await page.getByRole('link', { name: '배너 이미지 2', exact: true }).count() === 1);
+  await page.waitForFunction(() => requests.length === 1);
+  check('이전 방문 조회가 진행 중에도 배너의 접근성 이름 유지',
+    await page.getByRole('link', { name: '배너 이미지 2', exact: true }).count() === 1);
+  await finishBannerScan();
+  check('배너가 그대로면 재검사 뒤에도 같은 이름 유지', await banner.getAttribute('aria-label') === '배너 이미지 2');
+  await page.locator('#banner-a').evaluate((el) => el.parentElement.remove());
+  await page.waitForFunction(() => requests.length === 1);
+  await finishBannerScan();
+  check('앞 배너가 사라지면 남은 배너의 번호 갱신', await banner.getAttribute('aria-label') === '배너 이미지 1');
+  await banner.evaluate((el) => { el.firstElementChild.alt = '사이트 제공 배너 이름'; });
+  await page.waitForFunction(() => window.__focusBridge?.report.length === 0);
+  check('사이트가 배너 이미지에 이름을 추가하면 확장 이름 제거', await banner.getAttribute('aria-label') === null
+    && await page.getByRole('link', { name: '사이트 제공 배너 이름', exact: true }).count() === 1);
   await start();
   await finish();
   await page.evaluate(() => {
