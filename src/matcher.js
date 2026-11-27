@@ -8,6 +8,7 @@
 //       콘텐츠형 중 배너 (0.7.0)       그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 1"…
 //   [D] 슬라이드 점 (0.6.0) 숫자만 있는 이름('0', '1'…) + 점 묶음 class(dot·bullet·indicator) → "슬라이드 1"…
 //   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
+//       콘텐츠형은 사전이 이름을 짓지 않고 AI로 넘긴다 (0.9.0, 규칙 표시 'C'): 이름이 곧 내용(상품명·기사 제목)이라서
 //       큰 요소(배너·카드, 0.6.0)        주소는 단서로 쓰지 않음 → 자기 단서로 확정이 안 되면 AI로
 //   [1] F1 다른 사이트     도메인 목록에 있으면 확정
 //   [2] F2 홈              지금 사이트와 같은 곳의 첫 화면이면 확정
@@ -185,7 +186,10 @@ export function numberLabels(report) {
   return report;
 }
 
-// 콘텐츠형 중 배너 (0.7.0): 콘텐츠형은 사전도 AI도 이름을 붙이지 않아 화면 읽기에서 "링크"로만 읽혔다.
+// 콘텐츠형을 AI로 (0.9.0): 사전은 상품명·기사 제목을 지을 수 없으니 이름을 붙이지 않고 판정 'ai'로 넘긴다.
+//   예전(0.8.0까지)에는 판정이 'content'였고 AI 흐름은 'ai'만 받아서, 콘텐츠형은 아무도 이름을 붙이지 않았다
+//   (정량평가 고정 페이지 6곳에서 미부여 45개 중 36개). 규칙 표시 'C'는 남겨 콘텐츠형이었음을 기록에서 알 수 있게 한다.
+// 콘텐츠형 중 배너 (0.7.0): 콘텐츠형이 화면 읽기에서 "링크"로만 읽히던 때 넣은 규칙.
 //   그중 누가 봐도 배너인 것만 "배너 이미지 N"으로 알려 준다 (쿠팡 날개 영역의 자체 기획전 배너 등).
 //   조건을 모두 만족할 때만: 이름 없음(글자 없음) + 링크 안에 그림 + 옆·부모에 대신 읽을 글자 없음
 //   + 요소·부모·위 두 단계 class나 그림 주소에 배너 단어. 뉴스 사진·상품 카드처럼 옆에 제목이 있는 것은 제외한다.
@@ -202,7 +206,7 @@ function contentResult(item, c) {
       || hasClue(tokenize(c.iconSrc)));
   const overlay = !c.iconSrc && !c.iconClass && Boolean(r) && r.w >= T.largeMinWidth && r.h >= T.largeMinHeight;
   const banner = item.status === 'empty' && noNear && (imageBanner || overlay);
-  return banner ? result('confirm', 'BANNER', BANNER.label, 100) : result('content', 'C');
+  return banner ? result('confirm', 'BANNER', BANNER.label, 100) : result('ai', 'C');
 }
 
 // 숨겨진 진짜 이름 (0.8.0): 진짜 이름은 화면 읽기에서 숨겨지고 배지·상태 글자("N", "0", "OFF")만 읽히는 요소.
@@ -224,7 +228,7 @@ const NO_COMMON = { cls: new Set(), data: new Set() };
  * @param {object} item     report 항목 { status, role, currentName, context }
  * @param {string} pageUrl  지금 페이지 주소 (location.href)
  * @param {{cls: Set<string>, data: Set<string>}} common  pageCommon()이 찾은 페이지 공통 단어 (없으면 빈 모음)
- * @returns {{ decision: 'confirm'|'ai'|'content', pattern: string|null, label: string|null,
+ * @returns {{ decision: 'confirm'|'ai', pattern: string|null, label: string|null,
  *             score: number, candidates: {label, score, evidence}[] }}
  */
 export function matchItem(item, pageUrl, common = NO_COMMON) {

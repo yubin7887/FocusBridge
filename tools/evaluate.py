@@ -51,7 +51,7 @@ def content_result(item, c):
     r = c.get('rect') or {}
     overlay = not c.get('iconSrc') and not c.get('iconClass') and (r.get('w') or 0) >= LARGE_MIN_W and (r.get('h') or 0) >= LARGE_MIN_H   # 큰 투명 링크
     banner = item['status'] == 'empty' and no_near and (image_banner or overlay)
-    return ('BANNER', _BANNER['label'], {}) if banner else ('content', None, {})
+    return ('BANNER', _BANNER['label'], {}) if banner else ('C', None, {})   # 콘텐츠형 → AI (0.9.0)
 _DOTS = _CFG['slideDots']   # 슬라이드 점 (matcher.js와 같음)
 DOT_WORDS = set(_DOTS['classWords'])
 IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)
@@ -218,7 +218,7 @@ def judge(item, page_url, common=NO_COMMON):
 def main():
     d = sys.argv[1]; detail = '--detail' in sys.argv
     labs = {(o['site'], o['no']): o for o in json.load(open(os.path.join(d, 'labels.json'), encoding='utf-8'))}
-    tally = {'확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '배너 표시': 0, '콘텐츠 가려냄': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
+    tally = {'확정 정답': 0, '확정 오답': 0, '광고 표시': 0, '배너 표시': 0, '콘텐츠 → AI': 0, 'AI로 (정답)': 0, 'AI로 (놓침)': 0}
     rows = []
     for fn in sorted(os.listdir(d)):
         if not fn.endswith('.json') or fn == 'labels.json': continue
@@ -238,8 +238,8 @@ def main():
                 verdict = 'AI로 (놓침)'
             elif label:
                 verdict = '확정 정답' if isinstance(exp, list) and label in exp else '확정 오답'
-            elif how == 'content':
-                verdict = '콘텐츠 가려냄' if exp == 'content' else 'AI로 (놓침)'
+            elif how == 'C':
+                verdict = '콘텐츠 → AI' if exp == 'content' else 'AI로 (놓침)'
             else:
                 verdict = 'AI로 (놓침)' if isinstance(exp, list) else 'AI로 (정답)'
             tally[verdict] += 1
@@ -247,7 +247,7 @@ def main():
     for k, v in tally.items(): print(f'{k:10s} {v:3d}')
     if detail:
         for r in rows:
-            if r[5] != '콘텐츠 가려냄':
+            if r[5] != '콘텐츠 → AI':
                 cand = {k: v[0] for k, v in r[6].items()} if r[6] else ''
                 print(f'{r[0]}#{r[1]:<3} {r[2]:7s} 결과={r[3]} 기대={r[4]} → {r[5]}  후보={cand}')
     return tally

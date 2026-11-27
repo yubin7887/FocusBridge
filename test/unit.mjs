@@ -27,11 +27,13 @@ check('data: 주소는 무시', () => assert.equal(fileStem('data:image/png;base
 // ── 매칭 ──
 const PAGE = 'https://www.example.com/';
 const item = (context, extra = {}) => ({ status: 'empty', role: 'button', currentName: '', ...extra, context });
+// 콘텐츠형 (0.9.0): 사전은 이름을 짓지 않고 AI로 넘긴다. 규칙 표시 'C'로 콘텐츠형이었음을 남긴다
+const assertContentToAi = (r) => assert.deepEqual([r.decision, r.pattern, r.label], ['ai', 'C', null]);
 
-check('[0] 주소에 5자리 숫자 → 콘텐츠형', () =>
-  assert.equal(matchItem(item({ href: '/products/7481213' }, { role: 'link' }), PAGE).decision, 'content'));
+check('[0] 주소에 5자리 숫자 → 콘텐츠형: 사전은 이름 없이 AI로 넘김 (0.9.0)', () =>
+  assertContentToAi(matchItem(item({ href: '/products/7481213' }, { role: 'link' }), PAGE)));
 check('[0] 주소가 로그인이어도 배너 번호가 있으면 콘텐츠형', () =>
-  assert.equal(matchItem(item({ href: '/login?trcid=812431326273' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/login?trcid=812431326273' }, { role: 'link' }), PAGE)));
 // #17: 주소에 숫자가 있어도 요소 자신의 단서가 기능을 분명히 가리키면 그 기능
 const ECLASS = 'https://eclass.dongguk.edu/course/view.php?id=12345';
 check('[0] #17 e-class 게시판 "+" 링크: 주소에 id 숫자가 있어도 btn-more + fa-plus → 더보기', () => {
@@ -40,13 +42,13 @@ check('[0] #17 e-class 게시판 "+" 링크: 주소에 id 숫자가 있어도 bt
   assert.equal(r.decision, 'confirm'); assert.equal(r.label, '더보기');
 });
 check('[0] #17 숫자 주소에서는 주소 단어(login)를 단서로 쓰지 않는다 → 콘텐츠형 유지', () =>
-  assert.equal(matchItem(item({ href: '/login?trcid=812431326273', className: 'banner-img' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/login?trcid=812431326273', className: 'banner-img' }, { role: 'link' }), PAGE)));
 check('[0] #17 이웃 글자만 있는 숫자 주소 링크는 콘텐츠형 유지', () =>
-  assert.equal(matchItem(item({ href: '/products/7481213', parentText: '더보기' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/products/7481213', parentText: '더보기' }, { role: 'link' }), PAGE)));
 check('[0] #17 숫자 주소 링크에도 거름망 유지 (close class라도 닫기가 아님)', () =>
-  assert.equal(matchItem(item({ href: '/notice/view?id=55555', className: 'close' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/notice/view?id=55555', className: 'close' }, { role: 'link' }), PAGE)));
 check('[0] #17 숫자 주소 링크에서 두 기능이 동점이면 콘텐츠형', () =>
-  assert.equal(matchItem(item({ href: '/v/123456', className: 'cart more' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/v/123456', className: 'cart more' }, { role: 'link' }), PAGE)));
 
 // 0.6.0: 큰 요소(배너·카드)는 주소를 단서로 쓰지 않는다 (카피킬러 인용 검증 배너가 "로그인"으로 붙던 문제)
 const BIG = { x: 12, y: 300, w: 780, h: 320 };
@@ -60,7 +62,7 @@ check('[0] 큰 배너가 다른 사이트(인스타그램)로 가도 인스타�
 check('[0] 큰 요소라도 요소 자신의 단서가 분명하면 확정', () =>
   assert.equal(matchItem(item({ href: '/notice', className: 'btn-more', rect: BIG }, { role: 'link' }), PAGE).label, '더보기'));
 check('[0] 큰 요소의 숫자 주소는 계속 콘텐츠형 (큰 상품 사진 링크)', () =>
-  assert.equal(matchItem(item({ href: '/product/7481213', rect: BIG, iconSrc: '/img/goods/7481213.jpg' }, { role: 'link' }), PAGE).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: '/product/7481213', rect: BIG, iconSrc: '/img/goods/7481213.jpg' }, { role: 'link' }), PAGE)));
 check('[0] 넓은 검색창(712×36)은 큰 요소가 아님', () =>
   assert.equal(matchItem(item({ className: 'search-bar', rect: { x: 0, y: 0, w: 712, h: 36 } }), PAGE).label, '검색'));
 
@@ -254,15 +256,15 @@ check('배너: 그림 없는 큰 투명 링크 (쿠팡 오늘의 쇼핑 제안 t
   assert.equal(matchItem(item({ href: 'https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5418&trcid=812431344920',
     className: 'today-image', rect: { x: 135, y: 222, w: 1020, h: 450 } }, { role: 'link' }), CP).pattern, 'BANNER'));
 check('배너 아님: 그림 없는 작은 링크, 또는 옆에 제목이 있는 큰 투명 링크(카드 덮개)', () => {
-  assert.equal(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 100, h: 40 } }, { role: 'link' }), CP).decision, 'content');
-  assert.equal(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 300, h: 300 }, nextSiblingText: '상품 이름' }, { role: 'link' }), CP).decision, 'content');
+  assertContentToAi(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 100, h: 40 } }, { role: 'link' }), CP));
+  assertContentToAi(matchItem(item({ href: '/p/179723', rect: { x: 0, y: 0, w: 300, h: 300 }, nextSiblingText: '상품 이름' }, { role: 'link' }), CP));
 });
 check('배너 아님: 옆에 제목 글자가 있는 사진 링크 (뉴스 사진·상품 카드)', () =>
-  assert.equal(matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner', prevSiblingText: '기사 제목' }), CP).decision, 'content'));
+  assertContentToAi(matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner', prevSiblingText: '기사 제목' }), CP)));
 check('배너 아님: 배너 단서가 없는 그림 링크 (상품 사진)', () =>
-  assert.equal(matchItem(bannerLink('https://www.musinsa.com/products/4012345'), 'https://www.musinsa.com/').decision, 'content'));
+  assertContentToAi(matchItem(bannerLink('https://www.musinsa.com/products/4012345'), 'https://www.musinsa.com/')));
 check('배너 아님: 그림이 없는 링크', () =>
-  assert.equal(matchItem(item({ href: 'https://pages.coupang.com/p/179723', ancestorClass: 'promotion-banner' }, { role: 'link' }), CP).decision, 'content'));
+  assertContentToAi(matchItem(item({ href: 'https://pages.coupang.com/p/179723', ancestorClass: 'promotion-banner' }, { role: 'link' }), CP)));
 check('배너 아님: AI로 가는 항목은 그대로 AI (숫자 4자리 /np/campaigns/1440)', () =>
   assert.equal(matchItem(bannerLink('https://www.coupang.com/np/campaigns/1440', { ancestorClass: 'promotion-banner' }), CP).decision, 'ai'));
 
