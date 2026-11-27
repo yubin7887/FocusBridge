@@ -4,7 +4,8 @@ import { collectAiIcons } from './ai-icon.js';
 import { AI_BATCH_SIZE } from './ai-client.js';
 import { collectTargets } from './collector.js';
 import { checkName } from './detector.js';
-import { createFingerprint, createPageKey, exactFingerprintMatch } from './previous-fingerprint.js';
+import { createFingerprint, createPageKey, exactFingerprintMatch, hasIndependentAction } from './previous-fingerprint.js';
+import { animatedSvgs, withoutSvgFrames } from './svg-animation.js';
 
 const memo = new WeakMap();
 const loggedResponses = new WeakSet();
@@ -40,6 +41,21 @@ function freshWork(work) {
   });
 }
 
+function requestSignature(element, pageKey, evidence, fingerprint) {
+  const independentAction = hasIndependentAction(element);
+  const canonical = fingerprint?.canonical;
+  // The full destination and native state stay local, including query and fragment.
+  return JSON.stringify({
+    pageKey, evidence,
+    attributes: ['href', 'target', 'download', 'data-action', 'data-command', 'formaction']
+      .map((attr) => element.getAttribute(attr)),
+    href: typeof element.href === 'string' ? element.href : null,
+    state: [element.disabled, element.checked, element.selected, element.open],
+    fingerprint: independentAction ? withoutSvgFrames(canonical) : canonical,
+    icons: independentAction ? null : animatedSvgs(element).map((svg) => svg.outerHTML),
+  });
+}
+
 export async function resolveAiResults(result, fingerprints, isCurrent, runtime = globalThis.chrome?.runtime) {
   const pageKey = createPageKey(result.pageUrl);
   if (duplicateLinksPage !== result.pageUrl) {
@@ -56,7 +72,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     const element = result.missing[index].element;
     const evidence = buildAiEvidence(element, entry);
     const fingerprint = fingerprints[index]?.eligible ? fingerprints[index] : null;
-    const signature = JSON.stringify([pageKey, evidence, fingerprint?.canonical]);
+    const signature = requestSignature(element, pageKey, evidence, fingerprint);
     const linkKey = duplicateLinkKey(element, fingerprints[index], evidence);
     const existing = linkKey ? duplicateLinks.get(linkKey) : memo.get(element);
     const shared = pendingLinks.get(linkKey);
@@ -142,19 +158,21 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
       return status === 'ok' && label ? [{ ...item, label }] : [];
     });
     let changed = false;
+    const exactMatches = new Set();
     if (ready.length) {
       const currentTargets = new Set(collectTargets(document));
       readOriginal(() => {
         for (const { element, entry, request, label } of ready) {
           if (!currentTargets.has(element)) continue;
           const now = checkName(element);
-          if (now.status !== entry.status || now.name !== entry.currentName || now.role !== entry.role) continue;
+          if (now.status !== entry.status || now.name !== entry.currentName || now.role !== entry.role
+            || (now.reason ?? null) !== (entry.reason ?? null) || (now.hiddenText ?? null) !== (entry.hiddenText ?? null)) continue;
           const current = request.fingerprint || request.linkKey ? createFingerprint(element) : null;
-          if (request.fingerprint && !exactFingerprintMatch(request.fingerprint, current)) continue;
           const evidence = buildAiEvidence(element, entry);
           if (request.linkKey && duplicateLinkKey(element, current, evidence) !== request.linkKey) continue;
-          const signature = JSON.stringify([pageKey, evidence, current?.canonical]);
+          const signature = requestSignature(element, pageKey, evidence, current);
           if (signature !== request.signature) continue;
+          if (exactFingerprintMatch(request.fingerprint, current)) exactMatches.add(element);
           entry.match = { decision: 'confirm', pattern: 'AI', label, score: 0, candidates: [], source: 'ai' };
           entry.aiStatus = 'label-ready';
           changed = true;
@@ -171,7 +189,8 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         entry.aiStorage = 'not-applied';
         continue;
       }
-      entry.aiStorage = !request.fingerprint ? 'ineligible' : request.saved ? 'already-saved' : 'pending';
+      entry.aiStorage = !request.fingerprint ? 'ineligible' : request.saved ? 'already-saved'
+        : exactMatches.has(element) ? 'pending' : 'fingerprint-changed';
       if (entry.aiStorage === 'pending') ids.add(request.payload.requestId);
     }
     if (ids.size && isCurrent()) {

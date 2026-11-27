@@ -191,6 +191,10 @@ function navigationUrl(el, hasDeclaredAction) {
   return null;
 }
 
+export function hasIndependentAction(el, destination = navigationUrl(el, true), declaredAction = explicitAction(el, true)) {
+  return declaredAction || Boolean(destination && (createPageKey(destination) || /^(tel|mailto):/.test(destination)));
+}
+
 function hasActionEvidence(el, destination) {
   // 명시적 동작 정보 또는 서로 다른 종류의 식별 단서 조합을 요구한다.
   return destination || explicitAction(el) || (hasIconIdentity(el) && !!el.querySelector(ICON));
@@ -352,7 +356,7 @@ export function createFingerprint(el) {
     if (name.status === 'ok') return fail('already-named');
     const declaredAction = explicitAction(el, true);
     const destination = navigationUrl(el, declaredAction);
-    const independentAction = declaredAction || !!(destination && (createPageKey(destination) || /^(tel|mailto):/.test(destination)));
+    const independentAction = hasIndependentAction(el, destination, declaredAction);
     const sameId = el.id ? el.getRootNode().querySelectorAll(`#${CSS.escape(el.id)}`) : [];
     const duplicateId = sameId.length > 1;
     const directIcon = () => !!el.querySelector(DIRECT_ICON);

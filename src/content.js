@@ -5,10 +5,11 @@ import { findIcon } from './ai-payload.js';
 import { detectMissingNames } from './detector.js';
 import { showOverlay } from './overlay.js';
 import { pageCommon, matchItem, numberLabels } from './matcher.js';
-import { createFingerprint, exactFingerprintMatch } from './previous-fingerprint.js';
+import { createFingerprint } from './previous-fingerprint.js';
 import { createPreviousLookup, matchPrevious } from './previous-matcher.js';
 import { createLabelController } from './apply-labels.js';
 import { createReportLogger } from './report-log.js';
+import { svgFrameRoot } from './svg-animation.js';
 
 // ③④ 단계에 넘길 문맥 정보(제안서 QnA 표 기준). AI 없이 DOM API만 사용.
 function extractContext(el) {
@@ -63,6 +64,9 @@ const labels = createLabelController();
 const logReport = createReportLogger();
 let generation = 0;
 let timer = null;
+const animationTimers = new Map();
+let animationScanDue = false;
+let processingScan = null;
 let observedUrl = location.href;
 let aiRetryTimer = null;
 let aiRetried = false;
@@ -78,14 +82,17 @@ function scheduleAiRetry(retryAt, pageUrl) {
 
 export async function scan(root = document) {
   clearTimeout(timer);
+  timer = null;
+  clearAnimationScan();
   const scanId = ++generation;
+  processingScan = scanId;
   window.__focusBridge = null;
   const pageUrl = location.href;
   observeRoots();
   if (pageUrl !== observedUrl) labels.restoreAll();
   const t0 = performance.now();
   // Read native names synchronously, then keep the current labels during the lookup.
-  const { targets, missing, report, fingerprints } = labels.withOriginalLabels(() => {
+  const { targets, missing, report } = labels.withOriginalLabels(() => {
     const targets = collectTargets(root);
     const missing = detectMissingNames(targets);
     const report = missing.map((m) => ({
@@ -97,8 +104,7 @@ export async function scan(root = document) {
       selector: cssPath(m.element),
       context: extractContext(m.element),
     }));
-    const fingerprints = window === window.top ? missing.map(({ element }) => createFingerprint(element)) : [];
-    return { targets, missing, report, fingerprints };
+    return { targets, missing, report };
   });
   labels.keepOnly(missing.map(({ element }) => element));
   const canLookupPrevious = missing.length > 0 && window === window.top;
@@ -107,18 +113,18 @@ export async function scan(root = document) {
   // 이전 검사나 다른 URL의 응답은 게시하지 않는다.
   if (scanId !== generation || location.href !== pageUrl) return null;
   // observer가 감지하지 못하는 checked 등의 프로퍼티 변경도 다시 확인한다.
-  if (canLookupPrevious) {
-    const changed = labels.withOriginalLabels(() => {
+  const fingerprints = canLookupPrevious
+    ? labels.withOriginalLabels(() => {
       const currentMissing = detectMissingNames(collectTargets(root));
-      return currentMissing.length !== missing.length || currentMissing.some((m, i) => {
-        if (m.element !== missing[i].element || m.status !== missing[i].status || m.name !== missing[i].name
-          || m.role !== missing[i].role || (m.hiddenText ?? null) !== report[i].hiddenText) return true;
-        if (JSON.stringify(report[i].context) !== JSON.stringify(extractContext(m.element))) return true;
-        return fingerprints[i]?.eligible && !exactFingerprintMatch(fingerprints[i], createFingerprint(m.element));
-      });
-    });
-    if (changed) { scheduleScan(); return null; }
-  }
+      if (currentMissing.length !== missing.length || currentMissing.some((m, i) =>
+        m.element !== missing[i].element || m.status !== missing[i].status || m.name !== missing[i].name
+        || m.role !== missing[i].role || (m.reason ?? null) !== report[i].reason
+        || (m.hiddenText ?? null) !== report[i].hiddenText
+        || JSON.stringify(report[i].context) !== JSON.stringify(extractContext(m.element)))) return null;
+      // The lookup returns all records for this page. Match the exact current DOM once.
+      return currentMissing.map(({ element }) => createFingerprint(element));
+    }) : [];
+  if (!fingerprints) { scheduleScan(); return null; }
   const common = pageCommon(report); // 전체 report 기준을 유지한다.
   for (let i = 0; i < report.length; i++) {
     const { x, y, width, height } = missing[i].element.getBoundingClientRect();
@@ -140,7 +146,12 @@ export async function scan(root = document) {
   void resolveAiResults(result, fingerprints, isCurrent)
     .then((retryAt) => { if (isCurrent()) scheduleAiRetry(retryAt, pageUrl); })
     .catch(() => { result.aiStatus = 'unavailable'; })
-    .finally(() => { if (isCurrent()) logReport(result, fingerprints, elapsed, frame); });
+    .finally(() => {
+      if (isCurrent()) logReport(result, fingerprints, elapsed, frame);
+      if (processingScan !== scanId) return;
+      processingScan = null;
+      runAnimationScan();
+    });
   return result;
 }
 
@@ -150,10 +161,12 @@ function ignored(node) {
   return Boolean(element?.closest('[data-fb-ignore]'));
 }
 const observer = new MutationObserver((records) => {
-  const pageRecords = records.filter((record) => !labels.ownMutation(record));
-  if (pageRecords.some((r) => !ignored(r.target) && !(r.type === 'childList'
+  const pageRecords = records.filter((r) => !labels.ownMutation(r) && !ignored(r.target) && !(r.type === 'childList'
     && [...r.addedNodes, ...r.removedNodes].length
-    && [...r.addedNodes, ...r.removedNodes].every(ignored)))) scheduleScan();
+    && [...r.addedNodes, ...r.removedNodes].every(ignored)));
+  const frameRoots = new Set(pageRecords.map(svgFrameRoot));
+  if (frameRoots.has(null)) scheduleScan();
+  else for (const svg of frameRoots) scheduleAnimationScan(svg);
 });
 const observedRoots = new Set();
 function observeRoots() {
@@ -169,9 +182,27 @@ function observeRoots() {
   }
   return changed;
 }
+function clearAnimationScan() {
+  for (const timeout of animationTimers.values()) clearTimeout(timeout);
+  animationTimers.clear();
+  animationScanDue = false;
+}
+function runAnimationScan() {
+  if (animationScanDue && processingScan === null && timer === null) runScan();
+}
+function scheduleAnimationScan(svg) {
+  clearTimeout(animationTimers.get(svg));
+  // A lasting change in the icon still needs a scan, after the active one finishes.
+  animationTimers.set(svg, setTimeout(() => {
+    animationTimers.delete(svg);
+    animationScanDue = true;
+    runAnimationScan();
+  }, 500));
+}
 function scheduleScan() {
   generation++; // 디바운스가 끝나기 전에 기존 응답부터 무효화한다.
   window.__focusBridge = null;
+  clearAnimationScan();
   clearTimeout(timer);
   timer = setTimeout(runScan, 500);
 }
