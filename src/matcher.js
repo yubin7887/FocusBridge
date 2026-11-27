@@ -6,6 +6,7 @@
 //   [H] 숨겨진 진짜 이름 (0.8.0) ②가 찾은 숨겨진 이름(hiddenText)이 짧은 이름 모양이면 그대로 쓴다
 //   [A] 광고 (0.6.0)       링크 자신의 주소·data- 속성에 광고 표시가 있으면 "광고 1", "광고 2"… (AI 없이 확정)
 //       콘텐츠형 중 배너 (0.7.0)       그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 1"…
+//         (0.10.0) 배너도 AI로 보낸다. "배너 이미지 N"은 대신 쓸 이름(fallback)으로 먼저 붙고, AI 이름이 오면 바뀐다
 //   [D] 슬라이드 점 (0.6.0) 숫자만 있는 이름('0', '1'…) + 점 묶음 class(dot·bullet·indicator) → "슬라이드 1"…
 //   [0] 콘텐츠형 가려내기  주소에 5자리 이상 숫자 → 콘텐츠형 (요소 자신의 단서로 [3] 확정이 되면 그 기능)
 //       콘텐츠형은 사전이 이름을 짓지 않고 AI로 넘긴다 (0.9.0, 규칙 표시 'C'): 이름이 곧 내용(상품명·기사 제목)이라서
@@ -168,7 +169,8 @@ export function numberLabels(report) {
   numberAds(report);
   let banners = 0;
   for (const item of report) {
-    if (item.match?.pattern === 'BANNER') item.match.label = `${BANNER.label} ${++banners}`;
+    // 0.10.0: 배너는 AI로 가므로 번호 이름은 label이 아니라 대신 쓸 이름(fallback)에 넣는다
+    if (item.match?.pattern === 'BANNER') item.match.fallback = `${BANNER.label} ${++banners}`;
   }
   let group = [];
   const flush = () => {
@@ -194,6 +196,10 @@ export function numberLabels(report) {
 //   조건을 모두 만족할 때만: 이름 없음(글자 없음) + 링크 안에 그림 + 옆·부모에 대신 읽을 글자 없음
 //   + 요소·부모·위 두 단계 class나 그림 주소에 배너 단어. 뉴스 사진·상품 카드처럼 옆에 제목이 있는 것은 제외한다.
 //   AI로 가는 항목(판정 ai)은 건드리지 않는다: AI가 그림을 보고 더 나은 이름을 붙일 수 있기 때문.
+// 배너도 AI 먼저 (0.10.0): 정량평가에서 "배너 이미지 N"보다 그림 속 이름(연합뉴스 광고 그림 → "우리은행")이 정답이었다.
+//   그래서 배너도 판정 'ai'로 보내고, "배너 이미지 N"은 대신 쓸 이름(fallback)으로 넘긴다.
+//   apply-labels.js가 AI 응답 전에 fallback을 먼저 붙이고, AI 이름이 오면 바꿔 끼운다.
+//   AI 키가 없거나 AI가 실패·null이면 "배너 이미지 N"이 그대로 남는다 (0.9.0까지와 같은 결과).
 const BANNER = DICT.bannerImages;
 const BANNER_WORDS = new Set(BANNER.words);
 //   또 하나: 안에 그림도 글자도 없는 큰 링크(배경 그림 위에 덮은 투명 링크, 예: 쿠팡 "오늘의 쇼핑 제안" 큰 그림)도 배너로 본다.
@@ -206,7 +212,7 @@ function contentResult(item, c) {
       || hasClue(tokenize(c.iconSrc)));
   const overlay = !c.iconSrc && !c.iconClass && Boolean(r) && r.w >= T.largeMinWidth && r.h >= T.largeMinHeight;
   const banner = item.status === 'empty' && noNear && (imageBanner || overlay);
-  return banner ? result('confirm', 'BANNER', BANNER.label, 100) : result('ai', 'C');
+  return banner ? { ...result('ai', 'BANNER'), fallback: BANNER.label } : result('ai', 'C');
 }
 
 // 숨겨진 진짜 이름 (0.8.0): 진짜 이름은 화면 읽기에서 숨겨지고 배지·상태 글자("N", "0", "OFF")만 읽히는 요소.
@@ -229,7 +235,8 @@ const NO_COMMON = { cls: new Set(), data: new Set() };
  * @param {string} pageUrl  지금 페이지 주소 (location.href)
  * @param {{cls: Set<string>, data: Set<string>}} common  pageCommon()이 찾은 페이지 공통 단어 (없으면 빈 모음)
  * @returns {{ decision: 'confirm'|'ai', pattern: string|null, label: string|null,
- *             score: number, candidates: {label, score, evidence}[] }}
+ *             score: number, candidates: {label, score, evidence}[], fallback?: string }}
+ *   fallback (0.10.0): AI 이름이 오기 전·AI가 실패했을 때 대신 붙일 이름 (지금은 배너만 "배너 이미지 N")
  */
 export function matchItem(item, pageUrl, common = NO_COMMON) {
   const c = item.context || {};

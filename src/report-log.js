@@ -12,7 +12,7 @@ export function createReportLogger(output = console) {
       match: entry.match.source ?? (entry.match.decision === 'confirm' ? 'rule' : entry.match.decision),
       reused: (entry.match.source === 'ai' || entry.match.decision === 'ai') && typeof entry.aiReused === 'boolean'
         ? entry.aiReused : '-',
-      label: entry.match.label,
+      label: entry.match.label ?? entry.match.fallback ?? null,
       selector: entry.selector,
     }));
     // Compare visible results, not timing, scan IDs, DOM identities, or other request metadata.

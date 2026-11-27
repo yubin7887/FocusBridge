@@ -25,7 +25,7 @@ for (const fn of fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 
     const r = matchItem(it, data.url, common);
     const exp = labels.get(`${site}#${it.no}`).expected;
     let verdict;
-    if (r.pattern === 'BANNER') verdict = exp === 'banner' ? '배너 표시' : '확정 오답';   // 콘텐츠형 배너 → "배너 이미지 N"
+    if (r.pattern === 'BANNER') verdict = exp === 'banner' ? '배너 표시' : '확정 오답';   // 콘텐츠형 배너 → AI, 대신 쓸 이름 "배너 이미지 N" (0.10.0)
     else if (exp === 'banner') verdict = 'AI로 (놓침)';
     else if (r.pattern === 'AD') verdict = exp === 'ad' ? '광고 표시' : '확정 오답';   // 광고 링크 → "광고 N"
     else if (exp === 'ad') verdict = 'AI로 (놓침)';

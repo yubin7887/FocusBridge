@@ -51,7 +51,8 @@ def content_result(item, c):
     r = c.get('rect') or {}
     overlay = not c.get('iconSrc') and not c.get('iconClass') and (r.get('w') or 0) >= LARGE_MIN_W and (r.get('h') or 0) >= LARGE_MIN_H   # 큰 투명 링크
     banner = item['status'] == 'empty' and no_near and (image_banner or overlay)
-    return ('BANNER', _BANNER['label'], {}) if banner else ('C', None, {})   # 콘텐츠형 → AI (0.9.0)
+    # 배너: AI로 가고 "배너 이미지 N"은 대신 쓸 이름 (0.10.0) / 그 밖의 콘텐츠형 → AI (0.9.0)
+    return ('BANNER', _BANNER['label'], {}) if banner else ('C', None, {})
 _DOTS = _CFG['slideDots']   # 슬라이드 점 (matcher.js와 같음)
 DOT_WORDS = set(_DOTS['classWords'])
 IGNORED_DATA = set(_CFG.get('ignoredDataAttrs', []))   # 상태·모양만 나타내는 data- 속성 (matcher.js와 같음)

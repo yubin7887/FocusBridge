@@ -173,7 +173,9 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
           const signature = requestSignature(element, pageKey, evidence, current);
           if (signature !== request.signature) continue;
           if (exactFingerprintMatch(request.fingerprint, current)) exactMatches.add(element);
-          entry.match = { decision: 'confirm', pattern: 'AI', label, score: 0, candidates: [], source: 'ai' };
+          // 대신 쓸 이름(fallback)은 남겨 둔다: AI 이름을 쓸 수 없으면 apply-labels.js가 그것을 유지한다
+          entry.match = { decision: 'confirm', pattern: 'AI', label, score: 0, candidates: [], source: 'ai',
+            ...(entry.match.fallback ? { fallback: entry.match.fallback } : {}) };
           entry.aiStatus = 'label-ready';
           changed = true;
         }
