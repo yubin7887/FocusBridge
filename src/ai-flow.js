@@ -21,6 +21,7 @@ function newRequestId() {
 }
 
 function duplicateLinkKey(element, fingerprint, evidence) {
+  if (fingerprint?.sharedLink) return fingerprint.canonical;
   if (fingerprint?.reason !== 'ambiguous-element' || !element.matches('a[href]')) return null;
   const href = element.href;
   if (!element.getAttribute('href').trim() || typeof href !== 'string' || !/^https?:\/\//i.test(href) || href.includes('#')) return null;
@@ -162,7 +163,7 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
     }
     if (changed) window.dispatchEvent(new Event('focusbridge:ai-labels-ready'));
 
-    const ids = [];
+    const ids = new Set();
     for (const { element, entry, request } of batch) {
       if (entry.aiStatus !== 'label-ready') continue;
       if (entry.labelApplied !== true || !element.isConnected || element.getAttribute('aria-label') !== entry.match.label) {
@@ -171,11 +172,11 @@ export async function resolveAiResults(result, fingerprints, isCurrent, runtime 
         continue;
       }
       entry.aiStorage = !request.fingerprint ? 'ineligible' : request.saved ? 'already-saved' : 'pending';
-      if (entry.aiStorage === 'pending') ids.push(request.payload.requestId);
+      if (entry.aiStorage === 'pending') ids.add(request.payload.requestId);
     }
-    if (ids.length && isCurrent()) {
+    if (ids.size && isCurrent()) {
       try {
-        const saved = await runtime.sendMessage({ type: SAVE_NAMES, pageKey, ids });
+        const saved = await runtime.sendMessage({ type: SAVE_NAMES, pageKey, ids: [...ids] });
         for (const { entry, request } of batch) {
           if (entry.aiStorage !== 'pending') continue;
           const outcome = saved?.results?.find((row) => row.requestId === request.payload.requestId);

@@ -878,8 +878,41 @@ try {
     assert.equal(await worker.evaluate(() => requests.length), requestsBeforeKeyboardRevisit);
     console.log('PASS 중복 컨테이너 ID가 있는 가상 키보드 저장 및 재방문 재사용');
 
-    const storeLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
+    const shareableStoreLinks = '<section><a class="store-badge" href="/page/mlink?store=appstore"></a>'
       + '<a class="store-badge" href="/page/mlink?store=playstore"></a></section>';
+    await browser.route('https://example.com/store-links-db', (route) => route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="ko"><body>' + shareableStoreLinks.repeat(2) + '</body></html>',
+    }));
+    const beforeSharedLinks = await worker.evaluate(() => requests.length);
+    await page.goto('https://example.com/store-links-db');
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.every((row) => row.labelApplied && row.aiStorage === 'saved');
+    });
+    assert.equal(await worker.evaluate(() => requests.length), beforeSharedLinks + 1);
+    assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 2);
+    assert.equal((await stored(page.url())).length, 2);
+    await page.reload();
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.every((row) => row.labelApplied && row.match.source === 'previous');
+    });
+    assert.equal(await worker.evaluate(() => requests.length), beforeSharedLinks + 1);
+    await page.locator('a[href$="appstore"]').evaluateAll((links) => {
+      for (const link of links) link.href = '/page/mlink?store=appstore-changed';
+    });
+    await read(() => {
+      const report = JSON.parse(document.querySelector('#ai-test-report')?.textContent || 'null')?.report;
+      return report?.length === 4 && report.every((row) => row.labelApplied)
+        && report.filter((row) => row.match.source === 'previous').length === 2
+        && report.filter((row) => row.aiStorage === 'saved').length === 2;
+    });
+    assert.equal(await worker.evaluate(() => requests.length), beforeSharedLinks + 2);
+    assert.equal(await worker.evaluate(() => requests.at(-1).inputs.length), 1);
+    console.log('PASS 동일한 링크 4개를 2건으로 저장, 새로고침 후 신규 요청 없이 복구, 달라진 목적지만 새 요청');
+
+    const storeLinks = shareableStoreLinks.replaceAll('<a ', '<a data-track="store" ');
     await browser.route('https://example.com/store-links', (route) => route.fulfill({
       contentType: 'text/html',
       body: '<!doctype html><html lang="ko"><body>' + storeLinks + storeLinks + '</body></html>',

@@ -69,13 +69,13 @@ try {
   assert.deepEqual(await response(page), { ok: true, records: [] });
   console.log('PASS 실제 content script → Service Worker 첫 방문 조회');
   const report = async (p, source) => {
-    await p.waitForFunction((source) => {
+    const snapshot = await p.waitForFunction((source) => {
       const raw = document.getElementById('previous-test-report')?.textContent;
       const value = raw ? JSON.parse(raw) : null;
       return value?.pageUrl === location.href && value.report.length > 0
-        && (source ? value.report[0].match.source === source : value.report[0].match.source !== 'previous');
+        && (source ? value.report[0].match.source === source : value.report[0].match.source !== 'previous') && value;
     }, source, { timeout: 15000 });
-    return JSON.parse(await p.locator('#previous-test-report').textContent());
+    return snapshot.jsonValue();
   };
   assert.equal((await report(page)).report[0].match.label, '장바구니');
   await page.getByRole('button', { name: '장바구니', exact: true }).waitFor();

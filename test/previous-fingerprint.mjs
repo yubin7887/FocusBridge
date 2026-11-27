@@ -158,6 +158,18 @@ try {
     record('생성되지 않는 가상 요소의 배경 이미지는 제외', capture(el).reason === 'insufficient-evidence');
     el = reset('<form class="search-tools"><button id="cart"><svg><rect width="16" height="10"/></svg></button></form>');
     record('SVG 사각형으로 그린 키보드 버튼 수집', capture(el).eligible);
+    const roleButton = '<style>.badge::before { content: ""; background: url(/buttons.png) -20px 0; }</style>'
+      + '<nav class="tools"><div id="cart" class="badge" role="button" tabindex="0"></div></nav>';
+    el = reset(roleButton);
+    const cssRoleButton = capture(el);
+    record('ARIA 버튼의 CSS 스프라이트를 수집하고 재생성 후에도 일치', match(cssRoleButton, capture(reset(roleButton))));
+    document.querySelector('style').textContent = '.badge::before { content: ""; background: url(/buttons.png) -30px 0; }';
+    record('ARIA 버튼의 스프라이트 위치가 바뀌면 불일치', !match(cssRoleButton, capture(document.getElementById('cart'))));
+    reset('<nav id="tools"><button><svg><path d="M0 0h3"/></svg></button></nav>');
+    const noClass = document.querySelector('button');
+    record('고유한 부모와 실제 SVG가 있는 클래스 없는 버튼 수집', capture(noClass).eligible);
+    noClass.parentElement.append(noClass.cloneNode(true));
+    record('고유 부모 안에서도 같은 아이콘 버튼은 구별하지 않음', capture(noClass).reason === 'ambiguous-element');
 
     const searchBar = '<header><div id="center"><input aria-label="동영상 검색">'
       + '<button class="ytdTextInputAssistantButton"><svg><rect width="16" height="10"/></svg></button></div></header>'
@@ -204,6 +216,39 @@ try {
     record('실제 목적지가 있는 링크 수집', link.eligible);
     el.href = '/delete';
     record('링크 목적지 변경 거부', !match(link, capture(el)));
+    el = reset('<aside><a href="http://[">다른 링크</a></aside><nav><a id="cart" href="/cart"></a></nav>');
+    record('다른 후보의 깨진 URL은 정상 링크 지문에 영향을 주지 않음', match(link, capture(el)));
+    el.after(Object.assign(document.createElement('a'), { href: 'http://[' }));
+    const nearbyInvalidUrl = capture(el);
+    record('옆 요소의 잘못된 URL도 원래 값과 함께 문맥에 보관', nearbyInvalidUrl.eligible && nearbyInvalidUrl.canonical.includes('http://['));
+    el.nextElementSibling.setAttribute('href', 'http://]');
+    record('옆 요소의 잘못된 URL 원래 값이 바뀌면 불일치', !match(nearbyInvalidUrl, capture(el)));
+    el.setAttribute('href', 'http://[');
+    record('검사 대상 자체의 깨진 링크 주소는 제외', !capture(el).eligible);
+    el = reset('<nav><a id="cart" href="/cart"></a></nav><aside></aside>');
+    document.querySelector('aside').innerHTML = '<a href="/catalog"></a>'.repeat(2000);
+    record('2,000개 넘는 링크가 있어도 목적지로 후보를 좁혀 비교', match(link, capture(el)));
+
+    const badges = '<section><a class="badge" href="/store?app=one"></a><a class="badge" href="/store?app=two"></a></section>';
+    reset(badges + badges);
+    const badgeLinks = [...document.querySelectorAll('a')];
+    const [storeOne, storeTwo, storeOneCopy, storeTwoCopy] = badgeLinks.map(capture);
+    record('같은 목적지의 동일 링크는 하나의 지문 공유', storeOne.sharedLink && match(storeOne, storeOneCopy) && match(storeTwo, storeTwoCopy));
+    record('같은 경로에서도 목적지 쿼리가 다르면 다른 지문', !match(storeOne, storeTwo));
+    badgeLinks[2].setAttribute('onclick', 'return false');
+    record('다른 동작 단서가 있는 중복 링크는 공유 제외', capture(badgeLinks[0]).reason === 'ambiguous-element');
+    badgeLinks[2].removeAttribute('onclick');
+    document.body.insertAdjacentHTML('beforeend', '<style>section:nth-of-type(2) .badge { background-image: url(/another-badge.svg); }</style>');
+    record('시각 단서가 다른 중복 링크는 공유 제외', capture(badgeLinks[0]).reason === 'ambiguous-element');
+
+    el = reset();
+    el.before(Object.assign(document.createElement('div'), { hidden: true, innerHTML: '<canvas></canvas>' }));
+    const hiddenNeighbor = capture(el);
+    record('동작이 명확한 버튼 옆의 숨겨진 캔버스는 비교 가능', hiddenNeighbor.eligible);
+    el.previousElementSibling.innerHTML = '<canvas></canvas><span>바뀐 숨김 요소</span>';
+    record('숨겨진 미지원 콘텐츠만 바뀌면 기존 지문과 일치', match(hiddenNeighbor, capture(el)));
+    el.previousElementSibling.hidden = false;
+    record('보이는 미지원 콘텐츠를 비교할 수 없으면 제외', capture(el).reason === 'unsupported-context');
     const topLink = '<footer><a id="cart" href="#top"></a></footer>';
     const top = capture(reset(topLink));
     record('페이지에서 유일한 #top 링크 수집', top.eligible);

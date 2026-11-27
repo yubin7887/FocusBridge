@@ -1,6 +1,7 @@
 // Previous Matching 1단계: DOM을 수정하거나 저장하지 않고 비교용 스냅샷만 만든다.
 import { checkName } from './detector.js';
 import { collectRoots } from './collector.js';
+import { buildAiEvidence } from './ai-payload.js';
 
 export const FINGERPRINT_VERSION = 2;
 const MAX_NODES = 200;
@@ -15,6 +16,10 @@ const ATTRS = new Set([
   'x1', 'x2', 'y1', 'y2', 'fill', 'stroke', 'transform',
 ]);
 const REFERENCES = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'form'];
+const DIRECT_ICON = 'img[src], svg path[d], svg polygon[points], svg rect[width][height], svg circle[r], svg line[x2][y2], svg polyline[points]';
+const ICON = `${DIRECT_ICON}, svg use[href], svg use[xlink\\:href], i[class], [class*="icon"]`;
+const SHARED_LINK_ATTRIBUTES = new Set(['href', 'class', 'target', 'rel', 'lang', 'dir', 'title', 'tabindex', 'aria-label', 'aria-description']);
+const LINK_GRAPHICS = 'span, img, picture, source, svg, g, path, polygon, polyline, circle, ellipse, rect, line, use, title, desc';
 // These classes describe scroll positioning on containers, not the control's action.
 const SCROLL_LAYOUT_CLASSES = new Set([
   'scrolled', 'is-scrolled', 'is-sticky', 'sticky-top', 'fixed-top',
@@ -50,7 +55,7 @@ function attributes(el, ancestor, disabledImageButton) {
     });
 }
 
-function describe(el, ancestor = false) {
+function describe(el, ancestor = false, allowInvalidUrls = false) {
   // An image-only button still selects the same image when processing briefly disables it.
   const disabledImageButton = el.matches('button[disabled]') && el.children.length === 1
     && el.firstElementChild.matches('img[src]') && !el.textContent.trim()
@@ -66,13 +71,18 @@ function describe(el, ancestor = false) {
       selected: 'selected' in el ? el.selected : null,
       open: 'open' in el ? el.open : null,
     },
-    urls: ['href', 'src', 'action', 'formaction'].filter((a) => el.hasAttribute(a))
-      .map((a) => [a, new URL(el.getAttribute(a), el.baseURI).href]),
+    urls: ['href', 'src', 'action', 'formaction'].filter((a) => el.hasAttribute(a)).map((a) => {
+      try { return [a, new URL(el.getAttribute(a), el.baseURI).href]; }
+      catch (error) {
+        if (!allowInvalidUrls) throw error;
+        return [a, null]; // The original value is still present in attributes.
+      }
+    }),
   };
 }
 
 // 크기 초과 시 잘라내지 않고 실패한다. 입력 내용과 확장 UI는 수집하지 않는다.
-function tree(el, { context = false } = {}) {
+function tree(el, { context = false, allowInvalidUrls = false } = {}) {
   let count = 0;
   function visit(node) {
     if (++count > MAX_NODES) throw new Error('context-too-large');
@@ -81,14 +91,14 @@ function tree(el, { context = false } = {}) {
     if (node.hasAttribute('data-fb-ignore')) return null;
     if (node.matches('script, style, template')) return null;
     if (node.isContentEditable || node.matches('input, textarea, select')) {
-      if (context) return { ...describe(node), editable: true };
+      if (context) return { ...describe(node, false, allowInvalidUrls), editable: true };
       throw new Error('editable-context');
     }
     // 외부 문서·그림·수집하지 않은 shadow subtree는 같다고 추측하지 않는다.
     if (node.matches('iframe, canvas, object, embed') || node.shadowRoot) {
       throw new Error('unsupported-context');
     }
-    return { ...describe(node), children: [...node.childNodes].map(visit).filter(Boolean) };
+    return { ...describe(node, false, allowInvalidUrls), children: [...node.childNodes].map(visit).filter(Boolean) };
   }
   const result = visit(el);
   if (JSON.stringify(result).length > MAX_LENGTH) throw new Error('context-too-large');
@@ -110,7 +120,7 @@ function pathOf(el) {
       let matchingSiblingIndex = 0;
       for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling) {
         if (sibling.localName === node.localName && !sibling.hasAttribute('data-fb-ignore')
-          && JSON.stringify(describe(sibling, true)) === signature) matchingSiblingIndex++;
+          && JSON.stringify(describe(sibling, true, true)) === signature) matchingSiblingIndex++;
       }
       path.unshift({ ...description, matchingSiblingIndex });
     } else {
@@ -143,18 +153,26 @@ function hasIconIdentity(el) {
     && ['id', 'class', 'role'].some((a) => parent?.getAttribute(a)?.trim());
 }
 
-function hasActionEvidence(el) {
+function explicitAction(el) {
+  return ['data-action', 'data-command'].some((a) => el.getAttribute(a)?.trim());
+}
+
+function navigationUrl(el) {
+  if (!el.matches('a[href]')) return null;
+  const raw = el.getAttribute('href').trim();
+  if (!raw || raw.startsWith('#')) return null;
+  const url = new URL(raw, el.baseURI);
+  return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
+}
+
+function hasActionEvidence(el, destination) {
   // 명시적 동작 정보 또는 서로 다른 종류의 식별 단서 조합을 요구한다.
-  if (['data-action', 'data-command'].some((a) => el.getAttribute(a)?.trim())) return true;
-  if (el.localName === 'a' && el.hasAttribute('href')) {
-    const raw = el.getAttribute('href').trim();
-    if (raw && !raw.startsWith('#')
-      && ['http:', 'https:'].includes(new URL(raw, el.baseURI).protocol)) return true;
-  }
-  const icon = 'img[src], svg use[href], svg use[xlink\\:href], svg path[d], svg polygon[points], i[class], [class*="icon"]'
-    + ', svg rect[width][height], svg circle[r], svg line[x2][y2], svg polyline[points]';
-  // 빈 svg나 위치 하나는 근거로 세지 않는다. 실제 유일성은 아래에서 별도 검사한다.
-  return hasIconIdentity(el) && !!el.querySelector(icon);
+  return destination || explicitAction(el) || (hasIconIdentity(el) && !!el.querySelector(ICON));
+}
+
+function hasUniqueParentId(el) {
+  const parent = el.parentElement;
+  return !!parent?.id && el.getRootNode().querySelectorAll(`#${CSS.escape(parent.id)}`).length === 1;
 }
 
 function graphicsOf(style, allowGradient) {
@@ -227,15 +245,41 @@ function fragmentEvidenceFailure(el, pageKey) {
   return null;
 }
 
-function nearbyContext(el) {
+function nearbyContext(el, hasExplicitAction) {
   const parent = el.parentElement;
+  const siblingContext = (sibling) => {
+    if (!sibling) return null;
+    try { return tree(sibling, { context: true, allowInvalidUrls: true }); }
+    catch (error) {
+      if (!hasExplicitAction || !sibling.matches('[hidden], [aria-hidden="true"]')
+        || !['context-too-large', 'unsupported-context'].includes(error.message)) throw error;
+      return { ...describe(sibling, false, true), omittedHiddenContents: true };
+    }
+  };
   return {
     parent: parent ? describe(parent, true) : null,
     // 부모 전체 하위 트리 대신 직접 텍스트와 바로 앞뒤 요소만 비교한다.
     parentText: parent ? [...parent.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data) : [],
-    previous: el.previousElementSibling ? tree(el.previousElementSibling, { context: true }) : null,
-    next: el.nextElementSibling ? tree(el.nextElementSibling, { context: true }) : null,
+    previous: siblingContext(el.previousElementSibling),
+    next: siblingContext(el.nextElementSibling),
   };
+}
+
+function sharedLinkEvidence(el, name) {
+  return {
+    evidence: buildAiEvidence(el, { ...name, currentName: name.name }),
+    visual: cssButtonEvidence(el),
+    language: el.closest('[lang]')?.getAttribute('lang') ?? null,
+  };
+}
+
+function canShareLink(el, destination, name) {
+  return destination && !destination.includes('#') && createPageKey(destination) && name.role === 'link'
+    && el.getRootNode() === el.ownerDocument
+    && [...el.attributes].every(({ name }) => SHARED_LINK_ATTRIBUTES.has(name))
+    && [...el.querySelectorAll('*')].every((child) => child.matches(LINK_GRAPHICS)
+      && [...child.attributes].every(({ name }) => (ATTRS.has(name) && !['role', 'tabindex', 'data-action', 'data-command', 'data-type'].includes(name))
+        || name === 'aria-hidden' || name === 'xmlns'));
 }
 
 /**
@@ -252,10 +296,13 @@ export function createFingerprint(el) {
   try {
     const name = checkName(el);
     if (name.status === 'ok') return fail('already-named');
+    const destination = navigationUrl(el);
     let visual;
-    if (!hasActionEvidence(el)) {
-      if (el.localName === 'button' && hasIconIdentity(el)) visual = cssButtonEvidence(el);
-      if (!visual) {
+    if (!hasActionEvidence(el, destination)) {
+      const button = el.localName === 'button' || name.role === 'button';
+      const uniqueParent = button && hasUniqueParentId(el);
+      if (button && (hasIconIdentity(el) || uniqueParent)) visual = cssButtonEvidence(el);
+      if (!visual && !(uniqueParent && el.querySelector(DIRECT_ICON))) {
         const reason = fragmentEvidenceFailure(el, pageKey);
         if (reason) return fail(reason);
       }
@@ -263,34 +310,45 @@ export function createFingerprint(el) {
     const element = tree(el);
     const identity = JSON.stringify(element);
     const visualIdentity = visual ? JSON.stringify(visual) : null;
-    const candidates = el.getRootNode().querySelectorAll(el.localName);
+    // Element descriptions already require the raw href to match exactly.
+    const href = el.getAttribute('href');
+    const selector = destination && !href.includes('\0') ? `a[href="${CSS.escape(href)}"]` : el.localName;
+    const candidates = el.getRootNode().querySelectorAll(selector);
     if (candidates.length > MAX_CANDIDATES) return fail('too-many-candidates');
     const description = JSON.stringify(describe(el));
-    // 같은 root에 동일 서명이 두 개 있으면 위치로 억지로 구분하지 않는다.
+    let linkGroup;
+    // Only equivalent navigation links can share one record across locations.
     for (const other of candidates) {
       if (other === el || other.closest('[data-fb-ignore]')) continue;
-      if (JSON.stringify(describe(other)) !== description) continue;
       try {
+        if (JSON.stringify(describe(other, false, true)) !== description) continue;
         if (JSON.stringify(tree(other)) !== identity) continue;
-        if (!visualIdentity || JSON.stringify(cssButtonEvidence(other)) === visualIdentity) return fail('ambiguous-element');
+        if (visualIdentity && JSON.stringify(cssButtonEvidence(other)) !== visualIdentity) continue;
+        if (other.outerHTML !== el.outerHTML) return fail('ambiguous-element');
+        if (!linkGroup) {
+          if (!canShareLink(el, destination, name)) return fail('ambiguous-element');
+          linkGroup = sharedLinkEvidence(el, name);
+        }
+        if (JSON.stringify(sharedLinkEvidence(other, checkName(other))) !== JSON.stringify(linkGroup)) return fail('ambiguous-element');
       } catch {
         // 읽지 못하는 후보를 다르다고 가정하지 않는다.
         return fail('ambiguous-candidate');
       }
     }
+    const path = pathOf(el);
+    const references = referenceContext(el);
     const payload = {
       pageKey,
       version: FINGERPRINT_VERSION,
       name,
       element,
-      ...(visual ? { visual } : {}),
-      path: pathOf(el),
-      context: nearbyContext(el),
-      references: referenceContext(el),
+      ...(linkGroup ? { path: [], linkGroup, references } : {
+        ...(visual ? { visual } : {}), path, context: nearbyContext(el, destination || explicitAction(el)), references,
+      }),
     };
     const canonical = JSON.stringify(payload);
     if (canonical.length > MAX_LENGTH) return fail('context-too-large');
-    return { eligible: true, version: FINGERPRINT_VERSION, pageKey, canonical };
+    return { eligible: true, version: FINGERPRINT_VERSION, pageKey, canonical, ...(linkGroup ? { sharedLink: true } : {}) };
   } catch (error) {
     return fail(error.message || 'unsupported-context');
   }

@@ -12,7 +12,7 @@ async function checkPendingReuse(pending) {
     ? { executablePath: process.env.CHROME } : { channel: 'chromium' });
   try {
     const page = await browser.newPage();
-    const link = '<section><a class="store-badge" href="/page/mlink?store=appstore">'
+    const link = '<section><a class="store-badge" data-track="store" href="/page/mlink?store=appstore">'
       + '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg></a></section>';
     await page.route('https://example.com/**', (route) => route.fulfill({
       contentType: 'text/html', body: '<!doctype html><html lang="ko"><body>' + link + link + '</body></html>',
