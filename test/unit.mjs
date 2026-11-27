@@ -240,17 +240,23 @@ check('numberLabels는 광고와 슬라이드 점 번호를 함께 붙인다', (
 });
 
 // ── 콘텐츠형 중 배너 (0.7.0): 그림만 있고 옆 글자 없음 + 배너 단서 → "배너 이미지 N" ──
+//    0.10.0부터 배너도 AI로 가고, "배너 이미지 N"은 대신 쓸 이름(fallback)
 const bannerLink = (href, extra = {}) => item({ href, iconSrc: 'https://image.coupangcdn.com/image/displayitem/x.jpg', ...extra }, { role: 'link' });
 check('배너: 쿠팡 날개 영역(promotion-banner) 자체 기획전 → 배너 이미지', () =>
   assert.equal(matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner wa-sidebar' }), CP).pattern, 'BANNER'));
 check('배너: 그림 주소의 /banner/ 도 단서', () =>
   assert.equal(matchItem(bannerLink('/mlp/web/mlp-landing-page?landingId=5418&trcid=812431344920',
     { iconSrc: 'https://image4.coupangcdn.com/image/ccm/banner/73ae37c9.png' }), CP).pattern, 'BANNER'));
-check('배너 번호: 광고와 따로 세어 배너 이미지 1, 2', () => {
+check('배너 (0.10.0): 판정 ai로 AI에 보내고 "배너 이미지"는 대신 쓸 이름(fallback)', () => {
+  const r = matchItem(bannerLink('https://pages.coupang.com/p/179723', { ancestorClass: 'promotion-banner' }), CP);
+  assert.deepEqual([r.decision, r.pattern, r.label, r.fallback], ['ai', 'BANNER', null, '배너 이미지']);
+});
+check('배너 번호: 광고와 따로 세어 배너 이미지 1, 2 (배너는 fallback에 번호)', () => {
   const report = [bannerLink('https://pages.coupang.com/p/179723', { parentClass: 'promo' }), adLink('/a?adType=DA'),
     bannerLink('https://pages.coupang.com/p/164807', { parentClass: 'promo' })];
   matchAll(report, CP);
-  assert.deepEqual(report.map((r) => r.match.label), ['배너 이미지 1', '광고 1', '배너 이미지 2']);
+  assert.deepEqual(report.map((r) => r.match.label ?? r.match.fallback), ['배너 이미지 1', '광고 1', '배너 이미지 2']);
+  assert.deepEqual(report.map((r) => r.match.decision), ['ai', 'confirm', 'ai']);
 });
 check('배너: 그림 없는 큰 투명 링크 (쿠팡 오늘의 쇼핑 제안 today-image, 1020×450)', () =>
   assert.equal(matchItem(item({ href: 'https://www.coupang.com/mlp/web/mlp-landing-page?landingId=5418&trcid=812431344920',

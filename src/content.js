@@ -133,7 +133,9 @@ export async function scan(root = document) {
       || matchItem(report[i], pageUrl, common);
   }
   numberLabels(report); // 광고 1, 광고 2… / 슬라이드 점 번호
-  labels.keepOnly(missing.filter((_, index) => report[index].match.decision === 'confirm').map(({ element }) => element));
+  // 대신 쓸 이름(fallback, 사전 0.10.0)이 있는 항목도 붙은 이름을 유지한다
+  labels.keepOnly(missing.filter((_, index) => report[index].match.decision === 'confirm' || report[index].match.fallback)
+    .map(({ element }) => element));
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 

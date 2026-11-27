@@ -70,9 +70,20 @@ export function createLabelController() {
     }
   }
 
+  // 붙일 이름: 확정 이름이 쓸 만하면 그것, 아니면 대신 쓸 이름(fallback, 사전 0.10.0의 "배너 이미지 N").
+  //   fallback은 판정이 'ai'여도 AI 응답 전에 먼저 붙고, AI 이름이 쓸 수 없는 값이면 그대로 남는다.
+  function labelFor(match) {
+    const clean = (value) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+    const usable = (value) => value && value.length <= 200 && !/[\u0000-\u001f\u007f]/.test(value);
+    const confirmed = match.decision === 'confirm' ? clean(match.label) : '';
+    if (usable(confirmed) && !(match.source === 'ai' && isUnhelpfulGeneratedName(confirmed))) return confirmed;
+    const fallback = clean(match.fallback);
+    return usable(fallback) ? fallback : '';
+  }
+
   function apply(element, match, expected) {
-    if (!element?.isConnected || match?.decision !== 'confirm') return false;
-    const label = typeof match.label === 'string' ? match.label.trim().replace(/\s+/g, ' ') : '';
+    if (!element?.isConnected || !(match?.decision === 'confirm' || match?.fallback)) return false;
+    const label = labelFor(match);
     const oldChanges = applied.get(element);
     if (oldChanges) {
       if (element.getAttribute('aria-label') === label
@@ -81,8 +92,7 @@ export function createLabelController() {
       restore(element, oldChanges);
       applied.delete(element);
     }
-    if (!label || label.length > 200 || /[\u0000-\u001f\u007f]/.test(label)) return false;
-    if (match.source === 'ai' && isUnhelpfulGeneratedName(label)) return false;
+    if (!label) return false;
     const current = checkName(element);
     if (!TARGET_ROLES.has(current.role) || current.status === 'ok'
       || current.role !== expected.role || current.name !== expected.name || current.status !== expected.status) return false;
@@ -111,7 +121,7 @@ export function createLabelController() {
   function applyMatches(missing, report) {
     for (let i = 0; i < missing.length; i++) {
       const match = report[i]?.match;
-      if (match?.decision === 'confirm') report[i].labelApplied = apply(missing[i].element, match, missing[i]);
+      if (match?.decision === 'confirm' || match?.fallback) report[i].labelApplied = apply(missing[i].element, match, missing[i]);
     }
   }
 

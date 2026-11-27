@@ -7,7 +7,7 @@
     "build": "esbuild src/content.js src/background.js --bundle --format=iife --outdir=dist",
     "watch": "esbuild src/content.js src/background.js --bundle --format=iife --outdir=dist --watch",
     "test": "node test/run.mjs",
-    "test:match": "node test/unit.mjs && node test/match-eval.mjs && node test/e2e-match.mjs",
+    "test:match": "node test/unit.mjs && node test/match-eval.mjs && node test/e2e-match.mjs && node test/banner-fallback.mjs",
     "test:all": "npm run build && npm test && npm run test:match && npm run test:previous",
     "test:previous": "node test/previous-fingerprint.mjs && node test/previous-store.mjs && node test/previous-flow.mjs",
     "test:extension": "npm run build && node test/previous-extension.mjs",
