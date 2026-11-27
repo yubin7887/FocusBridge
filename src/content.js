@@ -82,34 +82,40 @@ export async function scan(root = document) {
   window.__focusBridge = null;
   const pageUrl = location.href;
   observeRoots();
-  labels.restoreAll();
+  if (pageUrl !== observedUrl) labels.restoreAll();
   const t0 = performance.now();
-  const targets = collectTargets(root);
-  const missing = detectMissingNames(targets);
-
-  const report = missing.map((m) => ({
-    status: m.status,
-    role: m.role,
-    currentName: m.name,
-    reason: m.reason ?? null,           // 'hidden-name'이면 진짜 이름이 숨겨진 경우
-    hiddenText: m.hiddenText ?? null,   // 숨겨진 진짜 이름 후보
-    selector: cssPath(m.element),
-    context: extractContext(m.element),
-  }));
+  // Read native names synchronously, then keep the current labels during the lookup.
+  const { targets, missing, report, fingerprints } = labels.withOriginalLabels(() => {
+    const targets = collectTargets(root);
+    const missing = detectMissingNames(targets);
+    const report = missing.map((m) => ({
+      status: m.status,
+      role: m.role,
+      currentName: m.name,
+      reason: m.reason ?? null,
+      hiddenText: m.hiddenText ?? null,
+      selector: cssPath(m.element),
+      context: extractContext(m.element),
+    }));
+    const fingerprints = window === window.top ? missing.map(({ element }) => createFingerprint(element)) : [];
+    return { targets, missing, report, fingerprints };
+  });
+  labels.keepOnly(missing.map(({ element }) => element));
   const canLookupPrevious = missing.length > 0 && window === window.top;
-  const fingerprints = canLookupPrevious ? missing.map((m) => createFingerprint(m.element)) : [];
   const previous = canLookupPrevious
     ? await lookupPrevious(pageUrl) : { status: 'skipped', records: [] };
   // 이전 검사나 다른 URL의 응답은 게시하지 않는다.
   if (scanId !== generation || location.href !== pageUrl) return null;
   // observer가 감지하지 못하는 checked 등의 프로퍼티 변경도 다시 확인한다.
   if (canLookupPrevious) {
-    const currentMissing = detectMissingNames(collectTargets(root));
-    const changed = currentMissing.length !== missing.length || currentMissing.some((m, i) => {
-      if (m.element !== missing[i].element || m.status !== missing[i].status
-        || m.name !== missing[i].name || m.role !== missing[i].role) return true;
-      if (JSON.stringify(report[i].context) !== JSON.stringify(extractContext(m.element))) return true;
-      return fingerprints[i]?.eligible && !exactFingerprintMatch(fingerprints[i], createFingerprint(m.element));
+    const changed = labels.withOriginalLabels(() => {
+      const currentMissing = detectMissingNames(collectTargets(root));
+      return currentMissing.length !== missing.length || currentMissing.some((m, i) => {
+        if (m.element !== missing[i].element || m.status !== missing[i].status || m.name !== missing[i].name
+          || m.role !== missing[i].role || (m.hiddenText ?? null) !== report[i].hiddenText) return true;
+        if (JSON.stringify(report[i].context) !== JSON.stringify(extractContext(m.element))) return true;
+        return fingerprints[i]?.eligible && !exactFingerprintMatch(fingerprints[i], createFingerprint(m.element));
+      });
     });
     if (changed) { scheduleScan(); return null; }
   }
@@ -121,6 +127,7 @@ export async function scan(root = document) {
       || matchItem(report[i], pageUrl, common);
   }
   numberLabels(report); // 광고 1, 광고 2… / 슬라이드 점 번호
+  labels.keepOnly(missing.filter((_, index) => report[index].match.decision === 'confirm').map(({ element }) => element));
   labels.applyMatches(missing, report);
   const elapsed = performance.now() - t0;
 
@@ -164,7 +171,6 @@ function observeRoots() {
 }
 function scheduleScan() {
   generation++; // 디바운스가 끝나기 전에 기존 응답부터 무효화한다.
-  labels.restoreAll();
   window.__focusBridge = null;
   clearTimeout(timer);
   timer = setTimeout(runScan, 500);
@@ -175,6 +181,7 @@ function runScan() {
 function checkNavigation() {
   if (location.href !== observedUrl) {
     observedUrl = location.href;
+    labels.restoreAll();
     clearTimeout(aiRetryTimer);
     aiRetryTimer = null;
     aiRetried = false;
