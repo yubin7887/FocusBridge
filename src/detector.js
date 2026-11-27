@@ -25,7 +25,7 @@ function hiddenText(el) {
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   for (let t = walker.nextNode(); t; t = walker.nextNode()) {
     const parent = t.parentElement;
-    if (!parent || parent.closest('script, style, template, noscript')) continue;
+    if (!parent || parent.closest('script, style, template, noscript, svg')) continue;
     const text = normalize(t.textContent);
     if (text && isInaccessible(parent)) parts.push(text);
   }
@@ -39,13 +39,14 @@ function hiddenText(el) {
 export function checkName(el) {
   const role = getRole(el);
   const name = normalize(computeAccessibleName(el));
+  const authorNamed =
+  normalize(el.getAttribute('aria-label')) !== '' || el.hasAttribute('aria-labelledby');
 
   if (name === '') return { status: 'empty', name, role };
-
-  // 진짜 이름은 숨겨지고 배지·상태 글자("N", "OFF")만 이름으로 남은 경우 → 이름이 없는 것과 같음
-  if (name.length <= 3) {
+  if (name.length <= 3 && !authorNamed) {
     const hidden = hiddenText(el);
-    if (hidden && !name.includes(hidden)) {
+    // 둘 중 하나가 다른 쪽을 포함하면 같은 이름의 다른 버전(PC/모바일 등)으로 본다
+    if (hidden && !name.includes(hidden) && !hidden.includes(name)) {
       return { status: 'empty', name, role, reason: 'hidden-name', hiddenText: hidden };
     }
   }
