@@ -32,13 +32,27 @@ function hiddenText(el) {
   return parts.join(' ');
 }
 
+// 라이브러리는 자식 요소의 title을 이름에 넣지 않지만, 크롬은 제목(h1~h6)·이미지처럼
+// 역할이 있는 자식 요소의 title을 이름으로 쓴다. (일반 span·div의 title은 크롬도 쓰지 않음)
+// 예: <a href="/"><h1 title="Bing 검색으로 돌아가기"></h1></a> → 크롬 이름 "Bing 검색으로 돌아가기"
+function titleFromChildren(el) {
+  for (const c of el.querySelectorAll('[title]')) {
+    const t = normalize(c.getAttribute('title'));
+    if (!t || isInaccessible(c)) continue;
+    const r = getRole(c);
+    if (r && r !== 'generic' && r !== 'presentation' && r !== 'none') return t;
+  }
+  return '';
+}
+
 /**
  * 하나의 요소에 대해 이름 상태를 판정
  * @returns {{ status: 'ok'|'empty'|'meaningless', name: string, role: string }}
  */
 export function checkName(el) {
   const role = getRole(el);
-  const name = normalize(computeAccessibleName(el));
+  let name = normalize(computeAccessibleName(el));
+  if (name === '') name = titleFromChildren(el);
   const authorNamed =
   normalize(el.getAttribute('aria-label')) !== '' || el.hasAttribute('aria-labelledby');
 
