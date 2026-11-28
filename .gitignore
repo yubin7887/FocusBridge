@@ -70,6 +70,20 @@ web_modules/
 .env.*
 !.env.example
 
+# Private keys and Chrome extension packages
+*.pem
+*.key
+*.p12
+*.pfx
+*.crx
+
+# Playwright reports, authentication state and local browser profiles
+/playwright-report/
+/test-results/
+/playwright/.auth/
+/.playwright/
+/user-data/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
